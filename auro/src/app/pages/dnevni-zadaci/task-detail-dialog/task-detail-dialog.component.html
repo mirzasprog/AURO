@@ -1,0 +1,50 @@
+<nb-card *ngIf="task">
+  <nb-card-header>
+    <div class="header-content">
+      <div>
+        <h5>{{ task.title }}</h5>
+        <span class="task-type">{{ task.type === 'REPETITIVE' ? 'Repetitivni zadatak' : 'Prilagođeni zadatak' }}</span>
+      </div>
+      <nb-badge [text]="task.status | titlecase" [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'"></nb-badge>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="task-details">
+      <p *ngIf="task.description">{{ task.description }}</p>
+      <div class="meta">
+        <span><strong>Datum:</strong> {{ task.date | date:'dd.MM.yyyy' }}</span>
+        <span *ngIf="task.createdBy"><strong>Kreirao:</strong> {{ task.createdBy }}</span>
+        <span *ngIf="task.completedBy"><strong>Završio:</strong> {{ task.completedBy }}</span>
+        <span *ngIf="task.completedAt"><strong>Završeno:</strong> {{ task.completedAt | date:'short' }}</span>
+      </div>
+      <div class="image-preview" *ngIf="imageUrl">
+        <img [src]="imageUrl" alt="Priložena slika">
+        <button nbButton status="danger" size="tiny" ghost (click)="markImageForRemoval()" *ngIf="canEdit">Ukloni sliku</button>
+      </div>
+    </div>
+
+    <form [formGroup]="form" class="status-form" *ngIf="canEdit">
+      <div class="form-row">
+        <label>Status</label>
+        <nb-select fullWidth formControlName="status">
+          <nb-option *ngFor="let option of statusOptions" [value]="option.value">{{ option.label }}</nb-option>
+        </nb-select>
+      </div>
+
+      <div class="form-row">
+        <label>Napomena</label>
+        <textarea nbInput rows="4" formControlName="completionNote" placeholder="Unesite napomenu"></textarea>
+      </div>
+
+      <div class="form-row" *ngIf="task.imageAllowed">
+        <label>Dodaj sliku</label>
+        <input type="file" (change)="onFileSelected($event)" accept="image/*">
+        <small *ngIf="removeImage">Slika će biti uklonjena nakon spremanja.</small>
+      </div>
+    </form>
+  </nb-card-body>
+  <nb-card-footer class="actions">
+    <button nbButton status="basic" (click)="cancel()">Zatvori</button>
+    <button nbButton status="primary" *ngIf="canEdit" [disabled]="submitting" (click)="submit()">Sačuvaj</button>
+  </nb-card-footer>
+</nb-card>

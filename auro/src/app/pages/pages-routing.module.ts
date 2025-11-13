@@ -87,6 +87,11 @@ const routes: Routes = [{
       .then(m => m.ReklamacijeKvalitetaVIPModule),
       component: ReklamacijeKvalitetaVIPComponent
     },
+    {
+      path: 'dnevni-zadaci',
+      loadChildren: () => import('./dnevni-zadaci/dnevni-zadaci.module')
+      .then(m => m.DnevniZadaciModule)
+    },
 
     {
       path: '',

@@ -1,0 +1,100 @@
+<nb-card>
+  <nb-card-header class="header-row">
+    <div class="title">
+      <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+      <span>Dnevni zadaci</span>
+    </div>
+    <div class="controls" *ngIf="canManageCustomTasks">
+      <nb-select placeholder="Odaberite prodavnicu" [(selected)]="selectedStoreId" (selectedChange)="onStoreChange()">
+        <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
+      </nb-select>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="loading" *ngIf="loading">
+      <nb-spinner size="large"></nb-spinner>
+    </div>
+
+    <ng-container *ngIf="!loading">
+      <div class="empty-state" *ngIf="!tasks.length && isStoreSelected">
+        <nb-icon icon="clipboard-outline"></nb-icon>
+        <p>Nema zadataka za odabrani datum.</p>
+      </div>
+
+      <div class="sections" *ngIf="tasks.length">
+        <section class="task-group">
+          <div class="group-header">
+            <h5>Repetitivni zadaci</h5>
+          </div>
+          <div class="task-grid">
+            <nb-card *ngFor="let task of repetitiveTasks; trackBy: trackByTaskId" class="task-card" (click)="openTask(task)">
+              <nb-card-header>
+                <div class="task-title">{{ task.title }}</div>
+                <nb-badge [text]="task.status | titlecase" [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'"></nb-badge>
+              </nb-card-header>
+              <nb-card-body>
+                <p class="task-type">{{ task.type === repetitiveType ? 'Repetitivni zadatak' : 'Prilagođeni zadatak' }}</p>
+                <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
+              </nb-card-body>
+              <nb-card-footer>
+                <div class="footer-row">
+                  <span class="image-indicator" *ngIf="task.imageAllowed">
+                    <nb-icon icon="image-outline"></nb-icon>
+                    <span>Dozvoljen snimak</span>
+                  </span>
+                  <span class="completed-info" *ngIf="task.completedAt">
+                    Završeno: {{ task.completedAt | date:'short' }}
+                  </span>
+                </div>
+              </nb-card-footer>
+            </nb-card>
+          </div>
+        </section>
+
+        <section class="task-group">
+          <div class="group-header">
+            <h5>Prilagođeni zadaci</h5>
+            <button nbButton size="small" status="primary" *ngIf="canManageCustomTasks && selectedStoreId" (click)="createCustomTask()">
+              <nb-icon icon="plus-outline"></nb-icon>
+              Dodaj zadatak
+            </button>
+          </div>
+          <div class="task-grid">
+            <nb-card *ngFor="let task of customTasks; trackBy: trackByTaskId" class="task-card">
+              <nb-card-header>
+                <div class="task-title">{{ task.title }}</div>
+                <div class="header-actions">
+                  <nb-badge [text]="task.status | titlecase" [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'"></nb-badge>
+                  <button nbButton ghost size="tiny" nbTooltip="Prikaži detalje" (click)="openTask(task)">
+                    <nb-icon icon="eye-outline"></nb-icon>
+                  </button>
+                  <button nbButton ghost size="tiny" nbTooltip="Uredi" *ngIf="canManageCustomTasks && task.isEditable" (click)="editCustomTask(task)">
+                    <nb-icon icon="edit-2-outline"></nb-icon>
+                  </button>
+                </div>
+              </nb-card-header>
+              <nb-card-body>
+                <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
+                <div class="task-meta">
+                  <span *ngIf="task.createdBy">Kreirao: {{ task.createdBy }}</span>
+                  <span *ngIf="task.completedBy">Završio: {{ task.completedBy }}</span>
+                </div>
+              </nb-card-body>
+              <nb-card-footer>
+                <div class="footer-row">
+                  <span class="image-indicator" *ngIf="task.imageAllowed">
+                    <nb-icon icon="image-outline"></nb-icon>
+                    <span>Dozvoljen snimak</span>
+                  </span>
+                  <span class="completed-info" *ngIf="task.completedAt">
+                    Završeno: {{ task.completedAt | date:'short' }}
+                  </span>
+                </div>
+              </nb-card-footer>
+            </nb-card>
+          </div>
+        </section>
+      </div>
+    </ng-container>
+  </nb-card-body>
+</nb-card>

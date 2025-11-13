@@ -7,6 +7,11 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: "browser-outline",
     link: "/pages/pocetna-stranica/radna-ploca"
   },
+  {
+    title: "Dnevni zadaci",
+    icon: "checkmark-circle-outline",
+    link: "/pages/dnevni-zadaci"
+  },
   //Otpis -- rola: prodavnica [1]
   {
     title: "Otpis",

@@ -38,6 +38,8 @@ builder.Services.AddScoped<IUcesniciInventureRepository, UcesniciInventureReposi
 builder.Services.AddScoped<IUploadRepository, UploadRepository>();
 builder.Services.AddScoped<IParcijalnaInventuraRepository, ParcijalnaInventuraRepository>();
 builder.Services.AddScoped<IAkcijeRepository, AkcijeRepository>();
+builder.Services.AddScoped<IDailyTaskRepository, DailyTaskRepository>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
