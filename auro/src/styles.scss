@@ -1,11 +1,233 @@
+:root {
+  color-scheme: light;
+  --transition-duration: 0.35s;
+  --app-background: radial-gradient(120% 120% at 100% 0%, rgba(99, 102, 241, 0.12) 0%, transparent 55%),
+    radial-gradient(110% 110% at 0% 100%, rgba(14, 165, 233, 0.14) 0%, transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #e8ecf8 100%);
+  --app-surface: rgba(255, 255, 255, 0.72);
+  --sidebar-background: rgba(255, 255, 255, 0.88);
+  --sidebar-border: rgba(15, 23, 42, 0.08);
+  --sidebar-text: #1f2937;
+  --header-background: rgba(255, 255, 255, 0.8);
+  --header-border: rgba(15, 23, 42, 0.08);
+  --text-primary: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --heading-color: #111827;
+  --link-color: #4338ca;
+  --card-background: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(15, 23, 42, 0.08);
+  --card-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+  --card-hover-shadow: 0 32px 56px rgba(15, 23, 42, 0.12);
+  --glass-blur: blur(12px);
+
+  --dashboard-shell-bg: radial-gradient(120% 120% at 100% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 55%),
+    radial-gradient(110% 110% at 0% 100%, rgba(45, 212, 191, 0.16) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.92) 0%, rgba(236, 241, 255, 0.78) 100%);
+  --dashboard-card-background: linear-gradient(140deg, rgba(255, 255, 255, 0.95), rgba(244, 247, 255, 0.78));
+  --dashboard-card-overlay: linear-gradient(135deg, rgba(99, 102, 241, 0.18), rgba(14, 165, 233, 0.08));
+  --dashboard-card-highlight: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.35) 0, transparent 60%);
+  --dashboard-card-border: rgba(99, 102, 241, 0.12);
+  --dashboard-card-shadow: 0 26px 40px rgba(15, 23, 42, 0.08);
+  --dashboard-subtitle-color: rgba(75, 85, 99, 0.78);
+  --dashboard-title-color: #111827;
+  --dashboard-description-color: rgba(79, 89, 102, 0.9);
+
+  --quick-action-background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(244, 247, 255, 0.72));
+  --quick-action-border: rgba(99, 102, 241, 0.12);
+  --quick-action-shadow: 0 24px 48px rgba(15, 23, 42, 0.12);
+  --quick-action-icon-bg: rgba(99, 102, 241, 0.12);
+  --quick-action-icon-border: rgba(99, 102, 241, 0.22);
+  --quick-action-text: #1f2937;
+  --quick-action-muted: rgba(79, 89, 102, 0.82);
+  --quick-action-primary: linear-gradient(135deg, rgba(99, 102, 241, 0.32), rgba(14, 165, 233, 0.18));
+  --quick-action-success: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(132, 225, 188, 0.22));
+  --quick-action-warning: linear-gradient(135deg, rgba(251, 191, 36, 0.32), rgba(253, 230, 138, 0.22));
+  --quick-action-warning-text: #78350f;
+
+  --kpi-card-background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(235, 241, 255, 0.78));
+  --kpi-card-border: rgba(99, 102, 241, 0.12);
+  --kpi-card-shadow: 0 24px 48px rgba(15, 23, 42, 0.1);
+  --kpi-card-overlay: linear-gradient(140deg, rgba(99, 102, 241, 0.2), rgba(14, 165, 233, 0.12));
+  --kpi-card-highlight: radial-gradient(circle at 75% -15%, rgba(255, 255, 255, 0.4) 0, transparent 55%);
+  --kpi-title-color: rgba(100, 116, 139, 0.85);
+  --kpi-value-color: #0f172a;
+  --kpi-hint-color: rgba(79, 89, 102, 0.82);
+
+  --chart-card-background: linear-gradient(150deg, rgba(255, 255, 255, 0.95), rgba(240, 245, 255, 0.82));
+  --chart-card-border: rgba(99, 102, 241, 0.12);
+  --chart-card-shadow: 0 24px 48px rgba(15, 23, 42, 0.1);
+  --chart-card-overlay: radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.22) 0, transparent 55%);
+  --chart-card-title: #111827;
+  --chart-card-subtitle: rgba(79, 89, 102, 0.86);
+  --chart-icon-bg: rgba(99, 102, 241, 0.16);
+  --chart-icon-color: #4338ca;
+  --comparison-icon-bg: rgba(16, 185, 129, 0.18);
+  --comparison-icon-color: #047857;
+}
+
+body[data-theme='dark'] {
+  color-scheme: dark;
+  --app-background: radial-gradient(120% 120% at 100% 0%, rgba(112, 142, 255, 0.25) 0%, transparent 55%),
+    radial-gradient(110% 110% at 0% 100%, rgba(54, 214, 174, 0.18) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(17, 24, 39, 0.72) 0%, rgba(17, 24, 39, 0.42) 100%);
+  --app-surface: rgba(24, 32, 52, 0.78);
+  --sidebar-background: rgba(15, 23, 42, 0.82);
+  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-text: rgba(226, 233, 255, 0.92);
+  --header-background: rgba(15, 23, 42, 0.72);
+  --header-border: rgba(255, 255, 255, 0.06);
+  --text-primary: #f8fafc;
+  --text-secondary: rgba(226, 233, 255, 0.78);
+  --text-muted: rgba(184, 198, 235, 0.72);
+  --heading-color: #f6f8ff;
+  --link-color: #a5b4fc;
+  --card-background: linear-gradient(140deg, rgba(27, 36, 61, 0.92), rgba(31, 45, 76, 0.78));
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 28px 48px rgba(16, 21, 36, 0.35);
+  --card-hover-shadow: 0 32px 56px rgba(8, 12, 24, 0.45);
+  --glass-blur: blur(16px);
+
+  --dashboard-shell-bg: radial-gradient(120% 120% at 100% 0%, rgba(112, 142, 255, 0.25) 0%, transparent 55%),
+    radial-gradient(110% 110% at 0% 100%, rgba(54, 214, 174, 0.18) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(17, 24, 39, 0.68) 0%, rgba(17, 24, 39, 0.32) 100%);
+  --dashboard-card-background: linear-gradient(135deg, rgba(27, 36, 61, 0.92) 0%, rgba(31, 45, 76, 0.78) 60%, rgba(53, 76, 130, 0.65) 100%);
+  --dashboard-card-overlay: linear-gradient(135deg, rgba(120, 180, 255, 0.28), rgba(92, 129, 244, 0.08));
+  --dashboard-card-highlight: radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.16) 0, transparent 55%);
+  --dashboard-card-border: rgba(255, 255, 255, 0.08);
+  --dashboard-card-shadow: 0 28px 48px rgba(16, 21, 36, 0.35);
+  --dashboard-subtitle-color: rgba(224, 232, 255, 0.72);
+  --dashboard-title-color: #f6f8ff;
+  --dashboard-description-color: rgba(216, 225, 255, 0.75);
+
+  --quick-action-background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+  --quick-action-border: rgba(255, 255, 255, 0.08);
+  --quick-action-shadow: 0 26px 38px rgba(15, 23, 42, 0.35);
+  --quick-action-icon-bg: rgba(17, 24, 39, 0.28);
+  --quick-action-icon-border: rgba(255, 255, 255, 0.12);
+  --quick-action-text: #f9fbff;
+  --quick-action-muted: rgba(227, 234, 255, 0.78);
+  --quick-action-primary: linear-gradient(135deg, rgba(94, 129, 244, 0.82), rgba(143, 198, 255, 0.55));
+  --quick-action-success: linear-gradient(135deg, rgba(54, 214, 174, 0.85), rgba(139, 230, 204, 0.54));
+  --quick-action-warning: linear-gradient(135deg, rgba(249, 168, 38, 0.85), rgba(255, 209, 102, 0.54));
+  --quick-action-warning-text: #231916;
+
+  --kpi-card-background: linear-gradient(160deg, rgba(20, 28, 45, 0.92), rgba(30, 48, 80, 0.72));
+  --kpi-card-border: rgba(255, 255, 255, 0.08);
+  --kpi-card-shadow: 0 26px 38px rgba(12, 18, 32, 0.35);
+  --kpi-card-overlay: linear-gradient(140deg, rgba(89, 141, 255, 0.32), rgba(115, 234, 212, 0.18));
+  --kpi-card-highlight: radial-gradient(circle at 75% -15%, rgba(255, 255, 255, 0.28) 0, transparent 55%);
+  --kpi-title-color: rgba(215, 225, 255, 0.66);
+  --kpi-value-color: #ffffff;
+  --kpi-hint-color: rgba(226, 233, 255, 0.7);
+
+  --chart-card-background: linear-gradient(150deg, rgba(19, 28, 44, 0.94), rgba(28, 43, 68, 0.85));
+  --chart-card-border: rgba(255, 255, 255, 0.08);
+  --chart-card-shadow: 0 26px 38px rgba(12, 18, 32, 0.35);
+  --chart-card-overlay: radial-gradient(circle at 15% 20%, rgba(120, 178, 255, 0.28) 0, transparent 55%);
+  --chart-card-title: #f1f5ff;
+  --chart-card-subtitle: rgba(210, 222, 255, 0.75);
+  --chart-icon-bg: rgba(94, 129, 244, 0.22);
+  --chart-icon-color: #9cc2ff;
+  --comparison-icon-bg: rgba(54, 214, 174, 0.22);
+  --comparison-icon-color: #8cf5d9;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--app-background);
+  color: var(--text-primary);
+  font-family: 'Nunito', 'Inter', 'Segoe UI', sans-serif;
+  transition: background var(--transition-duration) ease, color var(--transition-duration) ease;
+}
+
+nb-layout,
+nb-layout .layout,
+nb-layout .layout-container,
+nb-layout .scrollable-container,
+nb-layout-column {
+  background: transparent !important;
+}
+
+nb-layout-header,
+nb-layout-footer {
+  background: var(--header-background) !important;
+  border-color: var(--header-border) !important;
+  backdrop-filter: var(--glass-blur);
+  transition: background var(--transition-duration) ease, border-color var(--transition-duration) ease;
+}
+
+nb-sidebar {
+  background: var(--sidebar-background) !important;
+  color: var(--sidebar-text) !important;
+  border-right: 1px solid var(--sidebar-border) !important;
+  backdrop-filter: var(--glass-blur);
+  transition: background var(--transition-duration) ease, color var(--transition-duration) ease,
+    border-color var(--transition-duration) ease;
+}
+
+nb-sidebar ::ng-deep nb-menu .menu-item a {
+  color: var(--text-secondary);
+  transition: color var(--transition-duration) ease, background var(--transition-duration) ease;
+}
+
+nb-sidebar ::ng-deep nb-menu .menu-item a.active,
+nb-sidebar ::ng-deep nb-menu .menu-item a:hover {
+  color: var(--link-color);
+  background: rgba(99, 102, 241, 0.12);
+}
+
 nb-card {
-    padding: 5px !important;
-    box-shadow: 10px 10px 10px rgba(30, 23, 95, 0.2);
-    border-radius: 20px;
-    border: 10px;
+  background: var(--card-background) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 1.25rem !important;
+  box-shadow: var(--card-shadow) !important;
+  padding: 0 !important;
+  backdrop-filter: var(--glass-blur);
+  transition: box-shadow var(--transition-duration) ease, transform var(--transition-duration) ease,
+    border-color var(--transition-duration) ease, background var(--transition-duration) ease;
+}
+
+nb-card:hover {
+  box-shadow: var(--card-hover-shadow) !important;
+  transform: translateY(-2px);
+}
+
+nb-card-header,
+nb-card-body,
+nb-card-footer {
+  color: var(--text-primary);
+  transition: color var(--transition-duration) ease;
+}
+
+button[nbButton] {
+  border-radius: 999px !important;
+  font-weight: 600;
+  transition: background var(--transition-duration) ease, color var(--transition-duration) ease,
+    box-shadow var(--transition-duration) ease, transform var(--transition-duration) ease;
+}
+
+button[nbButton]:hover {
+  transform: translateY(-1px);
+}
+
+nb-user {
+  color: var(--text-primary) !important;
+}
+
+nb-icon {
+  transition: color var(--transition-duration) ease, transform var(--transition-duration) ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-duration: 0.01s;
   }
 
-  .button{
-    size: small;
-
+  nb-card,
+  button[nbButton],
+  nb-icon {
+    transition: none !important;
   }
+}
