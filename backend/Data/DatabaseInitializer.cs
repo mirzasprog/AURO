@@ -41,6 +41,7 @@ BEGIN
         [ImageAllowed] BIT NOT NULL CONSTRAINT [DF_DailyTask_ImageAllowed] DEFAULT(0),
         [ImageAttachment] VARCHAR(500) NULL,
         [TemplateId] INT NULL,
+        [IsRecurring] BIT NOT NULL CONSTRAINT [DF_DailyTask_IsRecurring] DEFAULT(0),
         CONSTRAINT [PK_DailyTask] PRIMARY KEY CLUSTERED ([ID] ASC),
         CONSTRAINT [FK_DailyTask_CreatedBy] FOREIGN KEY([CreatedById]) REFERENCES [dbo].[Korisnik]([KorisnikID]),
         CONSTRAINT [FK_DailyTask_CompletedBy] FOREIGN KEY([CompletedById]) REFERENCES [dbo].[Korisnik]([KorisnikID]),
@@ -49,6 +50,15 @@ BEGIN
     );
 
     CREATE INDEX [IX_DailyTask_ProdavnicaID_Date] ON [dbo].[DailyTask]([ProdavnicaID], [Date]);
+END";
+
+        private const string EnsureDailyTaskRecurringColumnSql = @"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'DailyTask' AND schema_id = SCHEMA_ID('dbo'))
+    AND NOT EXISTS (
+        SELECT 1 FROM sys.columns WHERE Name = 'IsRecurring' AND Object_ID = OBJECT_ID('[dbo].[DailyTask]')
+    )
+BEGIN
+    ALTER TABLE [dbo].[DailyTask] ADD [IsRecurring] BIT NOT NULL CONSTRAINT [DF_DailyTask_IsRecurring] DEFAULT(0);
 END";
 
         private const string SeedDailyTaskTemplatesSql = @"
@@ -86,6 +96,7 @@ END";
 
             await context.Database.ExecuteSqlRawAsync(EnsureDailyTaskTemplateSql);
             await context.Database.ExecuteSqlRawAsync(EnsureDailyTaskTableSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureDailyTaskRecurringColumnSql);
             await context.Database.ExecuteSqlRawAsync(SeedDailyTaskTemplatesSql);
         }
     }

@@ -2,6 +2,7 @@ using backend.Entities;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -202,6 +203,13 @@ namespace backend.Data
                 return DailyTaskOperationResult.Failed("Korisnik nije pronađen.");
             }
 
+            if (string.Equals(currentUser.Uloga, "prodavnica", StringComparison.OrdinalIgnoreCase)
+                && currentUser.Prodavnica != null
+                && currentUser.Prodavnica.KorisnikId != request.ProdavnicaId)
+            {
+                return DailyTaskOperationResult.Failed("Nemate dozvolu za kreiranje zadatka za odabranu prodavnicu.");
+            }
+
             var prodavnicaExists = await _context.Prodavnica.AnyAsync(p => p.KorisnikId == request.ProdavnicaId);
             if (!prodavnicaExists)
             {
@@ -214,10 +222,11 @@ namespace backend.Data
                 Description = request.Description,
                 Date = request.Date.Date,
                 ProdavnicaId = request.ProdavnicaId,
-                Type = TypeCustom,
+                Type = request.IsRecurring ? TypeRepetitive : TypeCustom,
                 Status = StatusOpen,
                 ImageAllowed = request.ImageAllowed,
-                CreatedById = currentUser.KorisnikId
+                CreatedById = currentUser.KorisnikId,
+                IsRecurring = request.IsRecurring
             };
 
             _context.DailyTask.Add(task);
@@ -231,20 +240,39 @@ namespace backend.Data
 
         public async Task<DailyTaskOperationResult> UpdateCustomTaskAsync(int taskId, DailyTaskUpdateRequest request)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return DailyTaskOperationResult.Failed("Korisnik nije pronađen.");
+            }
+
             var task = await _context.DailyTask
                 .Include(t => t.Prodavnica)
                 .Include(t => t.CreatedBy)
                 .FirstOrDefaultAsync(t => t.Id == taskId);
 
-            if (task == null || !string.Equals(task.Type, TypeCustom, StringComparison.OrdinalIgnoreCase))
+            var isUserRepetitive = task != null
+                && string.Equals(task.Type, TypeRepetitive, StringComparison.OrdinalIgnoreCase)
+                && task.TemplateId == null
+                && task.CreatedById.HasValue;
+
+            if (task == null || (!string.Equals(task.Type, TypeCustom, StringComparison.OrdinalIgnoreCase) && !isUserRepetitive))
             {
                 return DailyTaskOperationResult.Failed("Zadatak nije pronađen ili nije prilagođeni zadatak.");
+            }
+
+            if (string.Equals(currentUser.Uloga, "prodavnica", StringComparison.OrdinalIgnoreCase)
+                && task.CreatedById != currentUser.KorisnikId)
+            {
+                return DailyTaskOperationResult.Failed("Nemate dozvolu za uređivanje ovog zadatka.");
             }
 
             task.Title = request.Title;
             task.Description = request.Description;
             task.Date = request.Date.Date;
             task.ImageAllowed = request.ImageAllowed;
+            task.IsRecurring = request.IsRecurring;
+            task.Type = request.IsRecurring ? TypeRepetitive : TypeCustom;
 
             await _context.SaveChangesAsync();
 
@@ -297,6 +325,10 @@ namespace backend.Data
                 ProdavnicaBroj = task.Prodavnica?.BrojProdavnice,
                 ProdavnicaNaziv = storeName,
                 IsEditable = string.Equals(task.Type, TypeCustom, StringComparison.OrdinalIgnoreCase)
+                    || (string.Equals(task.Type, TypeRepetitive, StringComparison.OrdinalIgnoreCase)
+                        && task.TemplateId == null
+                        && task.CreatedById.HasValue),
+                IsRecurring = task.IsRecurring
             };
         }
 
