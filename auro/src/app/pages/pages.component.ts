@@ -3,6 +3,7 @@ import Swal from "sweetalert2";
 import { DataService } from "../@core/utils/data.service";
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { MENU_ITEMS } from "./pages-menu";
+import { NbMenuItem } from "@nebular/theme";
 
 @Component({
   selector: "ngx-pages",
@@ -19,6 +20,29 @@ export class PagesComponent implements OnInit {
   menu = MENU_ITEMS;
   role: any;
   constructor(private dataService: DataService, public authService: NbAuthService) { }
+
+  private findMenuItem(path: string[]): NbMenuItem | undefined {
+    let items: NbMenuItem[] | undefined = this.menu;
+    let current: NbMenuItem | undefined;
+
+    for (const segment of path) {
+      current = items?.find(item => item.title === segment);
+      if (!current) {
+        return undefined;
+      }
+      items = current.children as NbMenuItem[] | undefined;
+    }
+
+    return current;
+  }
+
+  private setMenuHidden(path: string[], hidden: boolean): void {
+    const item = this.findMenuItem(path);
+    if (item) {
+      item.hidden = hidden;
+    }
+  }
+
   //Funkcija za preikaz linkova u side baru u ovisnosti od role
   PregledPoRolama() {
     this.authService.getToken()
@@ -26,73 +50,73 @@ export class PagesComponent implements OnInit {
         this.role = token.getPayload()["role"]
         let rola = token.getPayload()["role"]
         if (rola == "prodavnica") {
-          this.menu[1].hidden = false; //Otpis
-          this.menu[2].children[0].hidden = true; //Pregled inventure za podrucnog
-          this.menu[2].hidden = false; // Inventure
-          this.menu[3].hidden = true; //Zahtjevi
-          this.menu[4].hidden = true; //Pregled
-          this.menu[5].hidden = true; //Unos datuma za redovni otpis
-          this.menu[6].hidden = true;  //Dinamika otpisa
-          this.menu[7].hidden = true;  //Pregled završenih zahtjeva
-          this.menu[8].hidden = true;  //Akcije
-          this.menu[9].hidden = false;  //Reklamacije VIP
+          this.setMenuHidden(["Otpis"], false);
+          this.setMenuHidden(["Inventure", "Pregled"], true);
+          this.setMenuHidden(["Inventure"], false);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], false);
         }
         else if (rola == "interna") {
-          this.menu[1].hidden = true; //Otpis
-          this.menu[2].children[1].hidden = true; //Unos inventure
-          this.menu[2].hidden = false; // Inventure
-          this.menu[3].hidden = true; //Zahtjevi
-          this.menu[4].hidden = false; //Pregled
-          this.menu[5].hidden = false; //Unos datuma za redovni otpis
-          this.menu[6].hidden = false;  //Dinamika otpisa
-          this.menu[7].hidden = true;  //Pregled završenih zahtjeva
-          this.menu[8].hidden = true;  //Akcije
-          this.menu[9].hidden = true;  //Reklamacije VIP
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure", "Unos"], true);
+          this.setMenuHidden(["Inventure"], false);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], false);
+          this.setMenuHidden(["Datumi"], false);
+          this.setMenuHidden(["Pregled dinamike otpisa"], false);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "podrucni") {
-          this.menu[1].hidden = true; //Otpis
-          this.menu[2].children[1].hidden = true; //Unos inventure
-          this.menu[2].hidden = true; // Inventure
-          this.menu[3].hidden = false; //Zahtjevi
-          this.menu[4].hidden = true; //Pregled
-          this.menu[5].hidden = true; //Unos datuma za redovni otpis
-          this.menu[6].hidden = true;  //Dinamika otpisa
-          this.menu[7].hidden = false;  //Pregled završenih zahtjeva
-          this.menu[8].hidden = true;  //Akcije
-          this.menu[9].hidden = true;  //Reklamacije VIP
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure", "Unos"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], false);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], false);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "regionalni") {
-          this.menu[1].hidden = true; //Otpis
-          this.menu[2].hidden = true; // Inventure
-          this.menu[3].hidden = false; //Zahtjevi
-          this.menu[4].hidden = true; //Pregled
-          this.menu[5].hidden = true; //Unos datuma za redovni otpis
-          this.menu[6].hidden = true;  //Dinamika otpisa
-          this.menu[7].hidden = false;  //Pregled završenih zahtjeva
-          this.menu[8].hidden = true;  //Akcije
-          this.menu[9].hidden = true;  //Reklamacije VIP
-        }        
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], false);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], false);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], true);
+        }
         else if (rola == "kontrola_kvaliteta") {
-          this.menu[1].hidden = true;
-          this.menu[2].hidden = true;
-          this.menu[3].hidden = true;
-          this.menu[4].hidden = true;
-          this.menu[5].hidden = true;
-          this.menu[6].hidden = true;
-          this.menu[7].hidden = true;
-          this.menu[8].hidden = true;  
-          this.menu[9].hidden = false;  
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], false);
         }
         else {
-          this.menu[1].hidden = true;
-          this.menu[2].hidden = true;
-          this.menu[3].hidden = true;
-          this.menu[4].hidden = true;
-          this.menu[5].hidden = true;
-          this.menu[6].hidden = true;
-          this.menu[7].hidden = true;
-          this.menu[8].hidden = true;  
-          this.menu[9].hidden = true;  
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
       })
   }
@@ -103,7 +127,7 @@ export class PagesComponent implements OnInit {
     this.dataService.provjeriOmogucenOtpis().subscribe(
       (otpis) => {
         if (otpis.omogucenUnosOtpisa) {
-          this.menu[1].children[0].children[0].hidden = false;
+          this.setMenuHidden(["Otpis", "Redovni", "Novi redovni otpis"], false);
           if (localStorage.getItem("zavrsen_otpis")) {
             return;
           }
@@ -119,7 +143,7 @@ export class PagesComponent implements OnInit {
 
         } else {
           localStorage.setItem("zavrsen_otpis", "0");
-          this.menu[1].children[0].children[0].hidden = true;
+          this.setMenuHidden(["Otpis", "Redovni", "Novi redovni otpis"], true);
         }
       },
       (err) => {
@@ -133,11 +157,11 @@ export class PagesComponent implements OnInit {
       this.dataService.provjeriOdobrenjeInventure().subscribe(
         (parametar) => {
           if (parametar.unos) {
-            this.menu[2].hidden = false;
+            this.setMenuHidden(["Inventure"], false);
             return;
           }
           else {
-            this.menu[2].hidden = true;
+            this.setMenuHidden(["Inventure"], true);
             return;
           }
         },

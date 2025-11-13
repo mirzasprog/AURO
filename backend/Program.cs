@@ -85,6 +85,8 @@ if (!builder.Environment.IsDevelopment())
 
 var app = builder.Build();
 
+await DatabaseInitializer.EnsureDailyTaskTablesAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
