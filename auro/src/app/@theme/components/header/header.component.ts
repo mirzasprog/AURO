@@ -81,8 +81,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
       )
       .subscribe(themeName => {
         this.currentTheme = themeName;
-        this.themePreference = themeName === 'dark' ? 'dark' : 'light';
-        this.setDocumentTheme(this.themePreference);
+        const normalized = themeName === 'dark' ? 'dark' : 'light';
+
+        if (this.themePreference !== normalized) {
+          this.themePreference = normalized;
+          this.setDocumentTheme(normalized);
+          this.persistTheme(normalized);
+        }
       });
   }
 
@@ -119,17 +124,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private applyTheme(preference: 'light' | 'dark'): void {
-    this.themePreference = preference;
     const nbTheme = preference === 'dark' ? 'dark' : 'default';
-    this.themeService.changeTheme(nbTheme);
-    this.currentTheme = nbTheme;
+    if (this.currentTheme !== nbTheme) {
+      this.themeService.changeTheme(nbTheme);
+      this.currentTheme = nbTheme;
+    }
+
+    if (this.themePreference !== preference) {
+      this.themePreference = preference;
+      this.persistTheme(preference);
+    }
+
     this.setDocumentTheme(preference);
-    this.persistTheme(preference);
   }
 
   private setDocumentTheme(preference: 'light' | 'dark'): void {
     if (typeof document !== 'undefined' && document.body) {
-      document.body.dataset.theme = preference;
+      if (document.body.dataset.theme !== preference) {
+        document.body.dataset.theme = preference;
+      }
     }
   }
 
