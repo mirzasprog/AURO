@@ -1,29 +1,49 @@
-<nb-card>
+<nb-card class="dialog-card">
   <nb-card-header>
-    <span>{{ title }}</span>
+    <div class="header-content">
+      <nb-icon icon="edit-2-outline"></nb-icon>
+      <div>
+        <span class="title">{{ title }}</span>
+        <small>Kreirajte zadatak koji odgovara vašem dnevnom ritmu.</small>
+      </div>
+    </div>
   </nb-card-header>
   <nb-card-body>
     <form [formGroup]="form" class="form-grid">
-      <label>
-        <span>Naziv zadatka</span>
+      <div class="field">
+        <label>Naziv zadatka</label>
         <input nbInput fullWidth formControlName="title" placeholder="Unesite naziv zadatka">
-      </label>
+      </div>
 
-      <label>
-        <span>Opis</span>
-        <textarea nbInput fullWidth formControlName="description" rows="3" placeholder="Unesite opis (opcionalno)"></textarea>
-      </label>
+      <div class="field">
+        <label>Opis</label>
+        <textarea nbInput fullWidth formControlName="description" rows="3" placeholder="Dodajte kontekst ili korake (opcionalno)"></textarea>
+      </div>
 
-      <label>
-        <span>Datum</span>
-        <input nbInput type="date" formControlName="date">
-      </label>
+      <div class="field-grid">
+        <div class="field">
+          <label>Datum</label>
+          <input nbInput type="date" formControlName="date">
+        </div>
+        <div class="field">
+          <label>Ponavljanje</label>
+          <nb-select fullWidth formControlName="isRecurring">
+            <nb-option [value]="false">Jednokratni zadatak</nb-option>
+            <nb-option [value]="true">Ponavlja se svakodnevno</nb-option>
+          </nb-select>
+        </div>
+      </div>
 
-      <label class="toggle-row">
-        <nb-icon icon="image-outline"></nb-icon>
-        <span>Dozvoli dodavanje slike</span>
-        <input type="checkbox" formControlName="imageAllowed">
-      </label>
+      <div class="options">
+        <label class="option">
+          <nb-icon icon="image-outline"></nb-icon>
+          <div>
+            <span>Dodavanje slike</span>
+            <small>Omogućite prenos fotografije uz zadatak.</small>
+          </div>
+          <nb-toggle formControlName="imageAllowed"></nb-toggle>
+        </label>
+      </div>
     </form>
   </nb-card-body>
   <nb-card-footer class="actions">

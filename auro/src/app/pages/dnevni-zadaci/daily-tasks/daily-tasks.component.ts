@@ -21,10 +21,23 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   tasks: DailyTask[] = [];
   repetitiveTasks: DailyTask[] = [];
   customTasks: DailyTask[] = [];
+  summaryCards: { title: string; subtitle: string; value: number | string; icon: string; accent: 'primary' | 'success' | 'info' }[] = [];
+  statusChartData: { name: string; value: number }[] = [];
+  readonly statusChartColorScheme = { domain: ['#5E81F4', '#FFBC6E', '#36D6AE'] };
+  readonly chartGradient = false;
+  readonly chartShowLabels = false;
+  readonly chartDoughnut = true;
   stores: DailyTaskStore[] = [];
   selectedStoreId?: number;
+  currentStoreId?: number;
   loading = false;
   role: string | null = null;
+  readonly today = new Date();
+  private readonly statusLabelMap: Record<string, string> = {
+    OPEN: 'Otvoreni',
+    IN_PROGRESS: 'U toku',
+    DONE: 'Završeni'
+  };
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -38,6 +51,12 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
         this.role = token.getPayload()?.['role'] ?? null;
+        const storeIdPayload = token.getPayload()?.['prodavnicaId'] ?? token.getPayload()?.['storeId'];
+        if (storeIdPayload) {
+          const parsed = Number(storeIdPayload);
+          this.currentStoreId = Number.isNaN(parsed) ? undefined : parsed;
+          this.selectedStoreId = this.currentStoreId;
+        }
         this.loadInitialData();
       });
   }
@@ -47,12 +66,24 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get canManageCustomTasks(): boolean {
+  get canManageStores(): boolean {
     return this.role === 'podrucni' || this.role === 'regionalni';
   }
 
+  get canCreateCustomTasks(): boolean {
+    return this.canManageStores || this.role === 'prodavnica';
+  }
+
   get isStoreSelected(): boolean {
-    return !this.canManageCustomTasks || !!this.selectedStoreId;
+    return !this.canManageStores || !!this.selectedStoreId;
+  }
+
+  get hasTasks(): boolean {
+    return this.tasks.length > 0;
+  }
+
+  get headlineDate(): string {
+    return this.today.toLocaleDateString('bs-BA', { weekday: 'long', day: '2-digit', month: 'long' });
   }
 
   onStoreChange(): void {
@@ -65,14 +96,20 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
     }
 
     this.loading = true;
-    const storeId = this.canManageCustomTasks ? this.selectedStoreId : undefined;
+    const storeId = this.canManageStores ? this.selectedStoreId : undefined;
     this.dailyTaskService.getTodayTasks(storeId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks) => {
           this.tasks = tasks;
-          this.repetitiveTasks = tasks.filter(t => t.type === this.repetitiveType);
-          this.customTasks = tasks.filter(t => t.type === this.customType);
+          if (!this.canManageStores) {
+            const derivedStoreId = tasks.length ? tasks[0].prodavnicaId : undefined;
+            if (derivedStoreId) {
+              this.currentStoreId = derivedStoreId;
+              this.selectedStoreId = this.selectedStoreId ?? derivedStoreId;
+            }
+          }
+          this.updateDerivedCollections();
           this.loading = false;
         },
         error: (err) => {
@@ -87,7 +124,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialogService.open(TaskDetailDialogComponent, {
       context: {
         task,
-        canEdit: this.canManageCustomTasks || this.role === 'prodavnica'
+        canEdit: this.canCreateCustomTasks
       },
       closeOnBackdropClick: false
     });
@@ -100,7 +137,12 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   }
 
   createCustomTask(): void {
-    if (!this.selectedStoreId) {
+    const targetStoreId = this.canManageStores
+      ? this.selectedStoreId
+      : this.currentStoreId ?? this.selectedStoreId ?? (this.tasks.length ? this.tasks[0].prodavnicaId : undefined);
+
+    if (!targetStoreId) {
+      Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za kreiranje zadatka. Molimo pokušajte ponovo nakon osvježavanja.', 'info');
       return;
     }
 
@@ -117,12 +159,12 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.dailyTaskService.createCustomTask(this.selectedStoreId as number, payload)
+      this.dailyTaskService.createCustomTask(targetStoreId as number, payload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (task) => {
             this.tasks.push(task);
-            this.customTasks = this.tasks.filter(t => t.type === this.customType);
+            this.updateDerivedCollections();
           },
           error: (err) => {
             const poruka = err.error?.poruka ?? err.statusText;
@@ -162,7 +204,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   }
 
   private loadInitialData(): void {
-    if (this.canManageCustomTasks) {
+    if (this.canManageStores) {
       this.dailyTaskService.getStores()
         .pipe(takeUntil(this.destroy$))
         .subscribe({
@@ -179,6 +221,9 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
           }
         });
     } else {
+      if (this.currentStoreId && !this.selectedStoreId) {
+        this.selectedStoreId = this.currentStoreId;
+      }
       this.refreshTasks();
     }
   }
@@ -190,7 +235,49 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
     } else {
       this.tasks.push(task);
     }
+    this.updateDerivedCollections();
+  }
+
+  private updateDerivedCollections(): void {
     this.repetitiveTasks = this.tasks.filter(t => t.type === this.repetitiveType);
     this.customTasks = this.tasks.filter(t => t.type === this.customType);
+
+    const completed = this.tasks.filter(t => t.status === 'DONE').length;
+    const inProgress = this.tasks.filter(t => t.status === 'IN_PROGRESS').length;
+    const open = this.tasks.filter(t => t.status === 'OPEN').length;
+    const recurringCount = this.repetitiveTasks.length;
+    const personalRecurring = this.tasks.filter(t => t.isRecurring).length;
+
+    this.summaryCards = [
+      {
+        title: 'Aktivni zadaci',
+        subtitle: 'Otvoreni i u toku',
+        value: open + inProgress,
+        icon: 'flash-outline',
+        accent: 'info'
+      },
+      {
+        title: 'Završeno danas',
+        subtitle: 'Zadaci označeni kao završeni',
+        value: completed,
+        icon: 'checkmark-outline',
+        accent: 'success'
+      },
+      {
+        title: 'Ponavljajući ritam',
+        subtitle: personalRecurring
+          ? `Vaših personalnih zadataka: ${personalRecurring}`
+          : 'Dodajte vlastiti tempo',
+        value: recurringCount,
+        icon: 'calendar-outline',
+        accent: 'primary'
+      }
+    ];
+
+    this.statusChartData = [
+      { name: this.statusLabelMap.OPEN, value: open },
+      { name: this.statusLabelMap.IN_PROGRESS, value: inProgress },
+      { name: this.statusLabelMap.DONE, value: completed }
+    ].filter(item => item.value > 0);
   }
 }

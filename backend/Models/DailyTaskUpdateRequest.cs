@@ -14,5 +14,7 @@ namespace backend.Models
         public DateTime Date { get; set; }
 
         public bool ImageAllowed { get; set; }
+
+        public bool IsRecurring { get; set; }
     }
 }

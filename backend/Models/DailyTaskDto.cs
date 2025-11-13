@@ -20,5 +20,6 @@ namespace backend.Models
         public string? ProdavnicaBroj { get; set; }
         public string? ProdavnicaNaziv { get; set; }
         public bool IsEditable { get; set; }
+        public bool IsRecurring { get; set; }
     }
 }

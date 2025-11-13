@@ -18,6 +18,7 @@ namespace backend.Entities
         public bool ImageAllowed { get; set; }
         public string? ImageAttachment { get; set; }
         public int? TemplateId { get; set; }
+        public bool IsRecurring { get; set; }
 
         public virtual Korisnik? CreatedBy { get; set; }
         public virtual Korisnik? CompletedBy { get; set; }

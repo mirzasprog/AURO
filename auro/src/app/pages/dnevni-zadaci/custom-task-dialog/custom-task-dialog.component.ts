@@ -24,7 +24,8 @@ export class CustomTaskDialogComponent implements OnInit {
       title: ['', Validators.required],
       description: [''],
       date: ['', Validators.required],
-      imageAllowed: [true]
+      imageAllowed: [true],
+      isRecurring: [false]
     });
   }
 
@@ -34,7 +35,8 @@ export class CustomTaskDialogComponent implements OnInit {
         title: this.task.title,
         description: this.task.description,
         date: this.task.date ? this.task.date.substring(0, 10) : '',
-        imageAllowed: this.task.imageAllowed
+        imageAllowed: this.task.imageAllowed,
+        isRecurring: this.task.isRecurring
       });
     } else if (this.date) {
       const formatted = this.date.toISOString().substring(0, 10);
@@ -60,7 +62,8 @@ export class CustomTaskDialogComponent implements OnInit {
       title: value.title,
       description: value.description,
       date: value.date,
-      imageAllowed: value.imageAllowed
+      imageAllowed: value.imageAllowed,
+      isRecurring: value.isRecurring
     };
 
     this.dialogRef.close(payload);

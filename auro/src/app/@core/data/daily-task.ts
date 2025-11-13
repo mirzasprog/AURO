@@ -18,6 +18,7 @@ export interface DailyTask {
   prodavnicaBroj?: string;
   prodavnicaNaziv?: string;
   isEditable: boolean;
+  isRecurring: boolean;
 }
 
 export interface DailyTaskStore {
@@ -31,6 +32,7 @@ export interface DailyTaskPayload {
   description?: string;
   date: string;
   imageAllowed: boolean;
+  isRecurring: boolean;
 }
 
 export interface DailyTaskStatusPayload {

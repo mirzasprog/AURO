@@ -19,6 +19,18 @@
   flex-direction: column;
   gap: 1rem;
 
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+
+    nb-tag {
+      nb-icon {
+        margin-right: 0.35rem;
+      }
+    }
+  }
+
   .meta {
     display: grid;
     gap: 0.5rem;

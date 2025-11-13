@@ -17,5 +17,7 @@ namespace backend.Models
         public int ProdavnicaId { get; set; }
 
         public bool ImageAllowed { get; set; }
+
+        public bool IsRecurring { get; set; }
     }
 }

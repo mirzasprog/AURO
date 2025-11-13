@@ -3,13 +3,22 @@
     <div class="header-content">
       <div>
         <h5>{{ task.title }}</h5>
-        <span class="task-type">{{ task.type === 'REPETITIVE' ? 'Repetitivni zadatak' : 'Prilagođeni zadatak' }}</span>
+        <span class="task-type">
+          {{ task.isRecurring ? 'Ponavljajući zadatak' : task.type === 'REPETITIVE' ? 'Repetitivni zadatak' : 'Jednokratni zadatak' }}
+        </span>
       </div>
       <nb-badge [text]="task.status | titlecase" [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'"></nb-badge>
     </div>
   </nb-card-header>
   <nb-card-body>
     <div class="task-details">
+      <div class="tag-row">
+        <nb-tag appearance="filled" status="primary" *ngIf="task.isRecurring">Ponavljanje</nb-tag>
+        <nb-tag appearance="outline" status="info" *ngIf="task.imageAllowed">
+          <nb-icon icon="image-outline"></nb-icon>
+          Dozvoljene slike
+        </nb-tag>
+      </div>
       <p *ngIf="task.description">{{ task.description }}</p>
       <div class="meta">
         <span><strong>Datum:</strong> {{ task.date | date:'dd.MM.yyyy' }}</span>
