@@ -7,7 +7,7 @@ import { PocetnaStranicaComponent } from './pocetna-stranica.component';
 import { FormsModule } from '@angular/forms';
 import { NbDateFnsDateModule } from '@nebular/date-fns';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { NbCardModule, NbIconModule, NbInputModule, NbButtonModule, NbDatepickerModule, NbSelectModule, NbSpinnerModule, NbLayoutModule, NbFormFieldModule } from '@nebular/theme';
+import { NbCardModule, NbIconModule, NbInputModule, NbButtonModule, NbDatepickerModule, NbSelectModule, NbSpinnerModule, NbLayoutModule, NbFormFieldModule, NbDialogModule } from '@nebular/theme';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 import { ThemeModule } from '../../@theme/theme.module';
 import { OtpisiRoutingModule } from '../otpisi/otpisi-routing.module';
@@ -41,8 +41,9 @@ import { NgxChartsModule }from '@swimlane/ngx-charts';
     NbFormFieldModule,
     CommonModule,
     FormsModule,
-    NgxChartsModule
-  
+    NgxChartsModule,
+    NbDialogModule.forChild()
+
   ],
   providers: [],
 })

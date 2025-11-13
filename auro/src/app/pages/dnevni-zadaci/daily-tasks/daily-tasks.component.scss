@@ -1,0 +1,143 @@
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  .title {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 600;
+    font-size: 1.1rem;
+  }
+
+  .controls {
+    min-width: 220px;
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-hint-color);
+  padding: 3rem 0;
+
+  nb-icon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 1rem;
+  }
+}
+
+.sections {
+  display: grid;
+  gap: 2rem;
+}
+
+.task-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  .group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    h5 {
+      margin: 0;
+      font-weight: 600;
+    }
+  }
+}
+
+.task-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.task-card {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  nb-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .task-title {
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .task-type {
+    font-size: 0.85rem;
+    color: var(--text-hint-color);
+    margin-bottom: 0.5rem;
+  }
+
+  .task-description {
+    color: var(--text-basic-color);
+    margin-bottom: 0.5rem;
+  }
+
+  .task-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+    color: var(--text-hint-color);
+  }
+
+  .footer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-hint-color);
+  }
+
+  .image-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--color-success-500);
+  }
+
+  .header-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    button {
+      line-height: 1;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .task-card {
+    cursor: default;
+  }
+
+  .header-actions button[nbButton][ghost] {
+    padding: 0.25rem;
+  }
+}

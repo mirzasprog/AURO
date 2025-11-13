@@ -123,3 +123,68 @@
     color: white; /* Text color if you want to add any text inside */
     font-size: 1.5rem; /* Adjust the text size if needed */
   }
+
+.kpi-section {
+  margin-bottom: 2rem;
+
+  .kpi-loading {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 0;
+  }
+}
+
+.kpi-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.kpi-card {
+  background: var(--card-background-color);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  box-shadow: 0 12px 24px rgba(44, 51, 73, 0.1);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(44, 51, 73, 0.18);
+  }
+
+  .kpi-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-hint-color);
+  }
+
+  .kpi-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-basic-color);
+
+    small {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+  }
+
+  .kpi-hint {
+    font-size: 0.75rem;
+    color: var(--text-hint-color);
+  }
+}
+
+.modal-chart {
+  min-height: 240px;
+}
+
+@media screen and (max-width: 768px) {
+  .kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}

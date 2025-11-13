@@ -1,0 +1,33 @@
+<nb-card>
+  <nb-card-header>
+    <span>{{ title }}</span>
+  </nb-card-header>
+  <nb-card-body>
+    <form [formGroup]="form" class="form-grid">
+      <label>
+        <span>Naziv zadatka</span>
+        <input nbInput fullWidth formControlName="title" placeholder="Unesite naziv zadatka">
+      </label>
+
+      <label>
+        <span>Opis</span>
+        <textarea nbInput fullWidth formControlName="description" rows="3" placeholder="Unesite opis (opcionalno)"></textarea>
+      </label>
+
+      <label>
+        <span>Datum</span>
+        <input nbInput type="date" formControlName="date">
+      </label>
+
+      <label class="toggle-row">
+        <nb-icon icon="image-outline"></nb-icon>
+        <span>Dozvoli dodavanje slike</span>
+        <input type="checkbox" formControlName="imageAllowed">
+      </label>
+    </form>
+  </nb-card-body>
+  <nb-card-footer class="actions">
+    <button nbButton status="basic" (click)="cancel()">Otkaži</button>
+    <button nbButton status="primary" (click)="submit()" [disabled]="form.invalid">Sačuvaj</button>
+  </nb-card-footer>
+</nb-card>

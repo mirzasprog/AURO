@@ -19,6 +19,8 @@ namespace backend.Entities
 
         public virtual DbSet<Artikal> Artikal { get; set; } = null!;
         public virtual DbSet<ArtikalOvjeraOtpisa> ArtikalOvjeraOtpisa { get; set; } = null!;
+        public virtual DbSet<DailyTask> DailyTask { get; set; } = null!;
+        public virtual DbSet<DailyTaskTemplate> DailyTaskTemplate { get; set; } = null!;
         public virtual DbSet<DatumOtpisa> DatumOtpisa { get; set; } = null!;
         public virtual DbSet<DatumOdobravanjaInventure> T_DatumOdobravanjaInventure { get; set; } = null!;
         public virtual DbSet<Dobavljac> Dobavljac { get; set; } = null!;
@@ -949,6 +951,122 @@ namespace backend.Entities
             modelBuilder.Entity<RequestParcijalneInventureZaposlenik>(entity =>
                 entity.HasNoKey()
             );
+
+            modelBuilder.Entity<DailyTaskTemplate>(entity =>
+            {
+                entity.ToTable("DailyTaskTemplate");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.Title)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DefaultStatus)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.HasData(
+                    new DailyTaskTemplate
+                    {
+                        Id = 1,
+                        Title = "Naručivanje robe za market",
+                        Description = "Provjeriti zalihe i naručiti potrebnu robu za market.",
+                        ImageAllowed = false,
+                        IsActive = true,
+                        DefaultStatus = "OPEN"
+                    },
+                    new DailyTaskTemplate
+                    {
+                        Id = 2,
+                        Title = "Provjera cijena",
+                        Description = "Provjeriti da li su cijene na policama usklađene sa sistemom.",
+                        ImageAllowed = true,
+                        IsActive = true,
+                        DefaultStatus = "OPEN"
+                    },
+                    new DailyTaskTemplate
+                    {
+                        Id = 3,
+                        Title = "Narudžba za VIP odjel do 10 sati",
+                        Description = "Osigurati da su sve narudžbe za VIP odjel završene do 10 sati.",
+                        ImageAllowed = false,
+                        IsActive = true,
+                        DefaultStatus = "OPEN"
+                    },
+                    new DailyTaskTemplate
+                    {
+                        Id = 4,
+                        Title = "Provjera funkcionalnosti uređaja u marketu",
+                        Description = "Provjeriti sve uređaje u marketu i evidentirati eventualne kvarove.",
+                        ImageAllowed = true,
+                        IsActive = true,
+                        DefaultStatus = "OPEN"
+                    }
+                );
+            });
+
+            modelBuilder.Entity<DailyTask>(entity =>
+            {
+                entity.ToTable("DailyTask");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.Title)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(1000)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Type)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(20)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Date)
+                    .HasColumnType("date");
+
+                entity.Property(e => e.ImageAttachment)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CompletionNote)
+                    .HasMaxLength(2000)
+                    .IsUnicode(false);
+
+                entity.HasOne(d => d.CreatedBy)
+                    .WithMany()
+                    .HasForeignKey(d => d.CreatedById)
+                    .HasConstraintName("FK_DailyTask_CreatedBy");
+
+                entity.HasOne(d => d.CompletedBy)
+                    .WithMany()
+                    .HasForeignKey(d => d.CompletedById)
+                    .HasConstraintName("FK_DailyTask_CompletedBy");
+
+                entity.HasOne(d => d.Prodavnica)
+                    .WithMany()
+                    .HasForeignKey(d => d.ProdavnicaId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_DailyTask_Prodavnica");
+
+                entity.HasOne(d => d.Template)
+                    .WithMany(p => p.DailyTasks)
+                    .HasForeignKey(d => d.TemplateId)
+                    .HasConstraintName("FK_DailyTask_Template");
+            });
 
             modelBuilder.Entity<ResponseParcijalneInventurePodrucni>(entity =>
                 entity.HasNoKey()
