@@ -36,7 +36,7 @@ import {
   ThreeColumnsLayoutComponent,
   TwoColumnsLayoutComponent,
 } from './layouts';
-import { DEFAULT_THEME } from './styles/theme.default';
+import { DEFAULT_THEME, DARK_THEME } from './styles/theme.default';
 const NB_MODULES = [
   NbLayoutModule,
   NbMenuModule,
@@ -82,7 +82,7 @@ export class ThemeModule {
           {
             name: 'default',
           },
-          [ DEFAULT_THEME],
+          [ DEFAULT_THEME, DARK_THEME],
         ).providers,
       ],
     };

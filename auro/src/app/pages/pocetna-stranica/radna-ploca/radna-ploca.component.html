@@ -1,16 +1,23 @@
 <!--Rola: Interna / Područni / Regionalni-->
 <nb-card *ngIf="rola !== 'prodavnica'" class="dashboard-card">
   <nb-card-header class="dashboard-header">
-    <div>
-      <span class="subtitle">Brzi pristup</span>
-      <h2>Radna ploča</h2>
-      <p>Centraliziran pregled ključnih operacija i najčešćih radnji.</p>
+    <div class="header-content">
+      <div class="header-icon">
+        <nb-icon icon="flash-outline"></nb-icon>
+      </div>
+      <div class="header-copy">
+        <span class="subtitle">Brzi pristup</span>
+        <h2>Radna ploča</h2>
+        <p>Centraliziran pregled ključnih operacija i najčešćih radnji.</p>
+      </div>
     </div>
   </nb-card-header>
   <nb-card-body>
     <div class="quick-actions-grid">
       <nb-card *ngFor="let action of quickActions" class="quick-action" [ngClass]="action.accent"
-               (click)="onQuickAction(action.action)">
+               (click)="onQuickAction(action.action)" (keyup.enter)="onQuickAction(action.action)"
+               (keyup.space)="onQuickAction(action.action)" tabindex="0" role="button"
+               [attr.aria-label]="action.title">
         <nb-card-body>
           <div class="quick-action-icon">
             <nb-icon [icon]="action.icon"></nb-icon>
@@ -19,7 +26,7 @@
             <h5>{{ action.title }}</h5>
             <p>{{ action.description }}</p>
           </div>
-          <button nbButton status="primary" size="small" hero
+          <button nbButton status="primary" size="small" hero type="button"
                   (click)="onQuickAction(action.action, $event)">
             <nb-icon icon="external-link-outline"></nb-icon>
             {{ action.cta }}
@@ -33,10 +40,15 @@
 <!--Rola: Prodavnica-->
 <nb-card *ngIf="rola === 'prodavnica'" class="dashboard-card store-dashboard">
   <nb-card-header class="dashboard-header">
-    <div>
-      <span class="subtitle">Pregled performansi</span>
-      <h2>Statistika prodavnice</h2>
-      <p>Pratite ključne metrike i trendove u realnom vremenu.</p>
+    <div class="header-content">
+      <div class="header-icon">
+        <nb-icon icon="activity-outline"></nb-icon>
+      </div>
+      <div class="header-copy">
+        <span class="subtitle">Pregled performansi</span>
+        <h2>Statistika prodavnice</h2>
+        <p>Pratite ključne metrike i trendove u realnom vremenu.</p>
+      </div>
     </div>
   </nb-card-header>
   <nb-card-body>

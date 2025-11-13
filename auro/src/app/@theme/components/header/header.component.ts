@@ -20,6 +20,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   //Rola prijavljenog korisnika na aplikaciju
   rola: string;
   currentTheme = 'default';
+  private readonly themeStorageKey = 'auro-theme-preference';
+  themePreference: 'light' | 'dark' = 'light';
   value = '';
   userMenu = [ { title: 'Odjava', icon: 'log-out' } ];
 
@@ -62,6 +64,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.currentTheme = this.themeService.currentTheme;
+    const savedTheme = this.getStoredTheme() ?? 'light';
+    this.applyTheme(savedTheme);
     const { xl } = this.breakpointService.getBreakpointsMap();
     this.themeService.onMediaQueryChange()
       .pipe(
@@ -75,7 +79,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
         map(({ name }) => name),
         takeUntil(this.destroy$),
       )
-      .subscribe(themeName => this.currentTheme = themeName);
+      .subscribe(themeName => {
+        this.currentTheme = themeName;
+        this.themePreference = themeName === 'dark' ? 'dark' : 'light';
+        this.setDocumentTheme(this.themePreference);
+      });
   }
 
   ngOnDestroy() {
@@ -95,5 +103,50 @@ export class HeaderComponent implements OnInit, OnDestroy {
   navigateHome() {
     this.menuService.navigateHome();
     return false;
+  }
+
+  toggleTheme(): void {
+    const nextTheme = this.themePreference === 'dark' ? 'light' : 'dark';
+    this.applyTheme(nextTheme);
+  }
+
+  get themeIcon(): string {
+    return this.themePreference === 'dark' ? 'moon-outline' : 'sun-outline';
+  }
+
+  get themeLabel(): string {
+    return this.themePreference === 'dark' ? 'Tamni mod' : 'Svijetli mod';
+  }
+
+  private applyTheme(preference: 'light' | 'dark'): void {
+    this.themePreference = preference;
+    const nbTheme = preference === 'dark' ? 'dark' : 'default';
+    this.themeService.changeTheme(nbTheme);
+    this.currentTheme = nbTheme;
+    this.setDocumentTheme(preference);
+    this.persistTheme(preference);
+  }
+
+  private setDocumentTheme(preference: 'light' | 'dark'): void {
+    if (typeof document !== 'undefined' && document.body) {
+      document.body.dataset.theme = preference;
+    }
+  }
+
+  private getStoredTheme(): 'light' | 'dark' | null {
+    try {
+      const stored = localStorage.getItem(this.themeStorageKey) as 'light' | 'dark' | null;
+      return stored === 'dark' ? 'dark' : stored === 'light' ? 'light' : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private persistTheme(preference: 'light' | 'dark'): void {
+    try {
+      localStorage.setItem(this.themeStorageKey, preference);
+    } catch {
+      // Ignored: storage may be unavailable (private mode, SSR, etc.)
+    }
   }
 }

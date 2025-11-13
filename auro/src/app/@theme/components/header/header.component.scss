@@ -3,67 +3,163 @@
 @import '../../styles/themes';
 
 @include nb-install-component() {
-  display: flex;
-  justify-content: space-between;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+
+  .header-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: max-content 1fr max-content;
+    align-items: center;
+    gap: 1.75rem;
+    padding: 0.25rem 0;
+  }
 
   .logo-container {
     display: flex;
     align-items: center;
-    width: calc(#{nb-theme(sidebar-width)} - #{nb-theme(header-padding)});
+    gap: 0.75rem;
+    padding-inline-end: 1rem;
+    border-inline-end: 1px solid rgba(107, 114, 128, 0.16);
   }
 
-  nb-action {
-    height: auto;
-    display: flex;
-    align-content: center;
-  }
-
-  nb-user {
-    cursor: pointer;
-  }
-
-  ::ng-deep nb-search button {
-    padding: 0!important;
-  }
-
-  .header-container {
-    display: flex;
+  .sidebar-toggle {
+    display: inline-flex;
     align-items: center;
-    width: auto;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    transition: background var(--transition-duration) ease, color var(--transition-duration) ease;
 
-    .sidebar-toggle {
-      @include nb-ltr(padding-right, 1.25rem);
-      @include nb-rtl(padding-left, 1.25rem);
-      text-decoration: none;
-      color: nb-theme(text-hint-color);
-      nb-icon {
-        font-size: 1.75rem;
-      }
+    nb-icon {
+      font-size: 1.55rem;
     }
 
-    .logo {
-      padding: 0 1.25rem;
-      font-size: 1.75rem;
-      @include nb-ltr(border-left, 1px solid nb-theme(divider-color));
-      @include nb-rtl(border-right, 1px solid nb-theme(divider-color));
-      white-space: nowrap;
-      text-decoration: none;
+    &:hover {
+      background: rgba(99, 102, 241, 0.12);
+      color: var(--link-color);
+    }
+  }
+
+  .logo {
+    font-size: 1.45rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--heading-color);
+    text-decoration: none;
+  }
+
+  .header-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+    color: var(--text-primary);
+  }
+
+  .title-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    display: grid;
+    place-items: center;
+    background: rgba(99, 102, 241, 0.12);
+    color: var(--link-color);
+    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.16);
+
+    nb-icon {
+      font-size: 1.5rem;
+    }
+  }
+
+  .title-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+
+    .title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--heading-color);
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .theme-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-inline: 1rem;
+    color: var(--text-primary);
+
+    nb-icon {
+      font-size: 1.1rem;
+    }
+  }
+
+  .user-preview {
+    cursor: pointer;
+    border-radius: 16px;
+    padding: 0.35rem 0.6rem;
+    backdrop-filter: var(--glass-blur);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  @include media-breakpoint-down(md) {
+    .header-container {
+      grid-template-columns: max-content 1fr;
+      grid-template-areas: 'logo actions' 'title title';
+      row-gap: 0.85rem;
+    }
+
+    .logo-container {
+      grid-area: logo;
+      border-inline-end: none;
+      padding-inline-end: 0;
+    }
+
+    .header-title {
+      grid-area: title;
+    }
+
+    .header-actions {
+      grid-area: actions;
+      justify-self: end;
     }
   }
 
   @include media-breakpoint-down(sm) {
-    .control-item {
-      display: none;
+    .header-title {
+      flex-direction: column;
+      gap: 0.5rem;
     }
-    .user-action {
-      border: none;
-      padding: 0;
-    }
-  }
 
-  @include media-breakpoint-down(is) {
-    nb-select {
+    .title-icon {
+      width: 40px;
+      height: 40px;
+    }
+
+    .theme-toggle span {
       display: none;
     }
   }
