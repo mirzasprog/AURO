@@ -39,106 +39,96 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
    }
 
   data = [];
-  pregled=[];
   //Lista za generisanje cahrtova
   chart: any = [];
-  redovni ;
+  redovni;
   vanredni;
   izdatnice;
   neuslovnaRoba;
   rola: string;
 
+  quickActions = [
+    {
+      title: 'Pregled otpisa',
+      description: 'Provjerite status redovnih i vanrednih otpisa na jednom mjestu.',
+      icon: 'layout-outline',
+      cta: 'Otvori pregled',
+      accent: 'primary',
+      action: 'PregledRedovnogOtpisa'
+    },
+    {
+      title: 'Izdatnice troška',
+      description: 'Pregledajte ili unesite nove izdatnice troška za prodavnice.',
+      icon: 'file-text-outline',
+      cta: 'Upravljanje izdatnicama',
+      accent: 'success',
+      action: 'Izdatnice'
+    },
+    {
+      title: 'Neuslovna roba',
+      description: 'Evidentirajte robu neuslovnu za prodaju i pratite status obrada.',
+      icon: 'alert-triangle-outline',
+      cta: 'Pregled neuslovne robe',
+      accent: 'warning',
+      action: 'NeuslovnaRoba'
+    }
+  ];
+
+  storeCharts = [
+    {
+      id: 'pie',
+      icon: 'pie-chart-outline',
+      title: 'Struktura otpisa',
+      description: 'Udio svakog tipa aktivnosti u ukupnom broju zapisa.'
+    },
+    {
+      id: 'MyChart',
+      icon: 'bar-chart-outline',
+      title: 'Uporedna statistika',
+      description: 'Poređenje ključnih procesa kroz posljednji period.'
+    },
+    {
+      id: 'line',
+      icon: 'trending-up-outline',
+      title: 'Trend kretanja',
+      description: 'Kako se različiti procesi mijenjaju tokom vremena.'
+    },
+    {
+      id: 'chart1',
+      icon: 'activity-outline',
+      title: 'Distribucija aktivnosti',
+      description: 'Vizuelni prikaz intenziteta po svakoj kategoriji.'
+    },
+  ];
+
+  comparisonCharts = [
+    {
+      id: 'dayComparisonChart',
+      icon: 'swap-outline',
+      title: 'Poređenje današnjeg prometa',
+      description: 'Usporedite rezultate dana sa prošlogodišnjim prometom.'
+    },
+    {
+      id: 'monthComparisonChart',
+      icon: 'calendar-outline',
+      title: 'Mjesečni trend',
+      description: 'Praćenje prometa po mjesecima i poređenje s prethodnom godinom.'
+    }
+  ];
+
   ngOnInit(): void {
     this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
       this.rola = token.getPayload()["role"];
-      if (!this.dashboardSummary) {
-        this.loadDashboardSummary();
+
+      if (this.rola === 'prodavnica') {
+        if (!this.dashboardSummary) {
+          this.loadDashboardSummary();
+        }
+        this.loadStoreCharts();
+      } else {
+        this.loadPendingRequestsAlerts();
       }
     });
-    if(this.rola == 'prodavnica') {
-    //Servis za prikaz statistike na početnoj stranici
-    this.dataService.pregledajStatistiku().subscribe(
-      (r) => {
-        this.data = r;   
-        this.data.forEach(item => {
-          this.redovni = item.resultBrojRedovnog;
-          this.vanredni = item.resultBrojVanrednog;
-          this.izdatnice = item.resultIzdatnica;
-          this.neuslovnaRoba = item.resultNeuslovnaRoba;
-          })
-          this.createChart(this.redovni,this.vanredni,this.izdatnice,this.neuslovnaRoba);
-      },
-      (err) => {;
-        const greska = err.error?.poruka ?? err.statusText;
-        Swal.fire("Greška", "Greška: " + greska, "error");
-      }
-    );
-    }
-    //Servis za prikazivanje broja zahtjeva za redovni otpis (view za role 'podrucni' i 'regionalni')
-    this.dataService.prikaziZahtjeveRedovnogOtpisa().subscribe(
-      (r) => {
-        this.data = r;
-        //this.source.load(this.data);
-        if(this.data.length !== 0){
-          Swal.fire({
-            icon: 'warning',
-            title: 'Zahtjevi',
-            text: 'Broj neobrađenih zahtjeva za redovni otpis je : ' + this.data.length, 
-            showConfirmButton:false,
-            returnFocus:false,
-            allowEscapeKey: false,
-            allowOutsideClick: () => {
-              const popup = Swal.getPopup()
-              popup.classList.remove('swal2-show')
-              setTimeout(() => {
-                popup.classList.add('animate__animated', 'animate__heartBeat')
-              })
-              setTimeout(() => {
-                popup.classList.remove('animate__animated', 'animate__heartBeat')
-              }, 1000)
-              return false
-            },
-            footer: '<a href="/pages/zahtjevi/redovni-otpis">Pregledaj zahtjeve</a>',
-          })
-        }
-      },
-      (err) => {
-        const greska = err.error?.poruka ?? err.statusText;
-        Swal.fire("Greška", "Greška: " + greska, "error");
-      }
-    );
-    //Servis za prikazivanje broja zahtjeva za vanredni otpis (view za role 'podrucni' i 'regionalni')
-    this.dataService.prikaziZahtjeveVanrednogOtpisa().subscribe(
-      (r) => {
-      this.data = r;
-      if(this.data.length !== 0){
-        Swal.fire({
-          icon: 'warning',
-          title: 'Zahtjevi',
-          text: 'Broj neobrađenih zahtjeva za vanredni otpis je : ' + this.data.length, 
-          showConfirmButton:false,
-          returnFocus:false,
-          allowEscapeKey: false,
-          allowOutsideClick: () => {
-            const popup = Swal.getPopup()
-            popup.classList.remove('swal2-show')
-            setTimeout(() => {
-              popup.classList.add('animate__animated', 'animate__heartBeat')
-            })
-            setTimeout(() => {
-              popup.classList.remove('animate__animated', 'animate__heartBeat')
-            }, 1000)
-            return false
-          },
-          footer: '<a href="/pages/zahtjevi/vanredni-otpis">Pregledaj zahtjeve</a>',
-        })
-      }
-      },
-      (err) => {
-        const greska = err.error?.poruka ?? err.statusText;
-        Swal.fire("Greška", "Greška: " + greska, "error");
-      }
-    );
   }
 
   ngOnDestroy(): void {
@@ -199,6 +189,25 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     return baseCards;
   }
 
+  onQuickAction(action: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    switch (action) {
+      case 'PregledRedovnogOtpisa':
+        this.PregledRedovnogOtpisa();
+        break;
+      case 'Izdatnice':
+        this.Izdatnice();
+        break;
+      case 'NeuslovnaRoba':
+        this.NeuslovnaRoba();
+        break;
+    }
+  }
+
   openKpiDetail(key: string): void {
     if (!this.dashboardSummary) {
       return;
@@ -221,6 +230,74 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         this.openDialog(this.categoryDetail, () => this.renderCategoryChart());
         break;
     }
+  }
+
+  private loadStoreCharts(): void {
+    this.dataService.pregledajStatistiku().subscribe({
+      next: (response) => {
+        this.data = response;
+        this.data.forEach(item => {
+          this.redovni = item.resultBrojRedovnog;
+          this.vanredni = item.resultBrojVanrednog;
+          this.izdatnice = item.resultIzdatnica;
+          this.neuslovnaRoba = item.resultNeuslovnaRoba;
+        });
+        this.createChart(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
+      },
+      error: (err) => {
+        const greska = err.error?.poruka ?? err.statusText;
+        Swal.fire('Greška', 'Greška: ' + greska, 'error');
+      }
+    });
+  }
+
+  private loadPendingRequestsAlerts(): void {
+    this.dataService.prikaziZahtjeveRedovnogOtpisa().subscribe({
+      next: (response) => this.showPendingRequestsAlert(response, 'redovni'),
+      error: (err) => {
+        const greska = err.error?.poruka ?? err.statusText;
+        Swal.fire('Greška', 'Greška: ' + greska, 'error');
+      }
+    });
+
+    this.dataService.prikaziZahtjeveVanrednogOtpisa().subscribe({
+      next: (response) => this.showPendingRequestsAlert(response, 'vanredni'),
+      error: (err) => {
+        const greska = err.error?.poruka ?? err.statusText;
+        Swal.fire('Greška', 'Greška: ' + greska, 'error');
+      }
+    });
+  }
+
+  private showPendingRequestsAlert(data: any[], tip: 'redovni' | 'vanredni'): void {
+    this.data = data;
+    if (!this.data || !this.data.length) {
+      return;
+    }
+
+    const isRedovni = tip === 'redovni';
+    Swal.fire({
+      icon: 'warning',
+      title: 'Zahtjevi',
+      text: `Broj neobrađenih zahtjeva za ${isRedovni ? 'redovni' : 'vanredni'} otpis je : ${this.data.length}`,
+      showConfirmButton: false,
+      returnFocus: false,
+      allowEscapeKey: false,
+      allowOutsideClick: () => {
+        const popup = Swal.getPopup();
+        popup.classList.remove('swal2-show');
+        setTimeout(() => {
+          popup.classList.add('animate__animated', 'animate__heartBeat');
+        });
+        setTimeout(() => {
+          popup.classList.remove('animate__animated', 'animate__heartBeat');
+        }, 1000);
+        return false;
+      },
+      footer: isRedovni
+        ? '<a href="/pages/zahtjevi/redovni-otpis">Pregledaj zahtjeve</a>'
+        : '<a href="/pages/zahtjevi/vanredni-otpis">Pregledaj zahtjeve</a>',
+    });
   }
 
   private openDialog(template?: TemplateRef<any>, onOpen?: () => void): void {

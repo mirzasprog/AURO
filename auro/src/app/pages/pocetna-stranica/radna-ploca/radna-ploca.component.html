@@ -1,64 +1,46 @@
-<!--Rola: Interna / Podrucni / Regionalni-->
-<nb-card *ngIf="rola !== 'prodavnica'" id="kartica">
-  <nb-card-header>
-    <div class="card-header text-center" id="header">
-      <h6 id="naslov"><nb-icon icon="browser"></nb-icon> Radna ploča</h6>
-  </div> 
+<!--Rola: Interna / Područni / Regionalni-->
+<nb-card *ngIf="rola !== 'prodavnica'" class="dashboard-card">
+  <nb-card-header class="dashboard-header">
+    <div>
+      <span class="subtitle">Brzi pristup</span>
+      <h2>Radna ploča</h2>
+      <p>Centraliziran pregled ključnih operacija i najčešćih radnji.</p>
+    </div>
   </nb-card-header>
   <nb-card-body>
-    <div class="card-grid" >
-      <!--Otpisi-->
-      <div class="card card-shadow" id="karticaInterna">
-        <div class="card-header card-image" style="background: linear-gradient(to right, #5f64ff, #7ba0fe);">
-        </div>
-        <div class="card-body">
-          <p>Pregled napravljenih otpisa!</p>
-        </div>
-        <div class="card-footer">
-          <button class="button" nbButton status="primary" hero shape="semi-round" size="small" (click)="PregledRedovnogOtpisa()">
-            <nb-icon icon="external-link-outline"></nb-icon> Pregled otpisa
+    <div class="quick-actions-grid">
+      <nb-card *ngFor="let action of quickActions" class="quick-action" [ngClass]="action.accent"
+               (click)="onQuickAction(action.action)">
+        <nb-card-body>
+          <div class="quick-action-icon">
+            <nb-icon [icon]="action.icon"></nb-icon>
+          </div>
+          <div class="quick-action-content">
+            <h5>{{ action.title }}</h5>
+            <p>{{ action.description }}</p>
+          </div>
+          <button nbButton status="primary" size="small" hero
+                  (click)="onQuickAction(action.action, $event)">
+            <nb-icon icon="external-link-outline"></nb-icon>
+            {{ action.cta }}
           </button>
-        </div>
-      </div>
-      <!--Izdatnice troška-->
-      <div class="card card-shadow" id="karticaInterna">
-        <div class="card-header card-image" style="background: linear-gradient(to right, #11e24c, #9cfe7b);">
-        </div>
-        <div class="card-body">
-          <p>Pregled izdatnica troška!</p>
-        </div>
-        <div class="card-footer">
-          <button class="button" nbButton status="primary" hero size="small" shape="semi-round" (click)="Izdatnice()">
-            <nb-icon icon="external-link-outline"></nb-icon> Izdatnica Troška
-          </button>
-        </div>
-      </div>
-      <!--Neuslovna roba-->
-      <div class="card card-shadow" id="karticaInterna">
-        <div class="card-header card-image" style="background: linear-gradient(to right, #fd4b4b, #fe7b7b);">
-        </div>
-        <div class="card-body">
-          <p>Pregled robe neuslovne za prodaju!</p>
-        </div>
-        <div class="card-footer">
-          <button class="button" id="button" nbButton status="primary"  hero shape="semi-round" size="small"
-           (click)="NeuslovnaRoba()">
-            <nb-icon icon="external-link-outline"></nb-icon> Neuslovna Roba
-          </button>
-        </div>
-      </div>
+        </nb-card-body>
+      </nb-card>
     </div>
   </nb-card-body>
 </nb-card>
+
 <!--Rola: Prodavnica-->
-<nb-card *ngIf="rola == 'prodavnica'" id="kartica">
-  <nb-card-header>
-    <div class="card-header text-center">
-      <h6><nb-icon icon="bar-chart-outline"></nb-icon> Statistika</h6>
+<nb-card *ngIf="rola === 'prodavnica'" class="dashboard-card store-dashboard">
+  <nb-card-header class="dashboard-header">
+    <div>
+      <span class="subtitle">Pregled performansi</span>
+      <h2>Statistika prodavnice</h2>
+      <p>Pratite ključne metrike i trendove u realnom vremenu.</p>
     </div>
   </nb-card-header>
   <nb-card-body>
-    <div class="kpi-section">
+    <section class="kpi-section">
       <div class="kpi-loading" *ngIf="isDashboardLoading">
         <nb-spinner size="large"></nb-spinner>
       </div>
@@ -69,120 +51,49 @@
           <span class="kpi-hint">Kliknite za detalje</span>
         </div>
       </div>
-    </div>
-    <div class="container">
-      <div class="row">
-        <div class="col">
-          <div class="chart-container" id="karticaStatistika">
-            <nb-card>
-              <nb-card-header>
-                <div class="card-header text-center" id="header">
-                  <h6>
-                    <nb-icon icon="pie-chart"></nb-icon>
-                    Pregled statistike
-                  </h6>
-                </div>
-              </nb-card-header>
-              <nb-card-body>
-                <canvas id="pie">{{ chart }}</canvas>
-              </nb-card-body>
-            </nb-card>
+    </section>
 
+    <section class="chart-grid">
+      <nb-card *ngFor="let chartItem of storeCharts" class="chart-card">
+        <nb-card-header>
+          <div class="chart-header">
+            <div class="icon-wrapper">
+              <nb-icon [icon]="chartItem.icon"></nb-icon>
+            </div>
+            <div>
+              <h5>{{ chartItem.title }}</h5>
+              <small>{{ chartItem.description }}</small>
+            </div>
           </div>
-        </div>
-        <div class="col">
-          <div class="chart-container" id="karticaStatistika">
-            <nb-card>
-              <nb-card-header>
-                <div class="card-header text-center" id="header">
-                  <h6>
-                    <nb-icon icon="activity-outline"></nb-icon>
-                    Pregled statistike
-                  </h6>
-                </div>
-              </nb-card-header>
-              <nb-card-body>
-                <canvas id="MyChart">{{ chart }}</canvas>
-              </nb-card-body>
-            </nb-card>
+        </nb-card-header>
+        <nb-card-body>
+          <div class="chart-wrapper">
+            <canvas [attr.id]="chartItem.id"></canvas>
           </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <div class="chart-container" id="karticaStatistika">
-            <nb-card>
-              <nb-card-header>
-                <div class="card-header text-center" id="header">
-                  <h6>
-                    <nb-icon icon="activity-outline"></nb-icon>
-                    Pregled statistike
-                  </h6>
-                </div>
-              </nb-card-header>
-              <nb-card-body>
-                <canvas id="line">{{ chart }}</canvas>
-              </nb-card-body>
-            </nb-card>
+        </nb-card-body>
+      </nb-card>
+    </section>
 
+    <section class="chart-grid comparison-grid">
+      <nb-card *ngFor="let chartItem of comparisonCharts" class="chart-card">
+        <nb-card-header>
+          <div class="chart-header">
+            <div class="icon-wrapper">
+              <nb-icon [icon]="chartItem.icon"></nb-icon>
+            </div>
+            <div>
+              <h5>{{ chartItem.title }}</h5>
+              <small>{{ chartItem.description }}</small>
+            </div>
           </div>
-        </div>
-        <div class="col">
-          <div class="chart-container" id="karticaStatistika">
-            <nb-card>
-              <nb-card-header>
-                <div class="card-header text-center" id="header">
-                  <h6>
-                    <nb-icon icon="activity-outline"></nb-icon>
-                    Pregled statistike
-                  </h6>
-                </div>
-              </nb-card-header>
-              <nb-card-body>
-                <canvas id="chart1">{{ chart }}</canvas>
-              </nb-card-body>
-            </nb-card>
-
+        </nb-card-header>
+        <nb-card-body>
+          <div class="chart-wrapper">
+            <canvas [attr.id]="chartItem.id"></canvas>
           </div>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <div class="chart-container" id="karticaStatistika">
-            <nb-card>
-              <nb-card-header>
-                <div class="card-header text-center" id="header">
-                  <h6>
-                    <nb-icon icon="swap-outline"></nb-icon>
-                    Poređenje današnjeg prometa
-                  </h6>
-                </div>
-              </nb-card-header>
-              <nb-card-body>
-                <canvas id="dayComparisonChart"></canvas>
-              </nb-card-body>
-            </nb-card>
-          </div>
-        </div>
-        <div class="col">
-          <div class="chart-container" id="karticaStatistika">
-            <nb-card>
-              <nb-card-header>
-                <div class="card-header text-center" id="header">
-                  <h6>
-                    <nb-icon icon="trending-up-outline"></nb-icon>
-                    Mjesečno poređenje prometa
-                  </h6>
-                </div>
-              </nb-card-header>
-              <nb-card-body>
-                <canvas id="monthComparisonChart"></canvas>
-              </nb-card-body>
-            </nb-card>
-          </div>
-        </div>
-      </div>
-    </div>
+        </nb-card-body>
+      </nb-card>
+    </section>
   </nb-card-body>
 </nb-card>
 
