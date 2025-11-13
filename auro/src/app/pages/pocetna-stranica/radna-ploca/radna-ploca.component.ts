@@ -5,8 +5,34 @@ import Swal from 'sweetalert2';
 import { DataService } from '../../../@core/utils/data.service';
 import { NbDialogService, NbIconLibraries } from '@nebular/theme';
 import Chart from 'chart.js';
+import { finalize } from 'rxjs/operators';
 import { DashboardService } from '../../../@core/utils/dashboard.service';
 import { DashboardSummary, DashboardTrendPoint } from '../../../@core/data/dashboard/dashboard-summary';
+
+interface QuickAction {
+  title: string;
+  description: string;
+  icon: string;
+  cta: string;
+  accent: 'primary' | 'success' | 'warning';
+  action: string;
+}
+
+interface DashboardChartDescriptor {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+}
+
+type KpiCard = {
+  key: string;
+  label: string;
+  formattedValue: string;
+  unit: string;
+  value: number;
+  trend: DashboardTrendPoint[];
+};
 
 @Component({
   selector: 'ngx-radna-ploca',
@@ -14,15 +40,6 @@ import { DashboardSummary, DashboardTrendPoint } from '../../../@core/data/dashb
   styleUrls: ['./radna-ploca.component.scss']
 })
 export class RadnaPlocaComponent implements OnInit, OnDestroy {
-  //Lista za prikaz boja chart-a za statistiku
-  colorScheme = {
-    domain: ['#3cb371', '#ff0000', '#0000ff', '#ffa500', '#c537db']
-  };  
-  //Lista za prikaz boja chart-a za statistiku limita
-  colorSchemeLimit = {
-    domain: ['#3cb371', '#ff0000', '#0000ff', '#ffa500', '#c537db', '#c6eb34', '#e85702', '#2da0ed']
-  };
-
   @ViewChild('visitorsDetail', { static: false }) visitorsDetail?: TemplateRef<any>;
   @ViewChild('turnoverDetail', { static: false }) turnoverDetail?: TemplateRef<any>;
   @ViewChild('shrinkageDetail', { static: false }) shrinkageDetail?: TemplateRef<any>;
@@ -31,23 +48,22 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   dashboardSummary?: DashboardSummary;
   isDashboardLoading = false;
+  isStoreChartsLoading = false;
   private charts: { [key: string]: Chart } = {};
 
   constructor(private router: Router, public authService: NbAuthService, private dataService: DataService,
     private iconService: NbIconLibraries, private dashboardService: DashboardService, private dialogService: NbDialogService) {
     this.iconService.registerFontPack('font-awesome', { packClass: 'fa' });
-   }
+  }
 
-  data = [];
-  //Lista za generisanje cahrtova
-  chart: any = [];
-  redovni;
-  vanredni;
-  izdatnice;
-  neuslovnaRoba;
+  data: any[] = [];
+  redovni = 0;
+  vanredni = 0;
+  izdatnice = 0;
+  neuslovnaRoba = 0;
   rola: string;
 
-  quickActions = [
+  readonly quickActions: QuickAction[] = [
     {
       title: 'Pregled otpisa',
       description: 'Provjerite status redovnih i vanrednih otpisa na jednom mjestu.',
@@ -74,7 +90,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
   ];
 
-  storeCharts = [
+  readonly storeCharts: DashboardChartDescriptor[] = [
     {
       id: 'pie',
       icon: 'pie-chart-outline',
@@ -101,7 +117,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     },
   ];
 
-  comparisonCharts = [
+  readonly comparisonCharts: DashboardChartDescriptor[] = [
     {
       id: 'dayComparisonChart',
       icon: 'swap-outline',
@@ -142,27 +158,27 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   private loadDashboardSummary(): void {
     this.isDashboardLoading = true;
-    this.dashboardService.getSummary().subscribe({
-      next: (summary) => {
-        this.dashboardSummary = summary;
-        this.isDashboardLoading = false;
-        this.renderDayComparisonChart();
-        this.renderMonthComparisonChart();
-      },
-      error: (err) => {
-        this.isDashboardLoading = false;
-        const greska = err.error?.poruka ?? err.statusText;
-        Swal.fire('Greška', `Greška prilikom učitavanja KPI podataka: ${greska}`, 'error');
-      }
-    });
+    this.dashboardService.getSummary()
+      .pipe(finalize(() => this.isDashboardLoading = false))
+      .subscribe({
+        next: (summary) => {
+          this.dashboardSummary = summary;
+          this.renderDayComparisonChart();
+          this.renderMonthComparisonChart();
+        },
+        error: (err) => {
+          const greska = err.error?.poruka ?? err.statusText;
+          Swal.fire('Greška', `Greška prilikom učitavanja KPI podataka: ${greska}`, 'error');
+        }
+      });
   }
 
-  getKpiCards(): Array<{ key: string; label: string; formattedValue: string; unit: string; value: number; trend: DashboardTrendPoint[] }> {
+  getKpiCards(): KpiCard[] {
     if (!this.dashboardSummary) {
       return [];
     }
 
-    const baseCards = [
+    const baseCards: KpiCard[] = [
       this.dashboardSummary.visitors,
       this.dashboardSummary.turnover,
       this.dashboardSummary.shrinkage,
@@ -171,7 +187,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       key: card.key,
       label: card.label,
       formattedValue: card.formattedValue,
-      unit: card.unit,
+      unit: card.unit ?? '',
       value: card.value,
       trend: card.trend
     }));
@@ -233,22 +249,31 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   private loadStoreCharts(): void {
-    this.dataService.pregledajStatistiku().subscribe({
-      next: (response) => {
-        this.data = response;
-        this.data.forEach(item => {
-          this.redovni = item.resultBrojRedovnog;
-          this.vanredni = item.resultBrojVanrednog;
-          this.izdatnice = item.resultIzdatnica;
-          this.neuslovnaRoba = item.resultNeuslovnaRoba;
-        });
-        this.createChart(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
-      },
-      error: (err) => {
-        const greska = err.error?.poruka ?? err.statusText;
-        Swal.fire('Greška', 'Greška: ' + greska, 'error');
-      }
-    });
+    this.isStoreChartsLoading = true;
+    this.dataService.pregledajStatistiku()
+      .pipe(finalize(() => this.isStoreChartsLoading = false))
+      .subscribe({
+        next: (response) => {
+          this.data = Array.isArray(response) ? response : [];
+
+          if (!this.data.length) {
+            this.renderStoreSummaryCharts(0, 0, 0, 0);
+            return;
+          }
+
+          const latest = this.data[this.data.length - 1];
+          this.redovni = Number(latest?.resultBrojRedovnog ?? 0);
+          this.vanredni = Number(latest?.resultBrojVanrednog ?? 0);
+          this.izdatnice = Number(latest?.resultIzdatnica ?? 0);
+          this.neuslovnaRoba = Number(latest?.resultNeuslovnaRoba ?? 0);
+
+          this.renderStoreSummaryCharts(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
+        },
+        error: (err) => {
+          const greska = err.error?.poruka ?? err.statusText;
+          Swal.fire('Greška', 'Greška: ' + greska, 'error');
+        }
+      });
   }
 
   private loadPendingRequestsAlerts(): void {
@@ -315,13 +340,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   private renderTrendChart(elementId: string, data: DashboardTrendPoint[], label: string, color: string): void {
-    const canvas = document.getElementById(elementId) as HTMLCanvasElement;
-    if (!canvas) {
-      return;
-    }
-
-    this.destroyChart(elementId);
-    this.charts[elementId] = new Chart(canvas, {
+    const config: Chart.ChartConfiguration = {
       type: 'line',
       data: {
         labels: data.map(d => d.label),
@@ -329,17 +348,30 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           {
             label,
             data: data.map(d => d.value),
-            backgroundColor: color,
             borderColor: color,
+            backgroundColor: color,
             fill: false,
-          }
-        ]
+            lineTension: 0.25,
+            borderWidth: 3,
+            pointRadius: 3,
+            pointHoverRadius: 4,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-      }
-    });
+        legend: { display: false },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true } }],
+        },
+      },
+    };
+
+    this.renderChart(elementId, config);
   }
 
   private renderDayComparisonChart(): void {
@@ -347,16 +379,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const canvas = document.getElementById('dayComparisonChart') as HTMLCanvasElement;
-    if (!canvas) {
-      return;
-    }
-
     const currentTotal = this.dashboardSummary.dayOnDay.current.reduce((acc, item) => acc + item.value, 0);
     const previousTotal = this.dashboardSummary.dayOnDay.previous.reduce((acc, item) => acc + item.value, 0);
 
-    this.destroyChart('dayComparisonChart');
-    this.charts['dayComparisonChart'] = new Chart(canvas, {
+    const config: Chart.ChartConfiguration = {
       type: 'bar',
       data: {
         labels: ['Danas', 'Prošle godine'],
@@ -364,24 +390,28 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           {
             label: this.dashboardSummary.dayOnDay.currentLabel,
             data: [currentTotal, previousTotal],
-            backgroundColor: ['#3366ff', '#ffce54']
-          }
-        ]
+            backgroundColor: ['#3366ff', '#ffce54'],
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-      }
-    });
+        legend: { display: false },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true, precision: 0 } }],
+        },
+      },
+    };
+
+    this.renderChart('dayComparisonChart', config);
   }
 
   private renderMonthComparisonChart(): void {
     if (!this.dashboardSummary) {
-      return;
-    }
-
-    const canvas = document.getElementById('monthComparisonChart') as HTMLCanvasElement;
-    if (!canvas) {
       return;
     }
 
@@ -392,8 +422,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     const currentValues = current.map(item => item.value);
     const previousValues = labels.map(label => previousLookup.get(label) ?? 0);
 
-    this.destroyChart('monthComparisonChart');
-    this.charts['monthComparisonChart'] = new Chart(canvas, {
+    const config: Chart.ChartConfiguration = {
       type: 'line',
       data: {
         labels,
@@ -402,23 +431,38 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             label: this.dashboardSummary.monthOnMonth.currentLabel,
             data: currentValues,
             borderColor: '#3366ff',
-            backgroundColor: 'rgba(51, 102, 255, 0.2)',
-            fill: true
+            backgroundColor: 'rgba(51, 102, 255, 0.15)',
+            fill: false,
+            lineTension: 0.25,
+            borderWidth: 3,
+            pointRadius: 2,
           },
           {
             label: this.dashboardSummary.monthOnMonth.previousLabel,
             data: previousValues,
             borderColor: '#ffce54',
-            backgroundColor: 'rgba(255, 206, 84, 0.2)',
-            fill: true
-          }
-        ]
+            backgroundColor: 'rgba(255, 206, 84, 0.15)',
+            fill: false,
+            lineTension: 0.25,
+            borderWidth: 3,
+            pointRadius: 2,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-      }
-    });
+        legend: { display: true, position: 'bottom' },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true } }],
+        },
+      },
+    };
+
+    this.renderChart('monthComparisonChart', config);
   }
 
   private renderCategoryChart(): void {
@@ -426,29 +470,153 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const canvas = document.getElementById('categoryShareChart') as HTMLCanvasElement;
-    if (!canvas) {
-      return;
-    }
-
     const categories = this.dashboardSummary.categoryShare.categories;
-    this.destroyChart('categoryShareChart');
-    this.charts['categoryShareChart'] = new Chart(canvas, {
+
+    const config: Chart.ChartConfiguration = {
       type: 'doughnut',
       data: {
         labels: categories.map(c => c.category),
         datasets: [
           {
-            data: categories.map(c => (c.share * 100)),
+            data: categories.map(c => c.share * 100),
             backgroundColor: ['#3366ff', '#00d68f', '#ff3d71', '#ffaa00', '#8a2be2', '#17a2b8'],
-          }
-        ]
+            borderWidth: 0,
+          },
+        ],
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-      }
-    });
+        legend: { position: 'bottom' },
+        animation: { duration: 250 },
+        cutoutPercentage: 60,
+      },
+    };
+
+    this.renderChart('categoryShareChart', config);
+  }
+
+  private renderStoreSummaryCharts(redovni: number, vanredni: number, izdatnica: number, neuslovnaRoba: number): void {
+    const labels = ['Redovni otpis', 'Vanredni otpis', 'Neuslovna roba', 'Izdatnice troška'];
+    const values = [redovni, vanredni, neuslovnaRoba, izdatnica].map(value => Number(value ?? 0));
+    const barColors = ['#3cb371', '#ff0000', '#0000ff', '#ffa500'];
+    const pieColors = ['rgb(255, 99, 132)', 'rgb(54, 162, 235)', 'rgb(255, 205, 86)', 'rgb(75, 192, 192)'];
+    const polarColors = ['#59ccf0', '#f0de59', '#6eed5a', '#f23a49'];
+
+    const barConfig: Chart.ChartConfiguration = {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Pregled statistike',
+            data: values,
+            backgroundColor: barColors,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { display: false },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true } }],
+        },
+      },
+    };
+
+    const pieConfig: Chart.ChartConfiguration = {
+      type: 'pie',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: pieColors,
+            borderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { position: 'bottom' },
+        animation: { duration: 250 },
+      },
+    };
+
+    const lineConfig: Chart.ChartConfiguration = {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Pregled statistike',
+            data: values,
+            borderColor: '#3cb371',
+            backgroundColor: 'rgba(60, 179, 113, 0.2)',
+            fill: false,
+            lineTension: 0.2,
+            borderWidth: 3,
+            pointRadius: 3,
+            pointHoverRadius: 4,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { display: false },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true } }],
+        },
+      },
+    };
+
+    const polarConfig: Chart.ChartConfiguration = {
+      type: 'polarArea',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: polarColors,
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { position: 'bottom' },
+        animation: { duration: 250 },
+        scale: {
+          ticks: { beginAtZero: true },
+        },
+      },
+    };
+
+    this.renderChart('MyChart', barConfig);
+    this.renderChart('pie', pieConfig);
+    this.renderChart('line', lineConfig);
+    this.renderChart('chart1', polarConfig);
+  }
+
+  private renderChart(id: string, config: Chart.ChartConfiguration): void {
+    const canvas = document.getElementById(id) as HTMLCanvasElement | null;
+    if (!canvas) {
+      return;
+    }
+
+    this.destroyChart(id);
+    this.charts[id] = new Chart(canvas, config);
   }
 
   private destroyChart(id: string): void {
@@ -558,98 +726,15 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       });
   }
 
-  //Funkcija za generisanje chart-ova sa podacima na početnoj stranici
-  createChart(redovni: number, vanredni: number, izdatnica: number, neuslovnaRoba: number,){
-    this.chart = new Chart("MyChart", {
-      type: 'bar',
-      data: {
-        labels: ['Redovni otpis', 'Vanredni otpis', 'Neuslovna roba', 'Izdatnice troška'],
-        datasets: [
-          {
-            label: 'Pregled statistike',
-            data: [redovni, vanredni, neuslovnaRoba, izdatnica],
-            borderWidth: 5,
-            backgroundColor: ['#3cb371', '#ff0000', '#0000ff', '#ffa500'],
-            
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: false,
-          },
-        },
-      },
-      
-    });    
-    this.chart = new Chart("pie", {
-      type: 'pie',
-      data: {
-        labels: ['Redovni otpis', 'Vanredni otpis', 'Neuslovna roba', 'Izdatnice troška'],
-        datasets: [
-          {
-            label: 'Pregled statistike',
-            data: [redovni, vanredni, neuslovnaRoba, izdatnica],
-            borderWidth: 0,
-            backgroundColor: [
-              'rgb(255, 99, 132)',
-              'rgb(54, 162, 235)',
-              'rgb(255, 205, 86)',
-              'rgb(75, 192, 192)',
-            ],
-            hoverOffset: 1
-          },
-        ],
-      },
-      options: { aspectRatio:2.0, 
-      } 
-      
-    });    
-    this.chart = new Chart("line", {
-      type: 'line',
-      data: {
-        labels: ['Redovni otpis', 'Vanredni otpis', 'Neuslovna roba', 'Izdatnice troška'],
-        datasets: [
-          {
-            label: 'Pregled statistike',
-            data: [redovni, vanredni, neuslovnaRoba, izdatnica],
-            borderWidth: 5,
-            backgroundColor: '#3cb371'
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
-      },
-      
-    });
-    this.chart = new Chart("chart1", {
-      type: 'polarArea',
-      data: {
-        labels: ['Redovni otpis', 'Vanredni otpis', 'Neuslovna roba', 'Izdatnice troška'],
-        datasets: [
-          {
-            label: 'Pregled statistike',
-            data: [redovni, vanredni, neuslovnaRoba, izdatnica],
-            borderWidth: 5,
-            backgroundColor: ['#59ccf0', '#f0de59', '#6eed5a', '#f23a49'],
-            style:"opacity: 0.6;" 
-          },
-        ],
-      },
-      options: {
-        scales: {
-          y: {
-            beginAtZero: true,
-          },
-        },
-      },
-      
-    }); 
-  } 
+  trackByAction(_: number, action: QuickAction): string {
+    return action.action;
+  }
+
+  trackByChart(_: number, chart: DashboardChartDescriptor): string {
+    return chart.id;
+  }
+
+  trackByKpi(_: number, card: KpiCard): string {
+    return card.key;
+  }
 }

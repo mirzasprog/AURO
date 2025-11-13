@@ -14,7 +14,7 @@
   </nb-card-header>
   <nb-card-body>
     <div class="quick-actions-grid">
-      <nb-card *ngFor="let action of quickActions" class="quick-action" [ngClass]="action.accent"
+      <nb-card *ngFor="let action of quickActions; trackBy: trackByAction" class="quick-action" [ngClass]="action.accent"
                (click)="onQuickAction(action.action)" (keyup.enter)="onQuickAction(action.action)"
                (keyup.space)="onQuickAction(action.action)" tabindex="0" role="button"
                [attr.aria-label]="action.title">
@@ -57,7 +57,9 @@
         <nb-spinner size="large"></nb-spinner>
       </div>
       <div class="kpi-grid" *ngIf="!isDashboardLoading && dashboardSummary">
-        <div class="kpi-card" *ngFor="let card of getKpiCards()" (click)="openKpiDetail(card.key)">
+        <div class="kpi-card" *ngFor="let card of getKpiCards(); trackBy: trackByKpi"
+             (click)="openKpiDetail(card.key)"
+             [attr.aria-label]="card.label + ' ' + card.formattedValue + (card.unit ? ' ' + card.unit : '')">
           <span class="kpi-title">{{ card.label }}</span>
           <div class="kpi-value">{{ card.formattedValue }}<small *ngIf="card.unit"> {{ card.unit }}</small></div>
           <span class="kpi-hint">Kliknite za detalje</span>
@@ -65,47 +67,54 @@
       </div>
     </section>
 
-    <section class="chart-grid">
-      <nb-card *ngFor="let chartItem of storeCharts" class="chart-card">
-        <nb-card-header>
-          <div class="chart-header">
-            <div class="icon-wrapper">
-              <nb-icon [icon]="chartItem.icon"></nb-icon>
+    <div class="charts-wrapper" [class.is-loading]="isStoreChartsLoading">
+      <section class="chart-grid">
+        <nb-card *ngFor="let chartItem of storeCharts; trackBy: trackByChart" class="chart-card">
+          <nb-card-header>
+            <div class="chart-header">
+              <div class="icon-wrapper">
+                <nb-icon [icon]="chartItem.icon"></nb-icon>
+              </div>
+              <div>
+                <h5>{{ chartItem.title }}</h5>
+                <small>{{ chartItem.description }}</small>
+              </div>
             </div>
-            <div>
-              <h5>{{ chartItem.title }}</h5>
-              <small>{{ chartItem.description }}</small>
+          </nb-card-header>
+          <nb-card-body>
+            <div class="chart-wrapper">
+              <canvas [attr.id]="chartItem.id"></canvas>
             </div>
-          </div>
-        </nb-card-header>
-        <nb-card-body>
-          <div class="chart-wrapper">
-            <canvas [attr.id]="chartItem.id"></canvas>
-          </div>
-        </nb-card-body>
-      </nb-card>
-    </section>
+          </nb-card-body>
+        </nb-card>
+      </section>
 
-    <section class="chart-grid comparison-grid">
-      <nb-card *ngFor="let chartItem of comparisonCharts" class="chart-card">
-        <nb-card-header>
-          <div class="chart-header">
-            <div class="icon-wrapper">
-              <nb-icon [icon]="chartItem.icon"></nb-icon>
+      <section class="chart-grid comparison-grid">
+        <nb-card *ngFor="let chartItem of comparisonCharts; trackBy: trackByChart" class="chart-card">
+          <nb-card-header>
+            <div class="chart-header">
+              <div class="icon-wrapper">
+                <nb-icon [icon]="chartItem.icon"></nb-icon>
+              </div>
+              <div>
+                <h5>{{ chartItem.title }}</h5>
+                <small>{{ chartItem.description }}</small>
+              </div>
             </div>
-            <div>
-              <h5>{{ chartItem.title }}</h5>
-              <small>{{ chartItem.description }}</small>
+          </nb-card-header>
+          <nb-card-body>
+            <div class="chart-wrapper">
+              <canvas [attr.id]="chartItem.id"></canvas>
             </div>
-          </div>
-        </nb-card-header>
-        <nb-card-body>
-          <div class="chart-wrapper">
-            <canvas [attr.id]="chartItem.id"></canvas>
-          </div>
-        </nb-card-body>
-      </nb-card>
-    </section>
+          </nb-card-body>
+        </nb-card>
+      </section>
+
+      <div class="charts-loading" *ngIf="isStoreChartsLoading" aria-live="polite" role="status">
+        <nb-spinner size="large"></nb-spinner>
+        <p>Učitavanje vizualizacija...</p>
+      </div>
+    </div>
   </nb-card-body>
 </nb-card>
 
