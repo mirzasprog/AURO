@@ -1,0 +1,20 @@
+<!--Zaglavlje-->
+<div>
+    <h5>
+    <nb-icon icon="keypad-outline"></nb-icon> Izdanice troška
+        <p>
+        Pregled zahtjeva koji čekaju na ovjeru!
+        </p>
+    </h5>
+</div>
+<!--Tabla za pregled podnesenih zahtjeva na izdatnicama troska-->
+<nb-card>
+    <nb-card-header>
+    <nb-icon icon="file-text"></nb-icon> Pregled zahtjeva
+    </nb-card-header>
+    <nb-card-body>
+        <ng2-smart-table [settings]="settings" [source]="source">
+        </ng2-smart-table>
+    </nb-card-body>
+
+</nb-card>

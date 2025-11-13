@@ -1,0 +1,125 @@
+.header{
+    text-align: center;
+    font-family:Arial, Helvetica, sans-serif;
+}
+.paragraph{
+    font-size: medium;
+}
+
+*, *::before, *::after {
+    font-family: 'Open Sans', sans-serif;
+  }
+  
+  .card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .card {
+    --padding: 1rem;
+    background: white;
+    border: 1px solid #777;
+    border-radius: .25rem;
+    overflow: hidden;
+    margin-top:10px;
+  }
+  
+  .card.card-shadow {
+    border: none;
+    box-shadow: 0 2px 5px 0 rgba(0, 0, 0, .2);
+  }
+  
+  .card-header {
+    font-size: 1.5rem;
+    padding: var(--padding);
+    padding-bottom: 0;
+    margin-bottom: .5rem;
+  }
+  
+  .card-header.card-image {
+    padding: 0;
+    overflow: hidden;
+  }
+  
+  .card-header.card-image > img {
+    display: block;
+    width: 100%;
+    max-height: 200px;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: center;
+    transition: 200ms transform ease-in-out;
+  }
+  
+  .card:hover > .card-header.card-image > img {
+    transform: scale(1.025);
+  }
+  
+  .card-body {
+    font-size: .9rem;
+    padding: 0 var(--padding);
+  }
+  
+  .card-footer {
+    padding-top: 1rem;
+  
+  }
+  .container {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #naslov{
+    font-family:sans-serif;
+  }
+
+  #kartica{
+    box-shadow: 10px 10px 10px rgba(14, 14, 14, 0.2);
+    border-radius: 10px;
+    border:10px; 
+  }   
+  
+  #header{
+    height: 40px;
+    box-shadow: 4px 5px 4px 5px rgba(14, 14, 14, 0.2);
+    border:5px; 
+  } 
+  
+  #karticaStatistika{
+    box-shadow: 10px 10px 10px rgba(30, 23, 95, 0.2);
+    border-radius: 20px;
+    border:10px; 
+    transition: all 0.5s ease;
+  }
+
+  #karticaStatistika:hover{
+    border-radius: 0px;
+    transform: rotate(360deg);
+    transform: scale(1.08);
+    transition: all 0.5s ease;
+  }  
+  
+  #karticaInterna{
+    padding: 5px !important;
+    box-shadow: 10px 10px 10px rgba(30, 23, 95, 0.2);
+    border-radius: 20px;
+    border:10px; 
+    transition: all 0.5s ease;
+  }
+
+  #karticaInterna:hover{
+    transform: rotate(360deg);
+    transform: scale(1.08);
+    transition: all 0.5s ease;
+  }
+
+  .card-image {
+    height: 200px; /* Adjust the height as needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white; /* Text color if you want to add any text inside */
+    font-size: 1.5rem; /* Adjust the text size if needed */
+  }

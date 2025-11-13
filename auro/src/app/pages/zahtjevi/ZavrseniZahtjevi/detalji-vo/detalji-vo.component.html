@@ -1,0 +1,27 @@
+<div>
+    <h4>
+        Pregled vanrednih otpisa
+    </h4>
+</div>
+<hr>
+<nb-card>
+    <nb-card-header>
+        <nb-icon icon="checkmark-square-2"></nb-icon> Pregled artikala koji su odobreni za otpis
+    </nb-card-header>
+    <nb-card-body>
+        <ng2-smart-table [settings]="odobreniArtikli" [source]="source">
+        </ng2-smart-table>
+    </nb-card-body>
+</nb-card>
+<hr>
+<nb-card>
+    <nb-card-header>
+        <nb-icon icon="close-square"></nb-icon> Pregled artikala koji nisu odobreni za otpis
+    </nb-card-header>
+    <nb-card-body>
+        <ng2-smart-table [settings]="odbijeniArtikli" [source]="sourceOdbijeniArtikli">
+        </ng2-smart-table>
+    </nb-card-body>
+</nb-card>
+
+

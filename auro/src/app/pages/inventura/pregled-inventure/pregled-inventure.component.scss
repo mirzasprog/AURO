@@ -1,0 +1,187 @@
+.p-datatable {
+    width: 100%;
+  }
+  
+  .p-datatable-responsive-demo .p-datatable-tbody > tr > td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  @media screen and (min-width: 40em) {
+    .p-datatable-responsive-demo .p-datatable-tbody > tr > td {
+      display: table-cell;
+      flex-direction: row;
+      align-items: center;
+    }
+  }
+  
+  .odbijeno {
+    background-color: rgb(229, 39, 39) !important;
+    color: white !important;
+  }  
+  
+  .odbijenoIK {
+     background-color: rgb(229, 39, 39) !important;
+    color: white !important;
+  }  
+  
+  .potpuna {
+    background-color: rgb(61, 133, 227) !important;
+    color: white !important;
+  }
+
+  .odobreno {
+    background-color: rgb(8, 188, 20) !important;
+    color: white !important;
+  }   
+  .odobrenoIK {
+      background-color: rgb(8, 188, 20) !important;
+    color: white !important;
+  } 
+   
+  .naCekanju {
+    background-color: rgb(168, 176, 8) !important;
+    color: white !important;
+  }
+  
+  .disabled-row input,
+  .disabled-row p-inputNumber,
+  .disabled-row p-dropdown,
+  .disabled-row p-calendar {
+    pointer-events: none;
+  }
+  
+  #button{
+    border-radius: 5px;
+    border: none;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.5s ease;
+  }
+  
+  #button:hover{
+    border-radius: 0px;
+    transform: rotate(360deg);
+    transform: scale(1.05);
+    transition: all 0.5s ease;
+  } 
+  
+  #buttonObrada{
+    border-radius: 12.5px;
+    border: none;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.5s ease;
+  }
+  
+  #buttonObrada:hover{
+    border-radius: 0px;
+    transform: rotate(360deg);
+    transform: scale(1.05);
+    transition: all 0.5s ease;
+  }
+  
+  #kartica{
+    width: 100%;
+    min-height: 450px;
+    padding: 5px !important;
+    box-shadow: 10px 10px 10px rgba(30, 23, 95, 0.2);
+    border-radius: 20px;
+    border:10px; 
+  } 
+  
+  #karticaPodrucni{
+    width: 100%;
+    min-height: 450px;
+    padding: 5px !important;
+    box-shadow: 10px 10px 10px rgba(30, 23, 95, 0.2);
+    border-radius: 20px;
+    border:10px; 
+  }
+
+/* Stilizacija forme i rasporeda */
+.form-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-gap: 20px;
+  align-items: center;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+#datum {
+  margin-bottom: 10px;
+}
+
+/* Stilizacija headera */
+nb-card-header {
+  background-color: #f7f9fc;
+  padding: 15px;
+}
+
+h6 {
+  font-size: 18px;
+  margin: 0;
+  color: #333;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nb-select, .p-calendar {
+  width: 100%;
+}
+
+:host ::ng-deep .p-datatable-sm .p-datatable-tbody > tr > td {
+    font-size: 0.90rem; 
+    padding: 0.5rem 0.5rem; 
+}
+
+:host ::ng-deep .p-datatable-sm .p-datatable-thead > tr > th {
+    font-size: 0.85rem; 
+    padding: 0.6rem 0.5rem; 
+}
+
+:host ::ng-deep .p-datatable-thead > tr > th:nth-child(1), /* Broj Prodavnice */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(1),
+:host ::ng-deep .p-datatable-thead > tr > th:nth-child(3), /* Datum */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(3),
+:host ::ng-deep .p-datatable-thead > tr > th:nth-child(5), /* Broj dokumenta */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(5),
+:host ::ng-deep .p-datatable-thead > tr > th:nth-child(6), /* Ukupno za isplatu */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(6)
+:host ::ng-deep .p-datatable-thead > tr > th:nth-child(7), 
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(7) {
+    white-space: nowrap; 
+    width: auto; 
+    min-width: 80px; 
+}
+
+
+:host ::ng-deep .p-datatable-thead > tr > th:nth-child(9), /* Akcije */
+:host ::ng-deep .p-datatable-tbody > tr > td:nth-child(9) {
+    width: 130px; 
+    text-align: center;
+}
+
+.p-datatable-tbody > tr > td:nth-child(9) button {
+    padding: 0.3rem 0.5rem; 
+    font-size: 0.8rem; 
+}
+
+:host ::ng-deep .p-paginator {
+    font-size: 0.85rem;
+}
+.table-header .nb-form-field,
+.table-header button {
+    font-size: 0.85rem;
+}

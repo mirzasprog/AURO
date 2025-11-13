@@ -1,0 +1,263 @@
+<!--Zaglavlje-->
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<!--Unos korisnika-->
+<nb-card id="kartica">
+  <nb-card-header>
+      <div class="card-header text-center"><h6><nb-icon icon="fa-pen-square" pack="font-awesome"></nb-icon> 
+        Kreirajte novi vanredni otpis!</h6>
+      </div> 
+  </nb-card-header>
+  <!--Forma za unos-->
+  <nb-card-body>
+    <form #formDodavanjeVanrednogOtpisa="ngForm" (ngSubmit)="formDodavanjeVanrednogOtpisa.valid && spremi()">
+      <div class="row form-group" id="kartica">
+        <div class="col">
+          <label for="razlog">Razlog otpisa</label><em>*</em>
+          <nb-form-field style="margin-bottom:10px;">
+            <nb-icon icon="fa-tasks" pack="font-awesome" nbPrefix></nb-icon>
+            <nb-select [(ngModel)]="unos.razlog" fullWidth name="razlog" required #razlog="ngModel"
+              placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite razlog otpisa" [status]="!unos.razlog ? 'danger' : 'success'">
+              <nb-option [value]="razlog" *ngFor="let razlog of razloziOtpisa">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{razlog}}</nb-option>
+            </nb-select>
+          </nb-form-field>
+          <ng-container *ngIf="formDodavanjeVanrednogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="razlog.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row" id="kartica">
+        <div class="col">
+          <label for="potrebnoZbrinjavanje">Potrebno zbrinjavanje</label><em>*</em>
+          <nb-form-field>
+            <nb-icon icon="fa-stream" nbPrefix pack="font-awesome" style="margin-bottom:7px;"></nb-icon>
+          <nb-select [(ngModel)]="unos.potrebnoZbrinjavanje" fullWidth style="margin-bottom:10px;"
+            name="potrebnoZbrinjavanje" required #potrebnoZbrinjavanje="ngModel" placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite opciju"
+            [status]="!unos.potrebnoZbrinjavanje ? 'danger' : 'success'">
+            <nb-option value="DA">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DA</nb-option>
+            <nb-option value="NE">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NE</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="formDodavanjeVanrednogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="potrebnoZbrinjavanje.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="potrebanTransport">Potreban transport</label><em>*</em>
+          <nb-form-field>
+          <nb-icon icon="fa-list-alt" nbPrefix pack="font-awesome" style="margin-bottom:7px;"></nb-icon>
+          <nb-select [(ngModel)]="unos.potrebanTransport" fullWidth name="potrebanTransport"
+            [status]="!unos.potrebanTransport ? 'danger' : 'success'" style="margin-bottom:10px;" required
+            #potrebanTransport="ngModel" placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite opciju">
+            <nb-option value="DA">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DA</nb-option>
+            <nb-option value="NE">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NE</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="formDodavanjeVanrednogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="potrebanTransport.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row form-group" id="kartica">
+        <div class="col-md-12 mt-3">
+          <label for="komentar">Komentar - uzrok vanrednog otpisa:</label>
+          <textarea fullWidth name="komentar" [(ngModel)]="unos.komentar" style="margin-bottom:10px;" nbInput
+            #komentar="ngModel" placeholder="Unesite komentar vanrednog otpisa" status="basic">
+        </textarea>
+        </div>
+      </div>
+      <hr>
+      <div class="row" id="kartica">
+        <div class="col-lg-3 col-md-5">
+          <label for="sifra">Šifra artikla / EAN</label><em>*</em>
+          <nb-form-field style="margin-bottom:10px;">
+            <nb-icon icon="hash" nbPrefix></nb-icon>
+            <input type="text" id="sifra" name="sifra" required [(ngModel)]="unos.sifra" fullWidth nbInput
+              #sifra="ngModel" [status]="sifra.invalid ? 'danger' : 'success'"
+              [attr.aria-invalid]="sifra.invalid && formDodavanjeVanrednogOtpisa.submitted ? true : null"
+              placeholder="Unesite šifru artikla">
+          </nb-form-field>
+          <ng-container *ngIf="sifra.invalid && formDodavanjeVanrednogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="sifra.errors?.required">
+              Unesite šifru artikla!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col-lg-3 col-md-5">
+          <!--  [min]=1 [max]=9999 [step]=1-->
+          <label for="kolicina">Količina</label><em>*</em>
+          <nb-form-field>
+            <nb-icon icon="layers" nbPrefix></nb-icon>
+            <input type="text" pattern="^\d+(,\d{1,2})?" nbInput id="kolicina" name="kolicina"
+              [(ngModel)]="unesenaKolicina" required #kolicina="ngModel" fullWidth
+              [status]="kolicina.errors? 'danger' : 'success'" autocomplete="off"
+              [attr.aria-invalid]="kolicina.invalid && formDodavanjeVanrednogOtpisa.submitted ? true : null"
+              placeholder="Unesite količinu">
+          </nb-form-field>
+          <ng-container *ngIf="kolicina.invalid && (kolicina.dirty || kolicina.touched)">
+            <p class="text-upozorenje" *ngIf="kolicina.errors?.required">
+              Unesite količinu!
+            </p>
+            <p class="text-upozorenje" *ngIf="kolicina.errors?.pattern">
+              Unesite broj!
+            </p>
+            <!--
+        <p class="text-upozorenje" *ngIf="kolicina.errors?.min">
+        Najmanja dozvoljena vrijednost je 1
+        </p>
+      -->
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col">
+          <button type="submit" style="margin-top:25px;" nbButton status="success" shape="semi-round"
+            [disabled]="ucitavanjePDT || ucitavanjeListe || ucitavanje || formDodavanjeVanrednogOtpisa.invalid"
+            [nbSpinner]="ucitavanje" nbSpinnerStatus="info">
+            <nb-icon icon="plus-circle"></nb-icon> Dodaj artikal</button>
+        </div>
+        <div class="col">
+          <button type="button" id="btmclose" (click)="ocistiUnos()" nbButton status="danger" shape="semi-round"
+            style="margin-top:25px;" [disabled]="ucitavanjePDT || ucitavanjeListe || ucitavanje">
+            <nb-icon icon="close-circle"></nb-icon>Očisti unos</button>
+        </div>
+      </div>
+    </form>
+  </nb-card-body>
+</nb-card>
+<hr>
+<!--Unos sa PDT liste-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center">
+      <h6><nb-icon icon="edit-2"></nb-icon> Unos sa PDT liste</h6>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <form #formaPDTliste="ngForm" (ngSubmit)="formaPDTliste.valid && spremiPDT()">
+      <div class="row form-group" id="kartica">
+        <div class="col">
+          <label for="razlogOtpisa">Razlog otpisa</label><em>*</em>
+          <nb-form-field style="margin-bottom:10px;">
+            <nb-icon icon="fa-tasks" pack="font-awesome" nbPrefix></nb-icon>
+            <nb-select [(ngModel)]="unosPDTListe.razlog" fullWidth name="razlogOtpisa" required #razlogOtpisa="ngModel"
+              placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite razlog otpisa" [status]="!unosPDTListe.razlog ? 'danger' : 'success'">
+              <nb-option [value]="razlog" *ngFor="let razlog of razloziOtpisa">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{razlog}}</nb-option>
+            </nb-select>
+          </nb-form-field>
+          <ng-container *ngIf="formaPDTliste.submitted">
+            <p class="text-upozorenje" *ngIf="razlogOtpisa.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row form-group" id="kartica">
+        <div class="col">
+          <label for="potrebnoZBrinjavanje">Potrebno zbrinjavanje</label><em>*</em>
+          <nb-form-field>
+            <nb-icon icon="fa-stream" nbPrefix pack="font-awesome" style="margin-bottom:7px;"></nb-icon>
+          <nb-select [(ngModel)]="unosPDTListe.potrebnoZbrinjavanje" fullWidth style="margin-bottom:10px;"
+            name="potrebnoZBrinjavanje" required #potrebnoZBrinjavanje="ngModel" placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite opciju"
+            [status]="!unosPDTListe.potrebnoZbrinjavanje ? 'danger' : 'success'">
+            <nb-option value="DA">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DA</nb-option>
+            <nb-option value="NE">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NE</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="formaPDTliste.submitted">
+            <p class="text-upozorenje" *ngIf="potrebnoZBrinjavanje.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="potrebanTRansport">Potreban transport</label><em>*</em>
+          <nb-form-field>
+          <nb-icon icon="fa-list-alt" nbPrefix pack="font-awesome" style="margin-bottom:7px;"></nb-icon>
+          <nb-select [(ngModel)]="unosPDTListe.potrebanTransport" fullWidth style="margin-bottom:10px;"
+            name="potrebanTRansport" required #potrebanTRansport="ngModel" placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite opciju"
+            [status]="!unosPDTListe.potrebanTransport ? 'danger' : 'success'">
+            <nb-option value="DA">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DA</nb-option>
+            <nb-option value="NE">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NE</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="formaPDTliste.submitted">
+            <p class="text-upozorenje" *ngIf="potrebanTRansport.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row form-group" id="kartica">
+        <div class="col-lg-3 col-md-5">
+          <label for="brojPDT">Broj PDT liste</label><em>*</em>
+          <nb-form-field style="margin-bottom:10px;">
+            <nb-icon icon="hash" nbPrefix></nb-icon>
+            <input type="text" id="brojPDT" name="brojPDT" required [(ngModel)]="unosPDTListe.brojDokumenta" fullWidth
+              nbInput #brojPDT="ngModel" [status]="!unosPDTListe.brojDokumenta ? 'danger' : 'success'"
+              [attr.aria-invalid]="brojPDT.invalid && formaPDTliste.submitted ? true : null"
+              placeholder="Unesite broj liste">
+          </nb-form-field>
+          <ng-container *ngIf="brojPDT.invalid && formaPDTliste.submitted">
+            <p class="text-upozorenje" *ngIf="brojPDT.errors?.required">
+              Unesite broj liste!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col">
+          <button type="submit" style="margin-top:25px;" nbButton status="success" shape="semi-round"
+            [disabled]="ucitavanjePDT || ucitavanjeListe || ucitavanje || formaPDTliste.invalid "
+            [nbSpinner]="ucitavanjePDT" nbSpinnerStatus="info">
+            <nb-icon icon="plus-circle"></nb-icon> Dodaj unos</button>
+        </div>
+
+        <div class="col">
+          <button type="button" id="btmclose" (click)="ocistiPDT()" shape="semi-round"
+            [disabled]="ucitavanjePDT || ucitavanjeListe || ucitavanje" nbButton status="danger"
+            style="margin-top:25px;">
+            <nb-icon icon="close-circle"></nb-icon>Očisti unos</button>
+        </div>
+      </div>
+    </form>
+  </nb-card-body>
+</nb-card>
+<hr>
+<!--Ispis podataka u tabelu -->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center">
+      <h6><nb-icon icon="file-text"></nb-icon> Lista artikala za otpis</h6>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <ng2-smart-table [settings]="settings" [source]="source" (deleteConfirm)="onDeleteConfirm($event)"
+        (editConfirm)="onSaveConfirm($event)"></ng2-smart-table>
+      <button id="spremiButton" class="mt-3 mx-auto" type="button" hero status="primary" nbButton
+        [nbSpinner]="ucitavanjeListe" nbSpinnerStatus="info" (click)="spremiListuVArtikala()"
+        [disabled]="ucitavanjePDT || ucitavanjeListe || ucitavanje" shape="semi-round">
+        <nb-icon icon="save"></nb-icon> Spremi</button>
+
+      <div class="col">
+        <button id="ocistiListuButton" type="reset" hero status="danger" nbButton shape="semi-round"
+          (click)="ocistiListuArtikala()" [disabled]="ucitavanjePDT || ucitavanjeListe || ucitavanje">
+          <nb-icon icon="trash-2"></nb-icon>Očisti listu</button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

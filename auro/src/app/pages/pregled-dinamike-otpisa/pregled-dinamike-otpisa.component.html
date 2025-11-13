@@ -1,0 +1,47 @@
+<!--Forma za odabri datuma-->
+<nb-card>
+  <nb-card-body>
+    <form #formIzdatnice="ngForm" (ngSubmit)="formIzdatnice.valid && prikaziIzdatniceTroskaInterna()">
+      <div class="row">
+        <div class="col-lg-3 col-md-4">
+          <label for="datumOd">Datum od:</label>
+          <input [nbDatepicker]="pocetniDatum" id="datumOd" name="datumOd" nbInput autocomplete="off"
+          [(ngModel)]="unos.datumOd" #datumOd="ngModel" required class="form-control"
+          [attr.aria-invalid]="datumOd.invalid && formIzdatnice.submitted ? true : null" data-testid="datum-od">
+          <nb-datepicker format="dd.MM.yyyy" #pocetniDatum></nb-datepicker>
+          <ng-container *ngIf="datumOd.invalid && formIzdatnice.submitted">
+            <p class="caption status-danger">
+              Odaberite početni datum
+            </p>
+          </ng-container>
+        </div>
+        <div class="col-lg-3 col-md-4">
+          <label for="datumDo">Datum do:</label>
+          <input [nbDatepicker]="krajnjiDatum" id="datumDo" name="datumDo" nbInput autocomplete="off"
+          [(ngModel)]="unos.datumDo" #datumDo="ngModel" required class="form-control"
+          [attr.aria-invalid]="datumDo.invalid && formIzdatnice.submitted ? true : null" data-testid="datum-do">
+          <nb-datepicker format="dd.MM.yyyy" #krajnjiDatum></nb-datepicker>
+          <ng-container *ngIf= "datumDo.invalid && formIzdatnice.submitted">
+            <p class="caption status-danger">
+              Odaberite početni datum
+            </p>
+          </ng-container>
+        </div>
+        <div class="col-xs-2 col-md-3">
+          <button nbButton status="success" style="margin-top:25px;">
+          <nb-icon icon="checkmark-circle-outline"></nb-icon> Primjeni</button>
+        </div>
+      </div>
+    </form>
+  </nb-card-body>
+</nb-card>
+<!--Tablea za ispis podataka-->
+<nb-card>
+  <nb-card-header>
+    <h6><nb-icon icon="file-text"></nb-icon>Dinamika redovnih otpisa</h6>
+  </nb-card-header>
+  <nb-card-body>
+    <ng2-smart-table [settings]="settings" [source]="source">
+    </ng2-smart-table>
+  </nb-card-body>
+</nb-card>

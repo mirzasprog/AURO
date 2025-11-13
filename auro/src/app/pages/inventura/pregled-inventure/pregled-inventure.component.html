@@ -1,0 +1,228 @@
+<!--Pregled za Podrucne voditelje-->
+<nb-card *ngIf="rola == 'podrucni'" id="karticaPodrucni">
+  <!--Zaglavlje-->
+  <nb-card-header>
+    <div class="card-header text-center">
+      <h6><i class="fas fa-list"></i>&nbsp;&nbsp; Pregled inventura</h6>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row form-group">
+      <!--Forma za odabir mjeseca za ovjeru zahtjeva za inventure-->
+      <div class="col">    
+        <label for="datum" id="datum"> Datum:</label> <em> *</em>
+        <br>
+        <p-calendar name="date" view="month" dateFormat="mm/yy" [style]="{'width': '300px'}" [(ngModel)]="datumPodrucni"
+          [showIcon]="true" [inline]="false" yearRange="2022:2050" [readonlyInput]="false" inputId="monthpicker"
+          selectionMode="single" placeholder="Odaberite datum..." (ngModelChange)="pregledajZahtjev()">
+        </p-calendar>
+      </div>
+    </div>
+    <!--Tabela za pregled stavki-->
+    <p-table *ngIf="datumPodrucni" [value]="prod" editable="true" [paginator]="true" [rows]="rows"
+      [showCurrentPageReport]="true" [(first)]="first"
+      currentPageReportTemplate="Prodavnice {first} do {last} od ukupno {totalRecords}"
+      styleClass="p-datatable-gridlines p-datatable-sm p-datatable-striped">
+      <!--Zaglavlje tabele-->
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Broj Prodavnice</th>
+          <th>Datum</th>
+          <th>Broj dokumenta</th>
+          <th>Ukupno za isplatu</th>
+          <th>Status</th>
+          <th>Pregled</th>
+        </tr>
+      </ng-template>
+      <!--Polja u tabeli-->
+      <ng-template pTemplate="body" let-prod let-editing="editing">
+        <tr [ngClass]="{
+          'odobreno': prod.status == 'Odobreno',  
+          'odobrenoIK': prod.status == 'Odobreno (IK)',
+          'odbijeno': prod.status == 'Odbijeno',
+          'odbijenoIK': prod.status == 'Odbijeno (IK)',
+          'naCekanju' : prod.status == 'Na čekanju'}">
+          <!--Broj prodavnice-->
+          <td disabled>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input pInputText [(ngModel)]="prod.brojProd">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{prod.brojProd}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <!--Datum-->
+          <td disabled>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input pInputText [(ngModel)]="prod.datum">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{prod.datum}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <!--Broj dokumenta-->
+          <td disabled>
+            <p-cellEditor>
+              <ng-template pTemplate="input">
+                <input pInputText [(ngModel)]="prod.brojDokumenta">
+              </ng-template>
+              <ng-template pTemplate="output">
+                {{prod.brojDokumenta}}
+              </ng-template>
+            </p-cellEditor>
+          </td>
+          <!--Ukupno za isplatu-->
+          <td>
+            {{prod.ukupno | currency: 'BAM': 'symbol': '1.2-2'}}
+          </td>
+          <!--Status-->
+          <td>
+            {{prod.status}}
+          </td>
+          <!--Button za pregled učesnika na inventuri-->
+          <td style="width: 150px;">
+            <button nbButton size="small" status="success" id="button" [disabled]="prod.status !== 'Na čekanju'"
+              (click)="otvoriModal(this.prod)" style="float:inline-start">
+              <nb-icon icon="search"></nb-icon> Pregled
+            </button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+    <hr>
+    <!--Forma u kojoj se nalaze button-i za obradu podataka -->
+    <div class="row">
+      <div class="col">
+        <button nbButton id="button" size="small" (click)="provjeriBrojProd()" status="info"
+          style="float:inline-start;"> <nb-icon icon="search"></nb-icon> Pregled prodavnica</button>
+
+      </div>
+      <!--Button za spremanje dokumenta -->
+      <div class="col">
+        <button nbButton id="button" size="small" (click)="spremi()" status="primary" style="float:inline-end;"
+          [disabled]="zakljucajSpremanje"> <nb-icon icon="save"></nb-icon> Spremi</button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>
+<!--Pregled za Internu kontrolu-->
+<nb-card *ngIf="rola == 'interna'" id="kartica">
+  <!--Zaglavlje-->
+  <nb-card-header class="text-center">
+    <h6><i class="fas fa-tasks"></i> &nbsp;&nbsp;Pregled inventure</h6>
+  </nb-card-header>
+  <!--Tijelo kartice-->
+  <nb-card-body>
+    <div class="row">
+      <!--Forma za odabir mjeseca po kojem se generiše Excel-->
+      <div class="col">
+        <label for="datum" id="datum"> Datum: <em>*</em></label> <br>
+        <p-calendar name="date" view="month" dateFormat="mm/yy" [(ngModel)]="datum" [showIcon]="true"
+          placeholder="Odaberite datum..." (ngModelChange)="pregledajZahtjev()">
+        </p-calendar>
+      </div>
+      <!--Vrsta inventure-->
+      <div class="col">
+        <label for="vrstaInv">Vrsta: <em>*</em></label>
+        <nb-form-field>
+          <nb-icon icon="list" nbPrefix></nb-icon>
+          <nb-select placeholder="Odaberite vrstu inventure..." size="small" [(selected)]="vrstaInv"
+            [status]="!vrstaInv? 'danger' : 'success'">
+            <nb-option (click)="ocistiVrstuInv()">
+              <nb-icon status="danger" icon="trash"></nb-icon>
+            </nb-option>
+            <nb-option value="parcijalna">Parcijalna inventura</nb-option>
+            <nb-option value="godisnja">Potpuna inventura</nb-option>
+          </nb-select>
+        </nb-form-field>
+      </div>
+      <!--Button za preuzimanje Excel-a-->
+      <div class="col">
+        <button nbButton status="success" size="small" (click)="preuzmi()" [disabled]="!datum || !vrstaInv"
+          style="margin-top:28px;">
+          <nb-icon icon="download"></nb-icon> Preuzmi
+        </button>
+      </div>
+      <!--Import uposlenika-->
+      <div class="col">
+        <label> Import uposlenika:</label> <br>
+        <button nbButton (click)="fileInput.click()" size="small" status="primary">
+          <nb-icon icon="cloud-upload"></nb-icon> Import
+        </button>
+        <input type="file" #fileInput (change)="onFileChange($event)" style="display: none;" />
+      </div>
+    </div>
+    <hr>
+    <!--Tabela za pregled stavki-->
+    <p-table #dt [value]="prodavnice" editable="true" [paginator]="true" [rows]="rows" [showCurrentPageReport]="true"
+      [(first)]="first"
+      [globalFilterFields]="['brojProd', 'podrucni', 'datum', 'vrstaInventure', 'brojDokumenta', 'ukupno', 'status', 'napomena']"
+      currentPageReportTemplate="Prodavnice {first} do {last} od ukupno {totalRecords}"
+      styleClass="p-datatable-gridlines p-datatable-sm p-datatable-striped">
+      <!-- Globalni unos za pretragu -->
+      <ng-template pTemplate="caption">
+        <div class="table-header" style="height: 40px;">
+          <button nbButton style="float:inline-start" status="success" size="small" id="button"
+           (click)="prebaciUExcel()">
+           <nb-icon icon="download"></nb-icon> Prebaci u Excel</button>
+          <nb-form-field style="float: inline-end;">
+            <nb-icon icon="search" nbPrefix></nb-icon>
+            <input type="search" nbInput (input)="dt.filterGlobal($event.target.value, 'contains')" 
+            shape="semi-round" status="primary"
+            style="float: inline-end;" fieldSize="medium" placeholder="Unesite pojam pretrage...">
+          </nb-form-field>
+        </div>
+      </ng-template>
+
+      <!-- Zaglavlje tabele -->
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="brojProd">Broj Prodavnice <p-sortIcon field="brojProd"></p-sortIcon></th>
+          <th pSortableColumn="podrucni">Područni voditelj <p-sortIcon field="podrucni"></p-sortIcon></th>
+          <th pSortableColumn="datum">Datum <p-sortIcon field="datum"></p-sortIcon></th>
+          <th pSortableColumn="vrstaInventure">Vrsta inventure <p-sortIcon field="vrstaInventure"></p-sortIcon></th>
+          <th pSortableColumn="brojDokumenta">Broj dokumenta <p-sortIcon field="brojDokumenta"></p-sortIcon></th>
+          <th pSortableColumn="ukupno">Ukupno za isplatu <p-sortIcon field="ukupno"></p-sortIcon></th>
+          <th pSortableColumn="status">Status <p-sortIcon field="status"></p-sortIcon></th>
+          <th pSortableColumn="napomena">Napomena <p-sortIcon field="napomena"></p-sortIcon></th>
+          <th pSortableColumn="akcije">Akcije</th>
+        </tr>
+      </ng-template>
+
+      <!-- Polja u tabeli -->
+      <ng-template pTemplate="body" let-prod let-editing="editing">
+      <tr [ngClass]="{
+      'odobreno': prod.status == 'Odobreno',
+      'odobrenoIK': prod.status == 'Odobreno (IK)',
+      'odbijeno': prod.status == 'Odbijeno',
+      'odbijenoIK': prod.status == 'Odbijeno (IK)',
+      'naCekanju': prod.status == 'Na čekanju',
+      'potpuna': prod.vrstaInventure == 'Godišnja'}">
+          <td>{{ prod.brojProd }}</td>
+          <td>{{ prod.podrucni }}</td>
+          <td>{{ prod.datum }}</td>
+          <td>{{ prod.vrstaInventure }}</td>
+          <td>{{ prod.brojDokumenta }}</td>
+          <td>{{ prod.ukupno | currency: 'BAM': 'symbol': '1.2-2' }}</td>
+          <td>{{ prod.status }}</td>
+          <td>{{ prod.napomena }}</td>
+          <td> 
+            <!--Button za ovjeru zahtjeva-->
+           <button nbButton size="medium" [disabled]="prod.status !== 'Na čekanju'"  id="buttonObrada"
+           status="primary" hero nbTooltip="Odobri zahtjev!" (click)="obradi(1,prod.brojDokumenta)">
+           <nb-icon icon="checkmark-circle-2"></nb-icon> </button>
+           <!--Button za odbijanje zahtjeva-->
+           <button nbButton style="margin-left: 5px;" id="buttonObrada" size="medium" [disabled]="prod.status !== 'Na čekanju'"
+           status="danger" hero nbTooltip="Odbij zahtjev!" (click)="obradi(2,prod.brojDokumenta)">
+           <nb-icon icon="close-circle"></nb-icon> </button> 
+          </td>
+      </tr>
+      </ng-template>
+    </p-table>
+
+  </nb-card-body>
+</nb-card>

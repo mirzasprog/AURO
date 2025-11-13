@@ -1,0 +1,53 @@
+#button {
+    border-radius: 5px;
+    border: none;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    transition: all 0.5s ease;
+  }
+  
+  #button:hover {
+    border-radius: 0px;
+    transform: rotate(360deg);
+    transform: scale(1.05);
+    transition: all 0.5s ease;
+  }
+  
+  label {
+    font-weight: 600;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    padding: 1px;
+  }
+
+  :host ::ng-deep #tabela table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #747070;
+    font-family: 'Arial', sans-serif;
+  }
+  
+  :host ::ng-deep #tabela td {
+    padding: 7px;
+    border-bottom: 1px solid #ddd;
+    font-size: 14.5px;
+    color: #333;
+  }  
+  
+  :host ::ng-deep #tabela th {
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    font-size: 10px;
+    color: #333;
+  }
+  
+  :host ::ng-deep #tabela tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  
+  :host ::ng-deep #tabela caption {
+    caption-side: top;
+    font-size: 10px;
+    font-weight: bold;
+    padding: 5px;
+    color: #333;
+  }

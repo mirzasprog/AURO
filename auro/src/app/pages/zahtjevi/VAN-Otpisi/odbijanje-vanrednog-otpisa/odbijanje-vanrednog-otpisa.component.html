@@ -1,0 +1,41 @@
+<!--Zaglavlje-->
+<!--Forma za unos komentara/obrazloženja razloga odbijanja artikla sa zahtjeva
+   TODO vratiti ngModel na klik buttona  [(ngModel)]="uneseniKomentar"  #komentar="ngModel"
+    -->
+    <nb-card>
+        <nb-card-header id="header">
+            <nb-icon icon="close-circle" status="danger" [options]="{ animation: { type: 'shake' } }"></nb-icon>
+            Vanredni otpis
+        </nb-card-header>
+        <nb-card-body>
+            <form #formaUgovora="ngForm" (ngSubmit)="formaUgovora.valid && spremi()">
+                <div class="card-header text-center">Komentar odbijanja otpisa</div>
+                <div class="card-body" id="sadrzaj">
+                    <div class="row form-group">
+                        <!--Polje za unos komentara odbijanja otpisa-->
+                        <div class="col">
+                            <label for="komentar">Komentar - razlog odbijanja otpisa:</label><em> *</em>
+                            <nb-form-field>
+                                <nb-icon nbPrefix icon="edit-2" status="warning" pack="eva"
+                                    [options]="{ animation: { type: 'shake' } }"></nb-icon>
+                                <textarea fullWidth name="komentar" nbInput shape="semi-round" status="warning" [(ngModel)]="unos.komentar"
+                                    placeholder="Unesite razlog odbijanja artikla sa otpisa">
+                    </textarea>
+                            </nb-form-field>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer text-center">
+                    <p>Copyright © 2023 Aplikativna podrška Konzum Bosna i Hercegovina</p>
+                </div>
+                <hr>
+                <div class="row">
+                    <div class="col">
+                        <button type="submit" id="spremiButton" style="margin-top:25px;" nbButton status="success"
+                            nbSpinnerStatus="info">
+                            <nb-icon icon="save" [options]="{ animation: { type: 'shake' } }"></nb-icon> Spremi</button>
+                    </div>
+                </div>
+            </form>
+        </nb-card-body>
+    </nb-card>

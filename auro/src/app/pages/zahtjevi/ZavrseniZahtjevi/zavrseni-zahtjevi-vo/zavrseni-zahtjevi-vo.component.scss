@@ -1,0 +1,53 @@
+#buttonPrimjeni {
+    position: absolute;
+    right: 0;
+    margin-top: 27px;
+    margin-right: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+}
+
+.text-upozorenje {
+    -webkit-animation: fadeinout 3s linear 1 forwards;
+    animation: fadeinout 3s linear 1 forwards;
+    color: red;
+    font-size: small;
+    animation-iteration-count: 3;
+    margin-top: 2px;
+}
+
+@-webkit-keyframes fadeinout {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes fadeinout {
+    0% {
+        opacity: 0;
+    }
+
+    50% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+#upitnik {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin-right: 30px;
+    margin-top: 20px;
+}

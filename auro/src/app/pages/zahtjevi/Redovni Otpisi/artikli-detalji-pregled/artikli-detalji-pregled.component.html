@@ -1,0 +1,84 @@
+<!--Zaglavlje-->
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<div class="form-group">
+    <h4>
+        Detaljan pregled artikala
+        <br>
+        <p>
+            <nb-icon icon="external-link-outline"></nb-icon> Pregled artikala na redovnom otpisu
+        </p>
+    </h4>
+</div>
+<!--Table za pregled artikala na otpisu-->
+<nb-card>
+    <nb-card-header>
+        <nb-icon icon="browser-outline"></nb-icon> Pregled artikala za otpis
+    </nb-card-header>
+    <nb-card-body>
+        <form #formaOdobreniArtikli="ngForm" (ngSubmit)="formaOdobreniArtikli.valid">
+            <ng2-smart-table [settings]="settings" [source]="source">
+            </ng2-smart-table>
+            <hr>
+            <div class="row form-group">
+                <div class="col">
+                    <button type="submit" (click)="odobriOtpis()" id="spremiButton" style="margin-top:25px;"
+                        nbButton status="success" nbSpinnerStatus="info" [disabled]="iskljucenoDugmeOtpisa || otpisButton">
+                        <nb-icon icon="checkmark-circle-2"></nb-icon> Odobri otpis
+                    </button>
+                </div>
+                <div class="col">
+                    <button type="close" (click)="odbijOtpis()" id="odbijButton" style="margin-top:25px;" nbButton
+                        status="danger" nbSpinnerStatus="info" [disabled]="iskljucenoDugmeOtpisa || otpisButton">
+                        <nb-icon icon="close-circle"></nb-icon> Odbij otpis
+                    </button>
+                </div>
+            </div>
+        </form>
+    </nb-card-body>
+</nb-card>
+<!--Tabela za odbijene artikle sa zahtjeva-->
+<nb-card>
+    <nb-card-header>
+        <nb-icon icon="browser-outline"></nb-icon> Odbijeni artikli sa otpisa
+    </nb-card-header>
+    <nb-card-body>
+              <ng2-smart-table [settings]="trenutnoOdbijeniArtikli" [source]="sourceTrenutnoOdbijeniArtikli">
+            </ng2-smart-table>
+    </nb-card-body>
+</nb-card>
+<!--Tabela za odobrene artikle sa zahtjeva-->
+<nb-card>
+    <nb-card-header>
+        <nb-icon icon="browser-outline"></nb-icon> Odobreni artikli za otpis
+    </nb-card-header>
+    <nb-card-body>
+              <ng2-smart-table [settings]="odobreniArtikli" [source]="sourceTrenutnoOdobreniArtikli">
+            </ng2-smart-table>
+    </nb-card-body>
+</nb-card>
+<!--Tabela artikala koji nisu odobreni za otpis-->
+<nb-card *ngIf="rola == 'regionalni'">
+    <nb-card-header>
+        <nb-icon icon="repeat-outline"></nb-icon> Artikli koji nisu odobreni za otpis
+    </nb-card-header>
+    <nb-card-body>
+          <ng2-smart-table [settings]="odbijeniArtikli" [source]="sourceOdbijeniArtikli">
+            </ng2-smart-table>
+            <hr>
+    </nb-card-body>
+</nb-card>
+<hr>
+<nb-card>
+    <nb-card-body>
+        <div class="row form-group">
+            <div class="col text-center mt-5">
+                <button type="submit" id="spremiButton" nbButton status="success"
+                    nbSpinnerStatus="info" [disabled]="!iskljucenoDugmeOtpisa" (click)="spremiOdbijeneArtikle()">
+                    <nb-icon icon="save-outline"></nb-icon> Spremi
+                </button>
+            </div>
+          </div>
+    </nb-card-body>
+</nb-card>

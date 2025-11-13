@@ -1,0 +1,86 @@
+<!--Zaglavlje-->
+<nb-card id="kartica">
+  <nb-card-body>
+    <div class="row">
+      <div class="col">
+        <h5 id="header">
+          Pregled napravljenih vanrednih otpisa
+          <br>
+          <p id="teskt-para">
+            Racionalno iskoristite prostor!
+          </p>
+        </h5>
+      </div>
+      <div class="col">
+        <button id="upitnik" nbButton status="warning" shape="semi-round" [nbTooltipIcon]="{icon: 'bell', pack: 'eva'}"
+          nbTooltipStatus="warning" nbTooltip="Unesite datum za pregled!" nbTooltipPlacement="left">
+          <nb-icon icon="question-mark-circle"></nb-icon>
+        </button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>
+<!--Forma za odabir datuma-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center">
+      <h6><nb-icon icon="fa-calendar-alt" pack="font-awesome"></nb-icon> Odaberite datume!</h6>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <form #formaOtpisa="ngForm" (ngSubmit)="formaOtpisa.valid && prikaziOtpis()">
+      <div class="row">
+        <div class="col">
+          <label for="datumOd">Datum od:</label><em>*</em>
+          <nb-form-field>
+            <nb-icon nbPrefix icon="calendar" pack="eva"
+              [options]="{ animation: { type: 'zoom', infinite:true } }"></nb-icon>
+            <input [nbDatepicker]="pocetniDatum" id="datumOd" name="datumOd" nbInput autocomplete="off"
+              [(ngModel)]="unos.datumOd" #datumOd="ngModel" required class="form-control"
+              [shape]="!unos.datumOd ? 'semi-round' : 'rectangle'"
+              [attr.aria-invalid]="datumOd.invalid && formaOtpisa.submitted ? true : null" placeholder="Unesite datum"
+              [status]="!unos.datumOd ? 'danger' : 'primary'">
+          </nb-form-field>
+          <nb-datepicker format="dd.MM.yyyy" #pocetniDatum></nb-datepicker>
+          <ng-container *ngIf="datumOd.invalid && formaOtpisa.submitted">
+            <p class="text-upozorenje">
+              Odaberite datum!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="datumDo">Datum do:</label><em>*</em>
+          <nb-form-field>
+            <nb-icon nbPrefix icon="calendar" pack="eva"
+              [options]="{ animation: { type: 'zoom', infinite:true } }"></nb-icon>
+            <input [nbDatepicker]="krajnjiDatum" id="datumDo" name="datumDo" nbInput autocomplete="off"
+              [(ngModel)]="unos.datumDo" #datumDo="ngModel" required class="form-control"
+              [shape]="!unos.datumDo ? 'semi-round' : 'rectangle'"
+              [attr.aria-invalid]="datumDo.invalid && formaOtpisa.submitted ? true : null" placeholder="Unesite datum"
+              [status]="!unos.datumDo ? 'danger' : 'primary'">
+          </nb-form-field>
+          <nb-datepicker format="dd.MM.yyyy" #krajnjiDatum></nb-datepicker>
+          <ng-container *ngIf="datumDo.invalid && formaOtpisa.submitted">
+            <p class="text-upozorenje">
+              Odaberite datum!
+            </p>
+          </ng-container>
+        </div>
+        <button nbButton status="success" id="buttonPrimjeni" type="submit" shape="semi-round">
+          <nb-icon icon="checkmark-circle-outline"></nb-icon> Primjeni</button>
+      </div>
+    </form>
+  </nb-card-body>
+</nb-card>
+<hr>
+<!--Tabela za prikaz podataka-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center"> <nb-icon icon="file-text"></nb-icon> Pregled napravljenih vanrednih otpisa
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <ng2-smart-table [settings]="settings" [source]="source">
+    </ng2-smart-table>
+  </nb-card-body>
+</nb-card>

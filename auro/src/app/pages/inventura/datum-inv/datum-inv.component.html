@@ -1,0 +1,81 @@
+<nb-card>
+    <nb-card-header>
+        <div class="card-header text-center">
+            <h6><i class="fas fa-calendar-alt"></i> Unos podataka</h6>
+        </div>
+    </nb-card-header>
+
+    <nb-card-body>
+        <div class="row">
+            <!--Broj sati-->
+            <div class="col" >
+                <label for="brSati">Broj sati : <em>*</em> </label> <br>
+                <nb-form-field style="margin-bottom: 10px">
+                    <nb-icon nbPrefix icon="clock-outline" pack="eva"></nb-icon>
+                    <input nbInput type="number" [(ngModel)]="brSati" 
+                    [status]="isValidBrojSati() ? 'success' : 'danger'"
+                    fieldSize="small" id="brSati" 
+                    style="width: 250px;" placeholder="Broj minuta..."
+                    [shape]="isValidBrojSati() ? 'semi-round' : 'rectangle'"
+                    min="0" step="1"  >
+                </nb-form-field>
+                <ng-container *ngIf="!isValidBrojSati()">
+                    <p class="text-upozorenje">
+                    Unesite cijeli broj!
+                    </p>
+                </ng-container>
+            </div>            
+            <!-- Broj minuta -->
+            <div class="col">
+                <label for="brMinuta">Broj minuta : <em>*</em> </label> <br>
+                <nb-form-field style="margin-bottom: 10px">
+                    <nb-icon nbPrefix icon="clock-outline" pack="eva"></nb-icon>
+                    <input nbInput type="number" [(ngModel)]="brMinuta"
+                        [status]="isValid() ? 'success' : 'danger'"
+                        fieldSize="small" id="brMinuta" 
+                        style="width: 250px;" placeholder="Broj minuta..."
+                        [shape]="isValid() ? 'semi-round' : 'rectangle'"
+                        min="0" step="1" />
+                </nb-form-field>
+                <ng-container *ngIf="!isValid()">
+                    <p class="text-upozorenje">
+                    Unesite cijeli broj!
+                    </p>
+                </ng-container>
+            </div>    
+            <!--Broj dana
+            <div class="col" >
+                <label for="brDana">Broj dana : </label> <br>
+                <nb-form-field style="margin-bottom: 10px">
+                    <nb-icon nbPrefix icon="list" pack="eva"></nb-icon>
+                    <input nbInput placeholder="&nbsp;Odaberite broj dana..." [(ngModel)]="brDana" 
+                    size="small" disabled readonly [shape]="brDana ? 'semi-round' : 'rectangle'"
+                    style="width: 250px;" [status]="brDana ? 'success' : 'danger'" fieldSize="small">
+                </nb-form-field>
+            </div> -->
+            <!--Uposlenik-->
+            <div class="col" >
+                <label for="uposlenik">Uposlenik : </label> <br>
+                <nb-form-field style="margin-bottom: 10px">
+                    <nb-icon nbPrefix icon="person-outline" pack="eva"></nb-icon>
+                    <input nbInput id="uposlenik" type="text" readonly [(ngModel)]="uposlenik" [status]="uposlenik ? 'success' : 'danger'"
+                    fieldSize="small"  style="width: 250px;" disabled placeholder="Uposlenik..."  [shape]="uposlenik ? 'semi-round' : 'rectangle'"  >
+                </nb-form-field>
+            </div>           
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col">
+                <button nbButton style="float:left" size="small" shape="semi-round" status="danger" (click)="zatvoriModal()">
+                    <nb-icon icon="close-circle-outline"></nb-icon>Zatvori
+                </button>
+            </div>
+            <div class="col">
+                <button nbButton style="float:right" size="small" shape="semi-round" status="primary" 
+                 (click)="spremi()">
+                    <nb-icon icon="save"></nb-icon>Spremi
+                </button>
+            </div>
+        </div>
+    </nb-card-body>
+</nb-card>

@@ -1,0 +1,34 @@
+  <nb-card>
+    <nb-card-header>
+        <div class="row">
+            <div class="col">
+            </div>
+            <div class="col">
+                <button nbButton style="float:inline-end; margin-top:20px;" 
+                status="danger" (click)="zatvori()" size="small"> 
+                <nb-icon icon="close"></nb-icon>
+              </button>
+            </div>
+        </div>
+    </nb-card-header>
+      <nb-card-body>
+        <form #forma="ngForm" (ngSubmit)="forma.valid && spremi()" >
+          <div class="row form-group ">
+            <div class="col-md-12 mt-3">
+            <label for="komentar">Komentar - razlog odbijanja parcijalne inventure:</label>
+            <textarea fullWidth name="komentar" [(ngModel)]="komentar"  nbInput placeholder="Unesite komentar...">
+            </textarea>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col">
+              <button type="submit" style="margin-top:25px;" nbButton status="success"
+               nbSpinnerStatus="info" (click)="spremi()" size="small" [disabled]="!komentar">
+              <nb-icon icon="save-outline" ></nb-icon> Spremi</button>
+            </div>
+          </div>
+        </form>
+      </nb-card-body> 
+  </nb-card>
+  

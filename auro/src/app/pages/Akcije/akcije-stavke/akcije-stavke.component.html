@@ -1,0 +1,85 @@
+<nb-card id="kartica">
+    <!--Zaglavlje-->
+    <nb-card-header>
+        <div class="row card-header" >
+            <div class="col"></div>
+            <!--Naslov-->
+            <div class="col">
+                <div class=" text-center">
+                    <h6><i class="fas fa-list"></i> Akcije</h6>
+                </div>
+            </div>
+            <div class="col"></div>
+        </div>
+    </nb-card-header>
+    <nb-card-body>
+        <!--Tabela sa podacima-->
+        <p-table [value]="data" editable="true" class="p-datatable-responsive-demo" [rows]="rows"
+            styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true"
+            (onPage)="noviPage($event)" [first]="first">
+            <!-- Zaglavlje tabele -->
+            <ng-template pTemplate="header">
+                <tr class="zaglavlje">
+                    <th>Šifra artikla</th>
+                    <th>Naziv</th>
+                    <th>Količina</th>
+                </tr>
+            </ng-template>
+            <!-- Polja u tabeli -->
+            <ng-template pTemplate="body" let-data>
+                <tr>
+                    <!-- Šifra artikla -->
+                    <td>
+                        <p-cellEditor>
+                            <ng-template pTemplate="output">
+                                {{ data.sifra }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <!-- Naziv artikla -->
+                    <td>
+                        <p-cellEditor>
+                            <ng-template pTemplate="output">
+                                {{ data.naziv }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                    <!-- Količina -->
+                    <td [ngClass]="{'kolicinaArtikla' : true}" pEditableColumn>
+                        <p-cellEditor>
+                            <ng-template pTemplate="input">
+                                <input pInputText 
+                                    [(ngModel)]="data.kolicina" 
+                                    [step]="1" 
+                                    name="kolcina" 
+                                    autocomplete="off" 
+                                    [min]="0" 
+                                    type="number" 
+                                    (input)="onKolicinaChange(data)" 
+                                    (keypress)="validirajBroj($event)"/>
+                            </ng-template>
+                            <ng-template pTemplate="output">
+                                {{ data.kolicina }}
+                            </ng-template>
+                        </p-cellEditor>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+        <!--Button-i-->
+        <div class="row" style="margin-top: 15px;">
+            <!--Button za zatvaranje modal-a-->
+            <div class="col">
+                <button nbButton style="float:inline-start;" id="button" 
+                size="small" status="danger" hero (click)="zatvoriModal()" >
+                    <nb-icon icon="close-square"></nb-icon> zatvori
+                </button>
+            </div>
+            <!--Button za spremanje unosa korisnika-->
+            <div class="col">
+                <button nbButton style="float:inline-end" id="button" status="success" size="small" (click)="spremi()">
+                    <nb-icon icon="checkmark-circle-2"></nb-icon> Spremi</button>
+            </div>
+        </div>
+    </nb-card-body>
+</nb-card>

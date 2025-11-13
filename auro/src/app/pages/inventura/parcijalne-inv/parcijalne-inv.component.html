@@ -1,0 +1,482 @@
+<!--Zaglavlje-->
+<nb-card>
+  <script type="text/javascript" src="../../../../assets/tostify/toastify.js"></script>
+  <nb-card-body>
+    <div class="row form-group">
+      <!--Datum Inventure-->
+      <div class="col">
+        <label style="margin-left: 20px;" for="datum">Datum: <em>*</em></label><br>
+        <nb-form-field style="margin-bottom: 10px; margin-left: 20px;">
+          <nb-icon nbPrefix icon="calendar" pack="eva"></nb-icon>
+          <input [nbDatepicker]="datepicker" required id="datumVazenja" name="datumVazenja" [(ngModel)]="datum" nbInput
+            autocomplete="off" id="datum" fullWidht [shape]="!datum ? 'rectangle' : 'semi-round'" fieldSize="small"
+            (ngModelChange)="dodajDatumInventure()" placeholder="Datum ..." readonly [status]="!datum ? 'danger' : 'success'">
+        </nb-form-field>
+        <nb-datepicker #datepicker [min]="minDate" [max]="maxDate"></nb-datepicker>
+      </div>
+      <!--Vrsta inventure-->
+      <div class="col">
+        <label for="vrstaInv">Vrsta: <em>*</em></label> <br>
+        <nb-form-field>
+          <nb-icon icon="list" nbPrefix></nb-icon>
+          <nb-select placeholder="Odaberite vrstu inventure..." size="small" id="vrstaInv" [(selected)]="vrstaInv"
+            fullWidth [status]="!vrstaInv? 'danger' : 'success'" [shape]="!vrstaInv? 'rectangle' : 'semi-round'">
+            <nb-option (click)="ocistiVrstuInv()"> <nb-icon status="danger" icon="trash"></nb-icon></nb-option>
+            <nb-option [disabled]="vrstaInv === 'godisnja'" value="parcijalna">Parcijalna inventura</nb-option>
+            <nb-option  [disabled]="vrstaInv === 'parcijalna'" value="godisnja">Potpuna inventura</nb-option>
+          </nb-select>
+        </nb-form-field>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>
+<!--Parcijalne inventure-->
+<nb-card id="kartica" *ngIf="this.vrstaInv == 'parcijalna' && datum">
+  <!--Zaglavlje kartice-->
+  <nb-card-header>
+    <div class="card-header">
+      <div class="row">
+        <div class="col">
+        </div>
+        <div class="col text-center">
+          <h6 ><i class="fas fa-list"></i> Unos parcijalne inventure</h6>
+        </div>
+        <div class="col">
+          <button nbButton style="float:inline-end" size="small" status="danger" id="button" (click)="nemaInventure(1)" >
+            <nb-icon icon="close-outline"></nb-icon>  Nema inventure</button>
+        </div>
+      </div>
+     
+    </div>
+  </nb-card-header>
+  <!--Forma za unos i pregled-->
+  <nb-card-body>
+    <nb-card id="karticaInv">
+      <!--Forma za unos broja sati i broja minuta na inventuri-->
+      <div class="row form-group" style="pad: 1px; margin-top: 5px;">
+        <!-- Broj sati -->
+        <div class="col" style="margin-left: 3px;">
+            <label for="brSati">Broj sati inventure : <em>*</em> </label> <br>
+            <nb-form-field style="margin-bottom: 10px">
+                <nb-icon nbPrefix icon="clock-outline" pack="eva"></nb-icon>
+                <input nbInput type="number" [(ngModel)]="brSati" 
+                    [status]="isValidBrojSati() ? 'success' : 'danger'"
+                    fieldSize="small" id="brSati" [disabled]="isBrSatiDisabled"
+                    style="width: 250px;" placeholder="Unesite broj sati..."
+                    [shape]="isValidBrojSati() ? 'semi-round' : 'rectangle'"
+                    min="0" step="1" 
+                    (blur)="onSatiBlur()">
+            </nb-form-field>
+        </div>            
+        <!-- Broj minuta -->
+        <div class="col">
+            <label for="brMinuta">Broj minuta : <em>*</em> </label> <br>
+            <nb-form-field style="margin-bottom: 10px">
+                <nb-icon nbPrefix icon="clock-outline" pack="eva"></nb-icon>
+                <input nbInput type="number" [(ngModel)]="brMinuta"
+                    [status]="isValid() ? 'success' : 'danger'"
+                    fieldSize="small" id="brMinuta" [disabled]="isBrMinutaDisabled"
+                    style="width: 250px;" placeholder="Broj minuta..."
+                    [shape]="isValid() ? 'semi-round' : 'rectangle'"
+                    min="0" step="1" 
+                    (blur)="onMinutaBlur()"/>
+            </nb-form-field>
+        </div> 
+      </div>
+    <!--Button-i za pregled page-ova u tabeli-->
+    <div style="margin-bottom: 55px; padding:20px;">
+      <div class="mb-3">
+        <p-button type="button" icon="pi pi-chevron-left" (click)="nazad()" [disabled]="prviPageUtabeli()"
+          styleClass="p-button-text"> </p-button>
+        <p-button type="button" icon="pi pi-refresh" (click)="reset()" styleClass="p-button-text"> </p-button>
+        <p-button type="button" icon="pi pi-chevron-right" (click)="dalje()" [disabled]="posljednjiPageUtabeli()"
+          styleClass="p-button-text"> </p-button>
+      </div>
+      <!--Tabela sa podacima-->
+      <p-table [value]="employees" editable="true" class="p-datatable-responsive-demo" [rows]="rows"
+        styleClass="p-datatable-striped p-datatable-sm" [rowsPerPageOptions]="[5, 10]" [paginator]="true"
+        (onPage)="noviPage($event)" [first]="first">
+        <!--Zaglavlje tabele-->
+        <ng-template pTemplate="header">
+          <tr>
+            <th>Broj iz DES-a</th>
+            <th>Ime</th>
+            <th>Prezime</th>
+            <th>Iznos Za Isplatu</th>
+            <th>Broj Sati</th>
+            <th>Broj Dana</th>
+            <th>Prisutnost</th>
+          </tr>
+        </ng-template>
+        <!--Polja u tabeli-->
+        <ng-template pTemplate="body" let-employee let-editing="editing">
+          <tr [ngClass]="{'disabled-row': employee.locked, 'enabled-row' : employee.brojDana > 0 }">
+            <!--Broj iz  DES-a-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.brojIzDESa" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.brojIzDESa}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Ime-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.ime" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.ime}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Prezime-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.prezime" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.prezime}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Iznos za isplatu-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input type="number" pInputText [(ngModel)]="employee.iznosZaIsplatu" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.iznosZaIsplatu | currency: 'BAM': 'symbol': '1.2-2'}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Broj sati-->
+            <td>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <p-inputNumber [(ngModel)]="employee.brojSati" [min]="0" [disabled]="employee.locked"></p-inputNumber>
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.brojSati}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Broj dana-->
+            <td *ngIf="!employee.locked">
+              {{employee.brojDana}}
+            </td>
+            <td *ngIf="employee.locked">
+              {{employee.brojDana}}
+            </td>
+            <!--Button za zaključavanje korisnika-->
+            <td>
+              <!--Button  za otvaranje modal-a za unos nroja dana i sati-->
+              <button nbButton size="small" status="primary" id="button" (click)="dodajSateNaUposlenika(employee, 1)"
+                [disabled]="employee.locked || employee.brojDana !== 0 || !this.brSati || this.brMinuta == null" style="float:inline-start">
+                <nb-icon icon="checkmark-circle-2"></nb-icon>
+              </button>
+              <!--Button za iskljucivanje uposlenika sa inventure-->
+              <button nbButton size="small" status="danger" id="button" (click)="confirmLockEmployee(employee)"
+                [disabled]="employee.locked || employee.brojDana !== 0" style="float:inline-end">
+                <nb-icon icon="close-circle"></nb-icon>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </div>
+    <div class="row" *ngIf="datum && vrstaInv">
+      <div class="col">
+      </div>
+      <!--Button za spremanje unosa korisnika-->
+      <div class="col">
+        <button nbButton style="float:inline-end; margin-right:23px; margin-bottom:15px;" id="button" status="success"
+        size="small" (click)="spremi()" [disabled]="!datum || !vrstaInv">
+        <nb-icon icon="checkmark-circle-2"></nb-icon> Spremi
+      </button>
+      </div>
+    </div>
+    </nb-card>
+  </nb-card-body>
+</nb-card>
+<!--Potpune inventure-->
+<nb-card id="kartica" *ngIf="this.vrstaInv == 'godisnja' && datum">
+  <!--Zaglavlje kartice-->
+  <nb-card-header>
+    <div class="card-header">
+    <div class="row">
+      <div class="col">
+      </div>
+      <div class="col">
+        <h6><i class="fas fa-list"></i> Unos potpune inventure</h6>
+      </div>
+      <div class="col">
+        <button nbButton style="float:inline-end" size="small" status="danger" id="button" (click)="nemaInventure(2)" >
+          <nb-icon icon="close-outline"></nb-icon>  Nema inventure</button>
+      </div>
+    </div>
+    </div>
+  </nb-card-header>
+  <!--Forma za unos i pregled-->
+  <nb-card-body>
+      <!--Forma za unos broja sati i broja minuta na inventuri-->
+      <div class="row form-group" style="pad: 1px; margin-top: 5px;">
+        <!-- Broj sati -->
+        <div class="col" style="margin-left: 3px;">
+            <label for="brSati">Broj sati inventure : <em>*</em> </label> <br>
+            <nb-form-field style="margin-bottom: 10px">
+                <nb-icon nbPrefix icon="clock-outline" pack="eva"></nb-icon>
+                <input nbInput type="number" [(ngModel)]="brSati" 
+                    [status]="isValidBrojSati() ? 'success' : 'danger'"
+                    fieldSize="small" id="brSati" [disabled]="isBrSatiDisabled"
+                    style="width: 250px;" placeholder="Unesite broj sati..."
+                    [shape]="isValidBrojSati() ? 'semi-round' : 'rectangle'"
+                    min="0" step="1" 
+                    (blur)="onSatiBlur()">
+            </nb-form-field>
+        </div>            
+        <!-- Broj minuta -->
+        <div class="col">
+            <label for="brMinuta">Broj minuta : <em>*</em> </label> <br>
+            <nb-form-field style="margin-bottom: 10px">
+                <nb-icon nbPrefix icon="clock-outline" pack="eva"></nb-icon>
+                <input nbInput type="number" [(ngModel)]="brMinuta"
+                    [status]="isValid() ? 'success' : 'danger'"
+                    fieldSize="small" id="brMinuta" [disabled]="isBrMinutaDisabled"
+                    style="width: 250px;" placeholder="Broj minuta..."
+                    [shape]="isValid() ? 'semi-round' : 'rectangle'"
+                    min="0" step="1" 
+                    (blur)="onMinutaBlur()"/>
+            </nb-form-field>
+        </div> 
+      </div>
+    <!--Forma za pregled podataka-->
+    <div style="margin-bottom: 55px; padding:20px;">
+      <nb-card id="karticaInv">
+      <nb-card-body>
+        <div style="margin-bottom: 55px; padding:20px;">
+       <!--Button-i za pregled page-ova u tabeli-->
+       <div class="mb-3">
+        <p-button type="button" icon="pi pi-chevron-left" (click)="nazad()" [disabled]="prviPageUtabeli()"
+          styleClass="p-button-text"> </p-button>
+        <p-button type="button" icon="pi pi-refresh" (click)="reset()" styleClass="p-button-text"> </p-button>
+        <p-button type="button" icon="pi pi-chevron-right" (click)="dalje()" [disabled]="posljednjiPageUtabeli()"
+          styleClass="p-button-text"> </p-button>
+      </div>
+      <!--Tabela sa podacima-->
+      <p-table [value]="employeesPotpuneInv" editable="true" class="p-datatable-responsive-demo" [rows]="rows"
+        styleClass="p-datatable-sm p-datatable-gridlines" [rowsPerPageOptions]="[5, 10]" [paginator]="true"
+        (onPage)="noviPage($event)" [first]="first">
+        <!--Zaglavlje tabele-->
+        <ng-template pTemplate="header" >
+          <tr class="zaglavlje">
+            <th>Broj iz DES-a</th>
+            <th>Ime</th>
+            <th>Prezime</th>
+            <th>OrgJed</th>
+            <th>Broj Sati</th>
+            <th>Prisutnost</th>
+          </tr>
+        </ng-template>
+        <!--Polja u tabeli-->
+        <ng-template pTemplate="body" let-employee let-editing="editing">
+          <tr [ngClass]="{'disabled-row': employee.locked, 'enabled-row' : employee.brojDana > 0 }">
+            <!--Broj iz  DES-a-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.brojIzDESa" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.brojIzDESa}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Ime-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.ime" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.ime}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Prezime-->
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.prezime" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.prezime}}
+                </ng-template>
+              </p-cellEditor>
+            </td>  
+            <!--OrgJed-->          
+            <td disabled>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <input pInputText [(ngModel)]="employee.orgJed" [disabled]="employee.locked">
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.orgJed}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Broj sati-->
+            <td>
+              <p-cellEditor>
+                <ng-template pTemplate="input">
+                  <p-inputNumber [(ngModel)]="employee.brojSati" [min]="0" [disabled]="employee.locked"></p-inputNumber>
+                </ng-template>
+                <ng-template pTemplate="output">
+                  {{employee.brojSati}}
+                </ng-template>
+              </p-cellEditor>
+            </td>
+            <!--Button za zaključavanje korisnika-->
+            <td>
+              <!--Button  za otvaranje modal-a za unos nroja dana i sati-->
+              <button nbButton size="small" status="primary" id="button" (click)="dodajSateNaUposlenika(employee, 2)"
+                [disabled]="employee.locked || employee.brojDana !== 0 || !this.brSati || this.brMinuta == null" style="float:inline-start">
+                <nb-icon icon="checkmark-circle-2"></nb-icon>
+              </button>
+              <!--Button za iskljucivanje uposlenika sa inventure-->
+              <button nbButton size="small" status="danger" id="button" (click)="confirmLockEmployee(employee)"
+                [disabled]="employee.locked || employee.brojDana !== 0" style="float:inline-end">
+                <nb-icon icon="close-circle"></nb-icon>
+              </button>
+            </td>
+          </tr>
+        </ng-template>
+      </p-table>
+      </div>
+     </nb-card-body>
+      </nb-card>
+      <!--Unos podataka za uposlenike koji nisu iz poslovnice-->
+      <nb-card id="karticaInv">
+        <nb-card-body>
+          <div class="row form-group">
+            <div class="col"> 
+              <label for="imeZaposlenika">Ime i prezime:  <em>*</em> </label> <br>
+              <nb-form-field>
+                <nb-icon icon="person" nbPrefix></nb-icon>
+                <input type="text" placeholder="Unesite ime i prezime..." [(ngModel)]="imeZaposlenika" 
+                       nbInput id="imeZaposlenika" [shape]="imeZaposlenika ? 'semi-round' : 'rectangle'" 
+                       [status]="imeZaposlenika ? 'success' : 'danger'" fieldSize="small" autocomplete="off"
+                       [ngbTypeahead]="pretraga" type="search" 
+                       (selectItem)="onSelect($event)" (blur)="onBlur()" [inputFormatter]="formatResult"
+                       [resultFormatter]="formatResult">
+              </nb-form-field>
+            </div>  
+            <!--Broj iz DES-a-->
+            <div class="col">
+              <label for="brIzDesa">Broj iz DES-a: </label> <br>
+              <nb-form-field>
+                <nb-icon icon="bookmark" nbPrefix></nb-icon>
+                <input type="number" placeholder="Broj iz DES-a..." readonly [(ngModel)]="idhr" nbInput id="brIzDesa" 
+                [shape]="idhr ? 'semi-round' : 'rectangle'" [status]="idhr ? 'success' : 'danger'" fieldSize="small">
+              </nb-form-field>
+            </div>
+            <!--ORG-JED-->
+            <div class="col">
+              <label for="orgJed">Org-Jed: </label> <br>
+              <nb-form-field>
+                <nb-icon icon="cast" nbPrefix></nb-icon>
+                <input type="text" placeholder="OrgJed..." [(ngModel)]="orgJed" nbInput id="orgJed" readonly 
+                [shape]="orgJed ? 'semi-round' : 'rectangle'" [status]="orgJed ? 'success' : 'danger'" fieldSize="small">
+              </nb-form-field>
+            </div>
+          </div>  
+        <div class="row">
+          <!--Broj sati-->
+          <div class="col">
+            <label for="brSati">Broj sati:  <em>*</em> </label> <br>
+            <nb-form-field>
+              <nb-icon icon="clock" nbPrefix></nb-icon>
+              <input type="number" nbInput [(ngModel)]="brSati" id="brSati" step="1" fieldSize="small" disabled
+              [shape]="brSati ? 'semi-round' : 'rectangle'" [status]="brSati ? 'success' : 'danger'" placeholder="Unesite broj sati..." >
+            </nb-form-field>
+          </div>          
+          <!-- Broj minuta -->
+          <div class="col">
+            <label for="brMinuta">Broj minuta: <em>*</em></label><br>
+            <nb-form-field>
+              <nb-icon icon="clock" nbPrefix></nb-icon>
+              <input
+                type="number"
+                nbInput
+                [(ngModel)]="brMinuta"
+                id="brMinuta"
+                step="1"
+                fieldSize="small"
+                disabled
+                [shape]="isValidBrojMinuta() ? 'semi-round' : 'rectangle'"
+                [status]="isValidBrojMinuta() ? 'success' : 'danger'"
+                placeholder="Unesite broj minuta..."
+                (input)="onBrMinutaChange()"
+                max="59"
+                min="0"
+              />
+            </nb-form-field>
+            <ng-container *ngIf="showWarning">
+              <p class="text-upozorenje">Unesite cijeli broj!</p>
+            </ng-container>
+            <ng-container *ngIf="showNegativeWarning">
+              <p class="text-upozorenje">Broj mora biti pozitivan!</p>
+            </ng-container>
+            <ng-container *ngIf="showOverLimitWarning">
+              <p class="text-upozorenje">Broj ne može biti veći od 59!</p>
+            </ng-container>
+            
+          </div>
+          <!--Uloga na inventuri-->
+          <div class="col">
+            <label for="uloga">Uloga na inventuri: <em>*</em></label> <br>
+            <nb-form-field>
+              <nb-icon icon="list" nbPrefix></nb-icon>
+              <nb-select placeholder="Odaberite opciju..." size="small" id="uloga" [(selected)]="uloga" [disabled]="!imeZaposlenika"
+                fullWidth [status]="!uloga? 'danger' : 'success'" [shape]="!uloga? 'rectangle' : 'semi-round'">
+                <nb-option  value="Predsjednik">Predsjednik</nb-option>
+                <nb-option   value="Član komisije">Član komisije</nb-option>
+                <nb-option  value="Administrator">Administrator</nb-option>
+                <nb-option  value="Ispomoć">Ispomoć</nb-option>
+              </nb-select>
+            </nb-form-field>     
+          </div>
+          <!--Button za dodavanje odabranog uposlenika u listu-->
+          <div class="col">
+            <button nbButton id="button" hero status="success" size="small" style="margin-top:25px;" 
+            [disabled]="!imeZaposlenika || !brSati || !idhr || !uloga || showWarning || showNegativeWarning || showOverLimitWarning"
+            (click)="dodaj()" >
+              <nb-icon icon="plus-circle"></nb-icon> Dodaj u listu
+            </button>
+          </div>
+        </div>
+      </nb-card-body>
+      </nb-card>
+    </div>
+    <div class="row" *ngIf="datum && vrstaInv">
+      <!--Button za Print-->
+      <div class="col" *ngIf="this.vrstaInv == 'godisnja'">
+          <button nbButton style="margin-top:32px;" id="button"
+          status="info" (click)="printaj()" size="small"><nb-icon icon="printer"></nb-icon> Print
+          </button>
+      </div>
+      <!--Button za spremanje unosa korisnika-->
+      <div class="col">
+        <button nbButton style="float:inline-end; margin-top:32px; margin-right:23px;" id="button" status="success"
+        size="small" (click)="spremi()" [disabled]="!datum || !vrstaInv">
+        <nb-icon icon="checkmark-circle-2"></nb-icon> Spremi
+      </button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

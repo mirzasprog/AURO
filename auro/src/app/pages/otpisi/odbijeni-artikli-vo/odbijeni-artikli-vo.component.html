@@ -1,0 +1,33 @@
+<!--Zaglavlje-->
+<nb-card>
+    <div class="row form-group">
+    <div class="col">
+    <h4 id="header">
+      Pregled artikala koji nisu odobreni za redovni otpis
+      <br>
+      <p id="tekst-para">
+        Oslobodite se robe neuslovne za prodaju!
+      </p>
+    </h4>
+    </div>
+  </div>
+  </nb-card>
+  <hr>
+  <!--Tabela za prikaz artikala koji nisu odobreni za otpis-->
+  <nb-card>
+    <nb-card-header>
+      <nb-icon icon="close-square"  status="danger" [options]="{ animation: { type: 'shake' } }"></nb-icon> Lista artikala koji nisu odobreni za otpis
+    </nb-card-header>
+    <nb-card-body>
+      <label for="komentar">Komentar odbijanja otpisa: </label>
+      <nb-form-field id="komentar">
+      <nb-icon nbPrefix icon="close-circle" status="danger" pack="eva"
+        [options]="{ animation: { type: 'shake' } }"></nb-icon>
+      <input type="text" nbInput readonly status="danger" shape="semi-round" [(ngModel)]="komentarOtpisa">
+    </nb-form-field>
+    <hr>
+      <div class="row">
+        <ng2-smart-table [settings]="odbijeniArtikli" [source]="sourceOdbijeniArtikli"></ng2-smart-table>
+      </div>
+    </nb-card-body>
+  </nb-card>

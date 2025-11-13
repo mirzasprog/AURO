@@ -1,0 +1,44 @@
+<nb-card id="kartica">
+    <nb-card-header>
+        <div class="card-header text-center">
+            <h6><i class="fas fa-list"></i> Pregled prodavnica koje nisu zaključile inventuru</h6>
+        </div> 
+    </nb-card-header>
+
+    <nb-card-body>
+    <p-table #tabela id="tabela" [value]="podaci" dataKey="id" [paginator]="true" rows='10'
+        [showCurrentPageReport]="true" styleClass="p-datatable-striped p-datatable-sm">
+        <!--Zaglavlje tabele-->
+        <ng-template pTemplate="header">
+            <!--Naziv kolona-->
+            <tr>
+                <!--Prodavnica-->
+                <th>
+                   Broj prodavnice
+                </th>
+            </tr>
+        </ng-template>
+        <!--Tijelo tabele-->
+        <ng-template pTemplate="body" let-podaci>
+            <!--Podaci za ispis-->
+            <tr>
+                <!--Broj prodavnice-->
+                <td>{{podaci}}</td>               
+            </tr>
+        </ng-template>
+    </p-table>
+    <div class="row" style="margin-top: 8px;">
+        <div class="col">
+        </div>
+        <div class="col">
+            <button style="float: inline-end;" nbButton id="button" status="danger"
+             (click)="zatvoriModal()" size="small">
+                <nb-icon icon="close" [options]="{ animation: { type: 'zoom' } }" 
+                [nbTooltipIcon]="{icon: 'close', pack: 'eva'}" nbTooltipStatus="danger"
+                 nbTooltip="Zatvorite formu!" nbTooltipPlacement="left"></nb-icon>
+                 Zatvori
+            </button>
+        </div>
+    </div>
+    </nb-card-body>
+</nb-card>

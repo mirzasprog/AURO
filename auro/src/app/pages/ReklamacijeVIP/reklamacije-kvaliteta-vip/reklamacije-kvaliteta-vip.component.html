@@ -1,0 +1,179 @@
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<!--Rola: Prodavnica-->
+<nb-card id="kartica" *ngIf="this.user.role == 'prodavnica'">
+  <nb-card-header>
+    <div class="card-header text-center">
+      <h6>
+        <nb-icon icon="fa-pen-square" pack="font-awesome"></nb-icon>
+        Reklamirajte kvalitetu voća i povrća
+      </h6>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <form #forma="ngForm" (ngSubmit)="forma.valid && spremi()" autocomplete="off">
+      <div class="row form-group">
+        <!-- Šifra -->
+        <div class="col">
+          <label>Šifra artikla / EAN</label><em>*</em>
+          <nb-form-field fieldSize="small">
+            <nb-icon icon="hash" nbPrefix></nb-icon>
+            <input nbInput type="text" name="sifra" [(ngModel)]="unos.sifra" required
+              placeholder="Unesite šifru artikla" autocomplete="off" fullWidth fieldSize="small">
+          </nb-form-field>
+        </div>
+
+        <!-- Količina -->
+        <div class="col">
+          <label>Zaprimljena količina</label><em>*</em>
+          <nb-form-field fieldSize="small">
+            <nb-icon icon="layers" nbPrefix></nb-icon>
+            <input nbInput type="text" name="kolicina" [(ngModel)]="unesenaKolicina" required
+              placeholder="Unesite količinu" autocomplete="off" pattern="^[0-9]+([.,][0-9]{1,2})?$" fullWidth
+              fieldSize="small">
+          </nb-form-field>
+        </div>
+
+        <!-- Reklamirana količina -->
+        <div class="col">
+          <label>Reklamirana količina</label><em>*</em>
+          <nb-form-field fieldSize="small">
+            <nb-icon icon="layers" nbPrefix></nb-icon>
+            <input nbInput type="text" name="reklamiranaKolicina" [(ngModel)]="unesenaReklamiranaKolicina" required
+              placeholder="Unesite reklamiranu količinu" autocomplete="off" pattern="^[0-9]+([.,][0-9]{1,2})?$"
+              fullWidth fieldSize="small">
+          </nb-form-field>
+        </div>
+      </div>
+      <div class="row form-group">
+        <!-- Broj zaduženja maloprodaje -->
+        <div class="col">
+          <label>Br. zaduženja MLP</label><em>*</em>
+          <nb-form-field fieldSize="small">
+            <nb-icon icon="clipboard" nbPrefix></nb-icon>
+            <input nbInput type="text" name="brojZaduzenjaMLP" [(ngModel)]="unos.brojZaduzenjaMLP" required
+              placeholder="Unesite broj zaduženja" autocomplete="off" fullWidth fieldSize="small"
+              (input)="onlyNumbers($event)">
+          </nb-form-field>
+        </div>
+
+        <!-- LOT -->
+        <div class="col">
+          <label>LOT</label><em>*</em>
+          <nb-form-field fieldSize="small">
+            <nb-icon icon="attach-2-outline" nbPrefix></nb-icon>
+            <input nbInput type="text" name="lot" [(ngModel)]="unos.lot" required placeholder="Unesite LOT"
+              autocomplete="off" fullWidth fieldSize="small">
+          </nb-form-field>
+        </div>
+        <!-- Datum prijema -->
+        <div class="col">
+          <label>Datum prijema</label><em>*</em>
+          <nb-form-field style="margin-bottom: 10px;">
+            <nb-icon nbPrefix icon="calendar" pack="eva"></nb-icon>
+            <input [nbDatepicker]="datepicker" required id="datumPrijema" name="datumPrijema" [(ngModel)]="datumPrijema"
+              nbInput autocomplete="off" id="datumPrijema" fullWidht fieldSize="small"
+              placeholder="Unesite datum prijema" readonly>
+          </nb-form-field>
+          <nb-datepicker #datepicker [min]="minDate" [max]="maxDate"></nb-datepicker>
+        </div>
+      </div>
+
+      <!-- Komentar -->
+      <div class="row mt-3">
+        <div class="col-md-12">
+          <label>Komentar</label><em>*</em>
+          <textarea nbInput name="komentar" [(ngModel)]="unos.komentar" required placeholder="Unesite komentar..."
+            autocomplete="off" fullWidth fieldSize="small"></textarea>
+        </div>
+      </div>
+
+      <div class="row mt-4">
+        <div class="col">
+          <button id="btnDodaj" nbButton status="success" type="submit" [disabled]="!forma.valid"
+            [nbSpinner]="ucitavanje" nbSpinnerStatus="info" size="small" shape="semi-round">
+            <nb-icon icon="plus-circle"></nb-icon> Dodaj artikal
+          </button>
+        </div>
+        <div class="col">
+          <button id="btnOcisti" nbButton status="danger" type="button" style="float:inline-end;" (click)="resetUnos()"
+            size="small" shape="semi-round">
+            <nb-icon icon="close-circle"></nb-icon> Očisti unos
+          </button>
+        </div>
+      </div>
+    </form>
+  </nb-card-body>
+</nb-card>
+<!--Rola: Prodavnica-->
+<hr *ngIf="this.user.role == 'prodavnica'">
+<!--Rola: Prodavnica-->
+<nb-card id="kartica" *ngIf="this.user.role == 'prodavnica'">
+  <nb-card-header>
+    <div class="card-header text-center">
+      <h6><nb-icon icon="file-text"></nb-icon> Lista artikala</h6>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <ng2-smart-table [settings]="settings" [source]="source" (deleteConfirm)="onDeleteConfirm($event)" id="tabela">
+    </ng2-smart-table>
+  </nb-card-body>
+  <div class="row">
+    <div class="col">
+      <button nbButton type="button" status="success" (click)="spremiReklamacije()"
+        style="float:inline-end; margin:10px;" size="small">
+        <nb-icon icon="save"></nb-icon> Spremi</button>
+    </div>
+  </div>
+</nb-card>
+
+<!--Rola: Kontrola kvaliteta-->
+<nb-card id="kartica" *ngIf="this.user.role == 'kontrola_kvaliteta'">
+  <nb-card-body>
+    <div class="row" style="margin: 5px;">
+      <div class="col">
+        <label for="datumOd">Datum od: <em>*</em></label>
+        <nb-form-field style="margin-bottom: 10px">
+          <nb-icon nbPrefix icon="calendar" pack="eva"
+            [options]="{ animation: { type: 'zoom', infinite:true } }"></nb-icon>
+          <input [nbDatepicker]="datepicker" id="datumOd" name="datumOd" [(ngModel)]="datumOd" required nbInput
+            autocomplete="off" fullWidth fieldSize="small" placeholder="Unesite datum..."
+            [status]="!datumOd ? 'danger' : 'success'" required>
+        </nb-form-field>
+        <nb-datepicker #datepicker></nb-datepicker>
+      </div>
+      <!--Datum Do-->
+      <div class="col">
+        <label for="datumDo">Datum do: <em>*</em></label>
+        <nb-form-field style="margin-bottom: 10px">
+          <nb-icon nbPrefix icon="calendar" pack="eva"
+            [options]="{ animation: { type: 'zoom', infinite:true } }"></nb-icon>
+          <input [nbDatepicker]="datepicker2" id="datumDo" name="datumDo" [(ngModel)]="datumDo" required nbInput
+            autocomplete="off" fullWidth fieldSize="small" placeholder="Unesite datum..."
+            [status]="!datumDo ? 'danger' : 'success'" required>
+        </nb-form-field>
+        <nb-datepicker #datepicker2></nb-datepicker>
+      </div>
+      <div class="col">
+        <button nbButton status="success" id="button" type="button" size="small"
+          style="float:inline-end; margin-top:32px;" (click)="pregledajReklamacije()">
+          <nb-icon icon="checkmark-circle-2"></nb-icon> Primijeni
+        </button>
+      </div>
+    </div>
+    <hr>
+    <ng2-smart-table [settings]="settingsPregled" [source]="sourcePregled" id="tabela"></ng2-smart-table>
+  </nb-card-body>
+  <div class="row">
+    <div class="col">
+      <button nbButton status="info" shape="semi-round" size="small"
+        style="float:inline-end; margin-top:27px; margin-right: 23px;" (click)="exportExcel()" id="button">
+        <nb-icon icon="file-text-outline"></nb-icon>Excel
+      </button>
+
+    </div>
+  </div>
+  <hr>
+</nb-card>

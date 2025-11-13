@@ -1,0 +1,35 @@
+<!--Zaglavlje-->
+<div class="form-group">
+    <h4>
+      Komentar odbijanja artikla
+    <br>
+    <p>
+    <nb-icon icon="folder-add-outline"></nb-icon> Unesite razlog odbijanja artikla sa izdatnice troška
+    </p>
+    </h4>
+  </div>
+  <!--Forma za unos komentara na odbijeni artikal sa liste-->
+  <nb-card>
+    <nb-card-header>
+      <nb-icon icon="repeat-outline"></nb-icon> Artikal koji nije odobren za izdatnicu
+      </nb-card-header>
+      <nb-card-body>
+        <form #formaIzdatnice="ngForm" (ngSubmit)="formaIzdatnice.valid && spremi()" >
+          <div class="row form-group ">
+            <div class="col-md-12 mt-3">
+            <label for="komentar">Komentar - razlog odbijanja artikla sa izdatnice troška:</label>
+            <textarea fullWidth name="komentar" [(ngModel)]="unos.komentar"  nbInput  #komentar="ngModel" placeholder="Unesite razlog odbijanja artikla sa izdatnice">
+            </textarea>
+            </div>
+          </div>
+          <hr>
+          <div class="row">
+            <div class="col">
+              <button type="submit" id="spremiButton" style="margin-top:25px;" nbButton status="success" nbSpinnerStatus="info">
+              <nb-icon icon="save-outline" ></nb-icon> Spremi</button>
+            </div>
+          </div>
+        </form>
+      </nb-card-body> 
+  </nb-card>
+  

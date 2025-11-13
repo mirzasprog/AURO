@@ -1,0 +1,77 @@
+.text-upozorenje {
+  -webkit-animation: fadeinout 3s linear 1 forwards;
+  animation: fadeinout 3s linear 1 forwards;
+  color: red;
+  font-size: small;
+  animation-iteration-count: 3;
+}
+
+@-webkit-keyframes fadeinout {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeinout {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+#btmclose {
+  position: absolute;
+  right: 0;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  bottom: 0;
+}
+
+#ocistiListuButton {
+  position: absolute;
+  right: 0;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  bottom: 0;
+}
+
+#upitnik {
+  float:right;
+  margin-top: 20px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-right: 5px;
+}
+
+#kartica {
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  border: 2px;
+}
+
+#spremiButton{
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+#header {
+  margin: 15px;
+  font-size: larger;
+  font-weight: bold;
+}
+
+#tekst-para {
+  font-size: 14px;
+  font-style: italic;
+}

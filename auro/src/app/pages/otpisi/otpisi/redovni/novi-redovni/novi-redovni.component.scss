@@ -1,0 +1,72 @@
+.text-upozorenje {
+  -webkit-animation: fadeinout 3s linear 1 forwards;
+  animation: fadeinout 3s linear 1 forwards;
+  color: red;
+  font-size: small;
+  animation-iteration-count: 3;
+}
+
+@-webkit-keyframes fadeinout {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeinout {
+  0% {
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+#buttonOcisti {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+#NemaOtpisa {
+  float:right;
+  margin-top: 30px;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  margin-right: 25px;
+}
+
+#ocistiListuButton {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+}
+
+#header {
+  margin: 15px;
+  font-size: larger;
+  font-weight: bold;
+}
+
+#tekst-para {
+  font-size: 14px;
+  font-style: italic;
+}
+
+#kartica {
+  padding: 5px !important;
+  box-shadow: 10px 10px 10px rgba(30, 23, 95, 0.2);
+  border-radius: 20px;
+  border:10px; 
+}

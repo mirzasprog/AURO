@@ -1,0 +1,33 @@
+<!--Zaglavlje-->
+<div>
+    <h4>
+      Pregled izdatnica troška
+      <br>
+      <p>
+        Oslobodite se robe neuslovne za prodaju!
+      </p>
+    </h4>
+  </div>
+  <hr>
+  <!--Ispis podataka u tabelu-->
+  <nb-card>
+    <nb-card-header>
+      <nb-icon icon="checkmark-square-2"></nb-icon> Lista artikala odobrenih za izdatnicu
+    </nb-card-header>
+    <nb-card-body>
+      <div class="row">
+        <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
+      </div>
+    </nb-card-body>
+  </nb-card>
+  <hr>
+  <nb-card>
+    <nb-card-header>
+      <nb-icon icon="close-square"></nb-icon> Lista artikala koji nisu odobreni za izdatnicu
+    </nb-card-header>
+    <nb-card-body>
+      <div class="row">
+        <ng2-smart-table [settings]="odbijeniArtikli" ></ng2-smart-table> <!--EDT dodati source za odbijene artikle-->
+      </div>
+    </nb-card-body>
+  </nb-card>

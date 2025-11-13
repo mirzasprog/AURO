@@ -1,0 +1,225 @@
+<!--Zaglavlje-->
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+</head>
+<!--Unos korisnika-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center"><h6><nb-icon icon="fa-pen-square" pack="font-awesome"></nb-icon> Kreirajte novi redovni otpis!</h6></div>
+  </nb-card-header>
+  <nb-card-body>
+    <form #formDodavanjeRedovnogOtpisa="ngForm" (ngSubmit)="formDodavanjeRedovnogOtpisa.valid && spremi()">
+      <div class="row form-group" id="kartica">
+        <div class="col">
+          <label for="provedenoSnizenje">Provedeno sniženje</label><em>*</em>
+        <nb-form-field style="margin-bottom:10px;">
+          <nb-icon nbPrefix icon="fa-object-ungroup" pack="font-awesome"></nb-icon>
+          <nb-select [(ngModel)]="unos.provedenoSnizenje" fullWidth name="provedenoSnizenje"
+            (selectedChange)="postaviRazlogeOtpisa()" required #provedenoSnizenje="ngModel" 
+            data-testid="dropdown-provedeno-snizenje" placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite opciju"
+            [status]="provedenoSnizenje.invalid  ? 'danger' : 'success'" >
+            <nb-option value="DA">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DA</nb-option>
+            <nb-option value="NE">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NE</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="provedenoSnizenje.invalid && formDodavanjeRedovnogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="provedenoSnizenje.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="razlog">Razlog otpisa</label><em>*</em>
+          <nb-form-field>
+            <nb-icon nbPrefix icon="fa-object-group" pack="font-awesome"></nb-icon>
+          <nb-select [(ngModel)]="unos.razlog" name="razlog" fullWidth required #razlog="ngModel"
+            placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite razlog otpisa"  [status]="razlog.invalid  ? 'danger' : 'success'">
+            <nb-option [value]=razlog *ngFor="let razlog of razloziOtpisa">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{razlog }}</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="razlog.invalid && formDodavanjeRedovnogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="razlog.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="datumIstekaRoka">Datum isteka roka</label> 
+          <nb-form-field>
+            <nb-icon icon="calendar" nbPrefix></nb-icon>
+          <input [nbDatepicker]="datumIstekaRokaTrajanja" id="datumIstekaRoka" name="datumIstekaRoka"
+            [(ngModel)]="unos.datumIstekaRoka" #datumIstekaRoka="ngModel" fullWidth nbInput autocomplete="off"
+            [disabled]="postaviDatumIstekaRoka" required
+            [status]="datumIstekaRoka.invalid  ? 'danger' : 'success'"
+            [attr.aria-invalid]="postaviDatumIstekaRoka && datumIstekaRoka.invalid && formDodavanjeRedovnogOtpisa.submitted ? true : null"
+            placeholder="Unesite datum isteka roka" data-testid="unos-datum-isteka">
+          </nb-form-field>
+          <nb-datepicker format="dd.MM.yyyy" #datumIstekaRokaTrajanja
+          [attr.aria-invalid]="!postaviDatumIstekaRoka && datumIstekaRoka.invalid && formDodavanjeRedovnogOtpisa.submitted ? true : null"></nb-datepicker>
+          <ng-container *ngIf="!postaviDatumIstekaRoka && datumIstekaRoka.invalid && formDodavanjeRedovnogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="datumIstekaRoka.errors?.required">
+              Odaberite datum isteka roka trajanja!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row" id="kartica">
+        <div class="col">
+          <label for="sifra">Šifra artikla / EAN</label><em>*</em>
+          <nb-form-field style="margin-bottom:10px;">
+            <nb-icon icon="hash" nbPrefix></nb-icon>
+          <input type="text" id="sifra" name="sifra" required [(ngModel)]="unos.sifra" fullWidth nbInput
+            #sifra="ngModel" [attr.aria-invalid]="sifra.invalid && formDodavanjeRedovnogOtpisa.submitted ? true : null"
+            placeholder="Unesite šifru artikla" data-testid="unos-sifra" [status]="sifra.invalid  ? 'danger' : 'success'">
+          </nb-form-field>
+          <ng-container *ngIf="sifra.invalid && formDodavanjeRedovnogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="sifra.errors?.required">
+              Unesite šifru artikla!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="kolicina">Količina</label><em>*</em>
+          <nb-form-field>
+            <nb-icon icon="fa-th" pack="font-awesome" nbPrefix></nb-icon>
+          <input type="text" pattern="^\d+(,\d{1,2})?" nbInput id="kolicina" name="kolicina" required [(ngModel)]="unesenaKolicina" #kolicina="ngModel" fullWidth
+            [attr.aria-invalid]="kolicina.invalid && formDodavanjeRedovnogOtpisa.submitted ? true : null"
+            [status]="kolicina.invalid ? 'danger' : 'success'" placeholder="Unesite količinu" autocomplete="off">
+          </nb-form-field>
+          <ng-container *ngIf="kolicina.invalid && formDodavanjeRedovnogOtpisa.submitted">
+            <p class="text-upozorenje" *ngIf="kolicina.errors?.required">
+              Unesite količinu!
+            </p>
+            <p class="text-upozorenje" *ngIf="kolicina.errors?.pattern">
+              Unesite broj!
+            </p>
+            <!-- <p class="text-upozorenje" *ngIf="kolicina.errors?.min">
+              Najmanja dozvoljena vrijednost je 1
+            </p> -->
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col">
+          <button type="submit" style="margin-top:25px;" nbButton status="success" shape="semi-round"
+          [disabled]="ucitavanjePDT || nemaOtpisaVAR || ucitavanje || formDodavanjeRedovnogOtpisa.invalid"  [nbSpinner]="ucitavanje" nbSpinnerStatus="info"
+          data-testid="dugme-dodaj-artikal">
+            <nb-icon icon="plus-circle"></nb-icon> Dodaj artikal
+          </button>
+        </div>
+        <div class="col">
+          <button (click)="ocistiUnos()" id="buttonOcisti" nbButton status="danger" style="margin-top:25px;"
+          [disabled]="ucitavanjePDT || nemaOtpisaVAR || ucitavanje" shape="semi-round">
+          <nb-icon icon="close-circle"></nb-icon>Očisti unos
+          </button>
+        </div>
+      </div>
+      <hr>
+    </form>
+  </nb-card-body>
+</nb-card>
+<hr>
+<!--Unos sa PDT liste-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center"><h6><nb-icon icon="fa-edit" pack="font-awesome"></nb-icon> Unos sa PDT liste!</h6></div>  
+  </nb-card-header>
+  <nb-card-body>
+    <form #formaPDTlista="ngForm" (ngSubmit)="formaPDTlista.valid && spremiPDT()">
+      <div class="row form-group" id="kartica">
+        <div class="col">
+          <label for="PDTprovedenoSnizenje">Provedeno sniženje</label><em>*</em>
+          <nb-form-field style="margin-bottom:10px;">
+            <nb-icon icon="fa-object-ungroup" pack="font-awesome" nbPrefix></nb-icon>
+          <nb-select [(ngModel)]="unosSaPDTliste.provedenoSnizenje" fullWidth name="PDTprovedenoSnizenje"
+            (selectedChange)="postaviRazlogeOtpisaPDT()" required #PDTprovedenoSnizenje="ngModel"
+            [attr.aria-invalid]="PDTprovedenoSnizenje.invalid && formaPDTlista.submitted ? true : null"
+            placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite opciju" [status]="!unosSaPDTliste.provedenoSnizenje ? 'danger' : 'success'">
+            <nb-option value="DA">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;DA</nb-option>
+            <nb-option value="NE">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NE</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="PDTprovedenoSnizenje.invalid && formaPDTlista.submitted">
+            <p class="text-upozorenje" *ngIf="PDTprovedenoSnizenje.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <label for="razlogPDT">Razlog otpisa</label><em>*</em>
+        <nb-form-field>
+          <nb-icon icon="fa-object-group" pack="font-awesome" nbPrefix></nb-icon>
+          <nb-select [(ngModel)]="unosSaPDTliste.razlog" name="razlogPDT" fullWidth required #razlogPDT="ngModel"
+            placeholder="&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Odaberite razlog otpisa" [status]="razlogPDT.invalid ? 'danger' : 'success'"
+            [attr.aria-invalid]="razlogPDT.invalid && formaPDTlista.submitted ? true : null">
+            <nb-option [value]=razlog *ngFor="let razlog of razloziOtpisaPDT">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ razlog }}</nb-option>
+          </nb-select>
+        </nb-form-field>
+          <ng-container *ngIf="razlogPDT.invalid && formaPDTlista.submitted">
+            <p class="text-upozorenje" *ngIf="razlogPDT.errors?.required">
+              Odaberite opciju!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <div class="row form-group" id="kartica">
+        <div class="col-lg-3 col-md-5">
+          <label for="brojPDTListe">Broj PDT Liste</label><em>*</em>
+        <nb-form-field style="margin-bottom:10px;">
+          <nb-icon icon="hash" nbPrefix></nb-icon>
+          <input type="text" id="brojPDTListe" name="brojPDTListe" required [(ngModel)]="unosSaPDTliste.brojDokumenta"
+            fullWidth nbInput #brojPDTListe="ngModel"
+            [attr.aria-invalid]="brojPDTListe.invalid && formaPDTlista.submitted ? true : null"
+            placeholder="Unesite broj liste" [status]="!unosSaPDTliste.brojDokumenta ? 'danger' : 'success'">
+          </nb-form-field>
+          <ng-container *ngIf="brojPDTListe.invalid && formaPDTlista.submitted">
+            <p class="text-upozorenje" *ngIf="brojPDTListe.errors?.required">
+              Unesite broj PDT liste!
+            </p>
+          </ng-container>
+        </div>
+      </div>
+      <hr>
+      <div class="row">
+        <div class="col">
+          <button type="submit" style="margin-top:25px;" nbButton status="success" shape="semi-round"
+            [disabled]="ucitavanjePDT || nemaOtpisaVAR || ucitavanje || formaPDTlista.invalid" [nbSpinner]="ucitavanjePDT" nbSpinnerStatus="info">
+            <nb-icon icon="plus-circle"></nb-icon> Dodaj unos
+          </button>
+        </div>
+        <div class="col">
+          <button (click)="ocistiPDT()" id="buttonOcisti" nbButton status="danger" style="margin-top:25px;"
+          [disabled]="ucitavanjePDT || nemaOtpisaVAR || ucitavanje" shape="semi-round">
+            <nb-icon icon="close-circle"></nb-icon>Očisti unos
+          </button>
+        </div>
+      </div>
+      <hr>
+    </form>
+  </nb-card-body>
+</nb-card>
+<hr>
+<!--Ispis podataka u tabelu-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <div class="card-header text-center"><h6><nb-icon icon="fa-list-alt" pack="font-awesome"></nb-icon> Lista artikala za otpis!</h6></div>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <ng2-smart-table [settings]="settings" [source]="source" (deleteConfirm)="onDeleteConfirm($event)"
+        (editConfirm)="onSaveConfirm($event)" ></ng2-smart-table>
+      <button class="mt-3 mx-auto" id="spremiButton" type="button" hero status="primary" nbButton [nbSpinner]="ucitavanjeListe"
+        nbSpinnerStatus="info" (click)="spremiListuArtikala()" [disabled]="ucitavanjePDT || nemaOtpisaVAR || ucitavanje" data-testid="dugme-spremi" shape="semi-round" >
+        <nb-icon icon="save"></nb-icon> Spremi
+      </button>
+      <div class="col">
+        <button class="mt-2 mx-auto" id="ocistiListuButton" type="reset" hero status="danger" nbButton shape="semi-round"
+          (click)="ocistiListuArtikala()" [disabled]="ucitavanjePDT || nemaOtpisaVAR || ucitavanje">
+          <nb-icon icon="trash-2"></nb-icon>Očisti listu
+        </button>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

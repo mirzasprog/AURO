@@ -1,0 +1,48 @@
+<!--Zaglavlje-->
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  </head>
+  <!--Forma za odabir datuma-->
+  <nb-card id="kartica">
+    <nb-card-header>
+      <div class="card-header text-center">
+        <h6><i class="fas fa-calendar"></i> Unos datuma za odobrenje inventure</h6>
+      </div>
+    </nb-card-header>
+      <nb-card-body>
+        <form #formaOtpisa="ngForm" (ngSubmit)="formaOtpisa.valid && prikazi()">
+          <div class="row">
+            <div class="col">
+              <label for="datumOd">Datum od:</label>
+              <input [nbDatepicker]="pocetniDatum" id="datumOd" name="datumOd" nbInput autocomplete="off"
+              [(ngModel)]="unos.datumOd" #datumOd="ngModel" required class="form-control" data-testid="datum-od"
+              [attr.aria-invalid]="datumOd.invalid && formaOtpisa.submitted ? true : null" placeholder="Unesite datum">
+              <nb-datepicker  #pocetniDatum></nb-datepicker>
+              <ng-container *ngIf="datumOd.invalid && formaOtpisa.submitted">
+              <p class="text-upozorenje">
+              Odaberite početni datum
+              </p>
+              </ng-container>
+            </div>
+            <div class="col">
+              <label for="datumDo">Datum do:</label>
+               <input [nbDatepicker]="krajnjiDatum" id="datumDo" name="datumDo" nbInput autocomplete="off"
+               [(ngModel)]="unos.datumDo" #datumDo="ngModel" required class="form-control" data-testid="datum-do"
+               [attr.aria-invalid]="datumDo.invalid && formaOtpisa.submitted ? true : null" placeholder="Unesite datum">
+               <nb-datepicker  #krajnjiDatum></nb-datepicker>
+               <ng-container *ngIf= "datumDo.invalid && formaOtpisa.submitted">
+                <p class="text-upozorenje">
+                Odaberite datum završetka
+                </p>
+                </ng-container>
+            </div>
+            <div class="col">
+              <button nbButton size="small" status="success" style="margin-top:25px; float:inline-end" type="submit" data-testid="dugme-primjeni">
+              <nb-icon icon="checkmark-circle-2"></nb-icon> Primjeni</button>
+            </div>
+          </div>
+          <hr>
+        </form>
+      </nb-card-body>
+  </nb-card>
+  

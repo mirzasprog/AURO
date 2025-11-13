@@ -1,0 +1,32 @@
+<!--Zaglavlje-->
+<nb-card>
+  <div class="row form-group">
+  <div class="col">
+  <h4 id="header">
+    Pregled artikala koji su odobreni za redovni otpis
+    <br>
+    <p id="tekst-para">
+      Oslobodite se robe neuslovne za prodaju!
+    </p>
+  </h4>
+  </div>
+    <div class="col">
+      <button type="button" id="ispisButton" hero status="primary" nbButton nbSpinnerStatus="info" (click)="exportPDF()">
+        <nb-icon icon="printer-outline" status="sucess"></nb-icon> Ispis
+      </button>
+    </div>
+</div>
+</nb-card>
+<hr >
+<!--Ispis podataka u tabelu-->
+<nb-card>
+  <nb-card-header>
+    <nb-icon icon="checkmark-square-2" status="success" [options]="{ animation: { type: 'shake' } }"></nb-icon> Lista artikala koji su odobreni za redovni otpis
+  </nb-card-header>
+  <nb-card-body>
+    <div class="row">
+      <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
+    </div>
+  </nb-card-body>
+</nb-card>
+<hr>

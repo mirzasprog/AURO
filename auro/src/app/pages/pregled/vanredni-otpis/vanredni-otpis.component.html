@@ -1,0 +1,50 @@
+<!--Forma za odabir datuma-->
+<nb-card id="kartica">
+  <nb-card-body>
+    <form #formaOtpisa="ngForm" (ngSubmit)="formaOtpisa.valid && prikaziVanredneOtpiseInterna()">
+      <div class="row">
+        <div class="col">
+          <label for="datumOd">Datum od:</label>
+          <input [nbDatepicker]="pocetniDatum" id="datumOd" name="datumOd" nbInput autocomplete="off"
+          [(ngModel)]="unos.datumOd" #datumOd="ngModel" required class="form-control"
+          [attr.aria-invalid]="datumOd.invalid && formaOtpisa.submitted ? true : null"
+          placeholder="Unesite datum" [ngStyle]="{'border-color': datumOd.invalid && formaOtpisa.submitted ? 'red' : 'silver'}">
+          <nb-datepicker format="dd.MM.yyyy" #pocetniDatum></nb-datepicker>
+          <ng-container *ngIf="datumOd.invalid && formaOtpisa.submitted">
+          <p class="text-upozorenje">
+          Odaberite datum!
+          </p>
+         </ng-container>
+        </div>
+        <div class="col">
+          <label for="datumDo">Datum do:</label>
+          <input [nbDatepicker]="krajnjiDatum" id="datumDo" name="datumDo" nbInput autocomplete="off"
+          [(ngModel)]="unos.datumDo" #datumDo="ngModel" required class="form-control"
+          [attr.aria-invalid]="datumDo.invalid && formaOtpisa.submitted ? true : null"
+          placeholder="Unesite datum" [ngStyle]="{'border-color': datumDo.invalid && formaOtpisa.submitted ? 'red' : 'silver'}">
+          <nb-datepicker format="dd.MM.yyyy" #krajnjiDatum></nb-datepicker>
+          <ng-container *ngIf= "datumDo.invalid && formaOtpisa.submitted">
+          <p class="text-upozorenje">
+          Odaberite datum!
+          </p>
+          </ng-container>
+        </div>
+        <div class="col">
+          <button type="submit" nbButton status="success" size="small" style="float:inline-end; margin-top:25px;" >
+            <nb-icon icon="checkmark-circle-outline"></nb-icon> Primjeni</button>
+        </div>
+      </div>
+    </form>
+  </nb-card-body>
+</nb-card>
+<!--Tabela za ispis podataka-->
+<nb-card id="kartica">
+  <nb-card-header>
+    <nb-icon icon="file-text"></nb-icon>  Pregled napravljenih vanrednih otpisa
+  </nb-card-header>
+  <nb-card-body>
+    <ng2-smart-table [settings]="settings" [source]="source" (deleteConfirm)="onDeleteConfirm($event)">
+    </ng2-smart-table>
+  </nb-card-body>
+</nb-card>
+

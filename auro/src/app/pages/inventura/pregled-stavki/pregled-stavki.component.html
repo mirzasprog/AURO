@@ -1,0 +1,24 @@
+<nb-card id="kartica">
+    <nb-card-header>
+        <div class="card-header text-center">
+            <h6><i class="fas fa-list"></i> Pregled učesnika inventure</h6>
+        </div>
+    </nb-card-header>
+    <nb-card-body>
+        <ng2-smart-table [settings]="settings" [source]="source">
+        </ng2-smart-table>
+        <hr>
+        <div class="row" *ngIf="rola == 'podrucni'">
+            <div class="col">
+                <button nbButton style="float:inline-start" status="danger" 
+                size="small" shape="semi-round" (click)="spremi(2)">
+                <nb-icon icon="close-square-outline"></nb-icon> Odbij</button>
+            </div>
+            <div class="col">
+                <button nbButton style="float:inline-end" status="success"
+                 size="small" shape="semi-round" (click)="spremi(1)">
+                <nb-icon icon="checkmark-square-outline"></nb-icon> Odobri</button>
+            </div>
+        </div>
+    </nb-card-body>
+</nb-card>
