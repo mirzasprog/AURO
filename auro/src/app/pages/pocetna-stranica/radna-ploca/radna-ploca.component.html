@@ -36,21 +36,13 @@
     </div>
   </nb-card-body>
 </nb-card>
-
 <!--Rola: Prodavnica-->
-<nb-card *ngIf="rola === 'prodavnica'" class="dashboard-card store-dashboard">
-  <nb-card-header class="dashboard-header">
-    <div class="header-content">
-      <div class="header-icon">
-        <nb-icon icon="activity-outline"></nb-icon>
-      </div>
-      <div class="header-copy">
-        <span class="subtitle">Pregled performansi</span>
-        <h2>Statistika prodavnice</h2>
-        <p>Pratite ključne metrike i trendove u realnom vremenu.</p>
-      </div>
+    <div class="card-header text-center">
+      <h6>
+        <h2> <nb-icon icon="activity"></nb-icon> Statistika prodavnice</h2>
+        <small>Pratite ključne metrike i trendove u realnom vremenu.</small>
+      </h6>
     </div>
-  </nb-card-header>
   <nb-card-body>
     <section class="kpi-section">
       <div class="kpi-loading" *ngIf="isDashboardLoading">
@@ -67,27 +59,7 @@
       </div>
     </section>
 
-    <div class="charts-wrapper" [class.is-loading]="isStoreChartsLoading">
-      <section class="chart-grid">
-        <nb-card *ngFor="let chartItem of storeCharts; trackBy: trackByChart" class="chart-card">
-          <nb-card-header>
-            <div class="chart-header">
-              <div class="icon-wrapper">
-                <nb-icon [icon]="chartItem.icon"></nb-icon>
-              </div>
-              <div>
-                <h5>{{ chartItem.title }}</h5>
-                <small>{{ chartItem.description }}</small>
-              </div>
-            </div>
-          </nb-card-header>
-          <nb-card-body>
-            <div class="chart-wrapper">
-              <canvas [attr.id]="chartItem.id"></canvas>
-            </div>
-          </nb-card-body>
-        </nb-card>
-      </section>
+    <div class="charts-wrapper" [class.is-loading]="isStoreChartsLoading">  
 
       <section class="chart-grid comparison-grid">
         <nb-card *ngFor="let chartItem of comparisonCharts; trackBy: trackByChart" class="chart-card">
@@ -116,7 +88,7 @@
       </div>
     </div>
   </nb-card-body>
-</nb-card>
+
 
 <ng-template #visitorsDetail>
   <nb-card>

@@ -50,6 +50,7 @@ export class PagesComponent implements OnInit {
         this.role = token.getPayload()["role"]
         let rola = token.getPayload()["role"]
         if (rola == "prodavnica") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], false);
           this.setMenuHidden(["Inventure", "Pregled"], true);
           this.setMenuHidden(["Inventure"], false);
@@ -62,6 +63,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
         }
         else if (rola == "interna") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure", "Unos"], true);
           this.setMenuHidden(["Inventure"], false);
@@ -74,6 +76,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "podrucni") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure", "Unos"], true);
           this.setMenuHidden(["Inventure"], true);
@@ -86,6 +89,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "regionalni") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure"], true);
           this.setMenuHidden(["Zahtjevi"], false);
@@ -97,6 +101,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "kontrola_kvaliteta") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure"], true);
           this.setMenuHidden(["Zahtjevi"], true);
@@ -106,8 +111,21 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
+        }        
+        else if (rola == "uprava") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], false);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], false);
         }
         else {
+          this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure"], true);
           this.setMenuHidden(["Zahtjevi"], true);

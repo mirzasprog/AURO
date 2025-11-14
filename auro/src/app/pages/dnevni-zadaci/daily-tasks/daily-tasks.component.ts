@@ -31,6 +31,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   selectedStoreId?: number;
   currentStoreId?: number;
   loading = false;
+  rola:any;
   role: string | null = null;
   readonly today = new Date();
   private readonly statusLabelMap: Record<string, string> = {
@@ -47,6 +48,9 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
+    this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
+    this.rola = token.getPayload();
+    });
     this.authService.getToken()
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
@@ -67,7 +71,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   }
 
   get canManageStores(): boolean {
-    return this.role === 'podrucni' || this.role === 'regionalni';
+    return this.role !== 'prodavnica';
   }
 
   get canCreateCustomTasks(): boolean {

@@ -8,13 +8,7 @@ const buildTheme = (name: string, baseTheme: NbJSThemeOptions): NbJSThemeOptions
     base: baseTheme.name,
     variables: {
       temperature: {
-        arcFill: [
-          baseThemeVariables.primary,
-          baseThemeVariables.primary,
-          baseThemeVariables.primary,
-          baseThemeVariables.primary,
-          baseThemeVariables.primary,
-        ],
+        arcFill: baseThemeVariables.primary,
         arcEmpty: baseThemeVariables.bg2,
         thumbBg: baseThemeVariables.bg2,
         thumbBorder: baseThemeVariables.primary,

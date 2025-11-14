@@ -185,3 +185,14 @@ h6 {
 .table-header button {
     font-size: 0.85rem;
 }
+
+:host ::ng-deep nb-card-header {
+  background: var(--card-background) !important;
+  color: var(--heading-color) !important;
+  border-bottom: 1px solid var(--card-border) !important;
+}
+
+:host ::ng-deep nb-card-header h6,
+:host ::ng-deep nb-card-header i {
+  color: var(--heading-color) !important;
+}

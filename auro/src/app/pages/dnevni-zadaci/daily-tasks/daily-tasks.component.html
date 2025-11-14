@@ -10,12 +10,12 @@
           <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
         </nb-select>
       </div>
-      <div class="store-badge" *ngIf="!canManageStores && currentStoreId">
+      <div class="store-badge" *ngIf="!canManageStores && rola.name">
         <nb-icon icon="pin-outline"></nb-icon>
-        <span>Prodavnica #{{ currentStoreId }}</span>
+        <span>Prodavnica {{ rola.name }}</span>
       </div>
     </div>
-    <button nbButton status="primary" size="medium" hero class="create-btn"
+    <button nbButton status="primary" size="small" hero class="create-btn"
             *ngIf="canCreateCustomTasks"
             [disabled]="canManageStores && !selectedStoreId"
             (click)="createCustomTask()">
