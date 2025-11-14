@@ -94,6 +94,7 @@ namespace backend.Entities
         public virtual DbSet<ResponseProdavniceParcijalnaInventuraNezavrseno> ResponseProdavniceParcijalnaInventuraNezavrseno { get; set; } = null!;
         public virtual DbSet<AkcijeZaglavljeResponse> AkcijeZaglavljeResponse { get; set; } = null!;
         public virtual DbSet<AkcijeStavkeResponse> AkcijeStavkeResponse { get; set; } = null!;
+        public virtual DbSet<PrometiDto> Prometi { get; set; } = null!;
 
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -1098,6 +1099,11 @@ namespace backend.Entities
             );
 
             modelBuilder.Entity<AkcijeStavkeResponse>(entity =>
+                entity.HasNoKey()
+            );
+
+
+            modelBuilder.Entity<PrometiDto>(entity =>
                 entity.HasNoKey()
             );
 

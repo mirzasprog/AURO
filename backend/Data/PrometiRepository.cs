@@ -1,0 +1,31 @@
+using backend.Entities;
+using backend.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace backend.Data
+{
+    public class PrometiRepository : IPrometiRepository
+    {
+        private readonly Auro2Context _context;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly string? korisnickoIme;
+
+        public PrometiRepository(Auro2Context context, IHttpContextAccessor httpContextAccessor)
+        {
+            _context = context;
+            _httpContextAccessor = httpContextAccessor;
+            korisnickoIme = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
+        }
+
+        public PrometiDto? PreuzmiPromete(string prodavnica)
+        {
+           // string brojProdavnice = korisnickoIme ?? "";
+
+            var r = _context.Prometi?.FromSqlInterpolated($"EXEC GetPrometi {prodavnica}") .AsEnumerable() 
+        .FirstOrDefault();
+            return r;
+        }
+
+
+    }
+}
