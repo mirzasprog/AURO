@@ -51,6 +51,7 @@ import { PodaciUposlenikaPotpunaInv } from '../data/podaciUposlenikaPotpuneInv';
 import { ZahtjevObradaInterna } from '../data/zahtjevObradaInterna';
 import { GetPodaciArtiklaReklamacije } from '../data/getPodaciArtiklaReklamacije';
 import { ReklamacijaKvaliteta } from '../data/reklamacijaKvaliteta';
+import { Prometi } from '../data/prometi';
 @Injectable({
   providedIn: 'root'
 })
@@ -219,6 +220,10 @@ export class DataService {
   }
   public prikaziDetaljeRedovnogOtpisaOdbijeno(brojOtpisa: string): Observable<DetaljiRedovnogOtpisaOdbijeno[]> {
     return this.posaljiRequest<DetaljiRedovnogOtpisaOdbijeno[]>("GET", this.baseUrl + `/api/redovniOtpis/odbijeno/${brojOtpisa}`);
+  }
+
+  public getPromet(brojProd: string): Observable<Prometi[]> {
+    return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/${brojProd}`)
   }
 
   public prikaziDetaljeNeuslovnaRoba(brojNeuslovneRobe: string): Observable<DetaljiNeuslovneRobe[]> {

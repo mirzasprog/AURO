@@ -7,4 +7,5 @@ export enum Role {
   logistika = "logistika",
   skladiste = "skladiste",
   kontrolaKvaliteta = "kontrolaKvaliteta",
+  uprava = "uprava",
 }

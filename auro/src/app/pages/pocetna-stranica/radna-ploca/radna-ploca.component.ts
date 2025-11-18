@@ -29,9 +29,11 @@ type KpiCard = {
   key: string;
   label: string;
   formattedValue: string;
-  unit: string;
-  value: number;
-  trend: DashboardTrendPoint[];
+  unit?: string;
+  value?: number;
+  previousValue?: number;
+  delta?: number; // percentage change
+  trend?: DashboardTrendPoint[];
 };
 
 @Component({
@@ -46,22 +48,20 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   @ViewChild('basketDetail', { static: false }) basketDetail?: TemplateRef<any>;
   @ViewChild('categoryDetail', { static: false }) categoryDetail?: TemplateRef<any>;
 
-  dashboardSummary?: DashboardSummary;
+  dashboardSummary?: any;
   isDashboardLoading = false;
   isStoreChartsLoading = false;
   private charts: { [key: string]: Chart } = {};
-
-  constructor(private router: Router, public authService: NbAuthService, private dataService: DataService,
-    private iconService: NbIconLibraries, private dashboardService: DashboardService, private dialogService: NbDialogService) {
-    this.iconService.registerFontPack('font-awesome', { packClass: 'fa' });
-  }
-
+  korisnickoIme: any;
   data: any[] = [];
   redovni = 0;
   vanredni = 0;
   izdatnice = 0;
   neuslovnaRoba = 0;
-  rola: string;
+  rola: string = '';
+
+  stores: any[] = [];
+  selectedStoreId: number | string | null = null;
 
   readonly quickActions: QuickAction[] = [
     {
@@ -132,20 +132,172 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
   ];
 
-  ngOnInit(): void {
-    this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
-      this.rola = token.getPayload()["role"];
+  // role set that should be able to select store
+  rolesWithStoreSelection: string[] = ['uprava', 'podrucni', 'regionalni'];
 
-      if (this.rola === 'prodavnica') {
-        if (!this.dashboardSummary) {
-          this.loadDashboardSummary();
-        }
-        this.loadStoreCharts();
-      } else {
-        this.loadPendingRequestsAlerts();
+  constructor(
+    private router: Router,
+    public authService: NbAuthService,
+    private dataService: DataService,
+    private iconService: NbIconLibraries,
+    private dashboardService: DashboardService,
+    private dialogService: NbDialogService
+  ) {
+    this.iconService.registerFontPack('font-awesome', { packClass: 'fa' });
+  }
+
+// --- učitavanje KPI kartica ---
+private loadPromet(storeId: string): void {
+  this.isDashboardLoading = true;
+
+  this.dataService.getPromet(storeId).pipe(finalize(() => this.isDashboardLoading = false))
+    .subscribe({
+      next: (r: any) => {
+        console.log("Promet je: " + JSON.stringify(r));
+
+        // mapiramo podatke na dashboard
+        this.dashboardSummary = {
+          promet: Number(r.promet),
+          prometProslaGodina: Number(r.prometProslaGodina),
+          brojKupaca: Number(r.brojKupaca),
+          brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
+          currency: 'KM',
+          turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
+          visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
+          averageBasket: { 
+            value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
+            previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0 
+          }
+        };
+
+        // odmah renderujemo KPI kartice
+        this.getKpiCards?.();
+
+        // render grafova vezanih za promet
+        this.renderDayComparisonChart?.();
+        this.renderMonthComparisonChart?.();
+      },
+      error: (err) => {
+        const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+        Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
       }
     });
+}
+
+// --- učitavanje statistika za grafove ---
+private loadStoreCharts(storeId?: string | number | null): void {
+  this.isStoreChartsLoading = true;
+  const numericStoreId = storeId != null ? Number(storeId) : undefined;
+
+  let statObservable: any = null;
+
+  if (numericStoreId != null && numericStoreId !== 0) {
+    if ((this.dataService as any).pregledajStatistikuByStore) {
+      statObservable = (this.dataService as any).pregledajStatistikuByStore(numericStoreId);
+    } else {
+      try {
+        statObservable = (this.dataService as any).pregledajStatistiku(numericStoreId);
+      } catch {
+        statObservable = (this.dataService as any).pregledajStatistiku();
+      }
+    }
+  } else {
+    statObservable = (this.dataService as any).pregledajStatistiku();
   }
+
+  statObservable.pipe(finalize(() => this.isStoreChartsLoading = false)).subscribe({
+    next: (response: any) => {
+      this.data = Array.isArray(response) ? response : [];
+
+      if (!this.data.length) {
+        this.renderStoreSummaryCharts(0, 0, 0, 0);
+        return;
+      }
+
+      const latest = this.data[this.data.length - 1];
+      this.redovni = Number(latest?.resultBrojRedovnog ?? 0);
+      this.vanredni = Number(latest?.resultBrojVanrednog ?? 0);
+      this.izdatnice = Number(latest?.resultIzdatnica ?? 0);
+      this.neuslovnaRoba = Number(latest?.resultNeuslovnaRoba ?? 0);
+
+      // render grafova na početnom dashboardu
+      this.renderStoreSummaryCharts(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
+    },
+    error: (err: any) => {
+      const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+      Swal.fire('Greška', 'Greška: ' + greska, 'error');
+    }
+  });
+}
+
+// --- ngOnInit spojnica ---
+ngOnInit(): void {
+  this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
+    this.rola = token.getPayload()['role'] ?? this.rola;
+    this.korisnickoIme = token.getPayload()['name'] ?? this.korisnickoIme;
+
+    if (this.rola === 'prodavnica') {
+      // trim prve nule, uzmi zadnje 3 cifre
+      const storeId = String(parseInt(this.korisnickoIme, 10)).padStart(3, '0');
+      this.selectedStoreId = storeId;
+
+      this.loadPromet(storeId);       // KPI kartice + promet grafovi
+      this.loadStoreCharts(storeId);  // svi grafovi
+      return;
+    }
+
+    // ako nije prodavnica, učitaj globalne podatke
+    this.loadPromet('001');          // default prodavnica
+    this.loadStoreCharts();          // globalni grafovi
+  });
+}
+
+// getKpiCards() ostaje isti kao prije
+getKpiCards(): KpiCard[] {
+  if (!this.dashboardSummary) return [];
+
+  const cards: KpiCard[] = [];
+
+  const currentPromet = Number(this.dashboardSummary.promet ?? 0);
+  const prevPromet = Number(this.dashboardSummary.prometProslaGodina ?? 0);
+  cards.push({
+    key: 'turnover',
+    label: 'Promet',
+    formattedValue: currentPromet.toFixed(2),
+    unit: this.dashboardSummary.currency ?? 'KM',
+    value: currentPromet,
+    previousValue: prevPromet,
+    delta: prevPromet ? Number((((currentPromet - prevPromet) / prevPromet) * 100).toFixed(2)) : 0,
+    trend: this.dashboardSummary.turnover?.trend ?? []
+  });
+
+  const currentKupci = Number(this.dashboardSummary.brojKupaca ?? 0);
+  const prevKupci = Number(this.dashboardSummary.brojKupacaProslaGodina ?? 0);
+  cards.push({
+    key: 'visitors',
+    label: 'Broj kupaca',
+    formattedValue: String(currentKupci),
+    value: currentKupci,
+    previousValue: prevKupci,
+    delta: prevKupci ? Number((((currentKupci - prevKupci) / prevKupci) * 100).toFixed(2)) : 0,
+    trend: this.dashboardSummary.visitors?.trend ?? []
+  });
+
+  const avgBasket = Number(this.dashboardSummary.averageBasket?.value ?? 0);
+  const avgBasketPrev = Number(this.dashboardSummary.averageBasket?.previousValue ?? 0);
+  cards.push({
+    key: 'averageBasket',
+    label: 'Prosječna korpa',
+    formattedValue: avgBasket.toFixed(2),
+    unit: this.dashboardSummary.currency ?? 'KM',
+    value: avgBasket,
+    previousValue: avgBasketPrev,
+    delta: avgBasketPrev ? Number((((avgBasket - avgBasketPrev) / avgBasketPrev) * 100).toFixed(2)) : 0,
+    trend: this.dashboardSummary.averageBasket?.trend ?? []
+  });
+
+  return cards;
+}
 
   ngOnDestroy(): void {
     Object.keys(this.charts).forEach(key => {
@@ -156,126 +308,87 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadDashboardSummary(): void {
+  isRoleStoreDashboardVisible(): boolean {
+    // show store/dashboard for prodavnica and also for roles that can select store
+    return this.rola === 'prodavnica' || this.rolesWithStoreSelection.includes(this.rola) || this.rola === 'uprava';
+  }
+
+  // ---------------------------
+  // STORES + SELECT HANDLING
+  // ---------------------------
+  private loadStores(): void {
+    if (!(this.dataService as any).getStores) {
+      this.stores = [];
+      this.loadDashboardSummary();
+      this.loadStoreCharts();
+      return;
+    }
+
+    (this.dataService as any).getStores().subscribe({
+      next: (response: any[]) => {
+        this.stores = Array.isArray(response) ? response : [];
+        if (this.stores.length) {
+          if (!this.selectedStoreId) {
+            this.selectedStoreId = this.stores[0].id ?? this.stores[0].brojProdavnice ?? this.stores[0].storeId;
+          }
+          if (this.selectedStoreId != null) {
+            this.loadDashboardSummary(this.selectedStoreId);
+            this.loadStoreCharts(this.selectedStoreId);
+          } else {
+            this.loadDashboardSummary();
+            this.loadStoreCharts();
+          }
+        } else {
+          this.loadDashboardSummary();
+          this.loadStoreCharts();
+        }
+      },
+      error: () => {
+        this.stores = [];
+        this.loadDashboardSummary();
+        this.loadStoreCharts();
+      }
+    });
+  }
+
+  onStoreChange(storeId: string | number | null): void {
+    this.selectedStoreId = storeId;
+    this.loadDashboardSummary(this.selectedStoreId);
+    this.loadStoreCharts(this.selectedStoreId);
+  }
+
+  
+
+  // ---------------------------
+  // DASHBOARD SUMMARY
+  // ---------------------------
+  private loadDashboardSummary(storeId?: string | number | null): void {
     this.isDashboardLoading = true;
-    this.dashboardService.getSummary()
+
+    // Sigurno konvertuj storeId u broj ako servis očekuje number
+    const numericStoreId = storeId != null ? Number(storeId) : undefined;
+
+    // Ako dashboardService.getSummary očekuje number ili undefined
+    this.dashboardService.getSummary(numericStoreId)
       .pipe(finalize(() => this.isDashboardLoading = false))
       .subscribe({
         next: (summary) => {
           this.dashboardSummary = summary;
+          // render chartovi koji koriste dashboardSummary
           this.renderDayComparisonChart();
           this.renderMonthComparisonChart();
         },
         error: (err) => {
-          const greska = err.error?.poruka ?? err.statusText;
+          const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
           Swal.fire('Greška', `Greška prilikom učitavanja KPI podataka: ${greska}`, 'error');
         }
       });
   }
 
-  getKpiCards(): KpiCard[] {
-    if (!this.dashboardSummary) {
-      return [];
-    }
 
-    const baseCards: KpiCard[] = [
-      this.dashboardSummary.visitors,
-      this.dashboardSummary.turnover,
-      this.dashboardSummary.shrinkage,
-      this.dashboardSummary.averageBasket,
-    ].map(card => ({
-      key: card.key,
-      label: card.label,
-      formattedValue: card.formattedValue,
-      unit: card.unit ?? '',
-      value: card.value,
-      trend: card.trend
-    }));
-
-    const vipPercentage = +(this.dashboardSummary.categoryShare.vipShare * 100).toFixed(1);
-    baseCards.push({
-      key: 'categoryShare',
-      label: 'Udio VIP kategorije',
-      value: vipPercentage,
-      formattedValue: vipPercentage.toFixed(1),
-      unit: '%',
-      trend: []
-    });
-
-    return baseCards;
-  }
-
-  onQuickAction(action: string, event?: Event): void {
-    if (event) {
-      event.stopPropagation();
-      event.preventDefault();
-    }
-
-    switch (action) {
-      case 'PregledRedovnogOtpisa':
-        this.PregledRedovnogOtpisa();
-        break;
-      case 'Izdatnice':
-        this.Izdatnice();
-        break;
-      case 'NeuslovnaRoba':
-        this.NeuslovnaRoba();
-        break;
-    }
-  }
-
-  openKpiDetail(key: string): void {
-    if (!this.dashboardSummary) {
-      return;
-    }
-
-    switch (key) {
-      case 'visitors':
-        this.openDialog(this.visitorsDetail, () => this.renderTrendChart('visitorsTrendChart', this.dashboardSummary!.visitors.trend, 'Broj posjetilaca', '#3366ff'));
-        break;
-      case 'turnover':
-        this.openDialog(this.turnoverDetail, () => this.renderTrendChart('turnoverTrendChart', this.dashboardSummary!.turnover.trend, 'Promet', '#00d68f'));
-        break;
-      case 'shrinkage':
-        this.openDialog(this.shrinkageDetail, () => this.renderTrendChart('shrinkageTrendChart', this.dashboardSummary!.shrinkage.trend, 'Otpis', '#ff3d71'));
-        break;
-      case 'averageBasket':
-        this.openDialog(this.basketDetail, () => this.renderTrendChart('basketTrendChart', this.dashboardSummary!.averageBasket.trend, 'Prosječna korpa', '#ffaa00'));
-        break;
-      case 'categoryShare':
-        this.openDialog(this.categoryDetail, () => this.renderCategoryChart());
-        break;
-    }
-  }
-
-  private loadStoreCharts(): void {
-    this.isStoreChartsLoading = true;
-    this.dataService.pregledajStatistiku()
-      .pipe(finalize(() => this.isStoreChartsLoading = false))
-      .subscribe({
-        next: (response) => {
-          this.data = Array.isArray(response) ? response : [];
-
-          if (!this.data.length) {
-            this.renderStoreSummaryCharts(0, 0, 0, 0);
-            return;
-          }
-
-          const latest = this.data[this.data.length - 1];
-          this.redovni = Number(latest?.resultBrojRedovnog ?? 0);
-          this.vanredni = Number(latest?.resultBrojVanrednog ?? 0);
-          this.izdatnice = Number(latest?.resultIzdatnica ?? 0);
-          this.neuslovnaRoba = Number(latest?.resultNeuslovnaRoba ?? 0);
-
-          this.renderStoreSummaryCharts(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
-        },
-        error: (err) => {
-          const greska = err.error?.poruka ?? err.statusText;
-          Swal.fire('Greška', 'Greška: ' + greska, 'error');
-        }
-      });
-  }
-
+  // ---------------------------
+  // PENDING REQUESTS
+  // ---------------------------
   private loadPendingRequestsAlerts(): void {
     this.dataService.prikaziZahtjeveRedovnogOtpisa().subscribe({
       next: (response) => this.showPendingRequestsAlert(response, 'redovni'),
@@ -325,6 +438,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ---------------------------
+  // DIALOG + KPI DETAILS
+  // ---------------------------
   private openDialog(template?: TemplateRef<any>, onOpen?: () => void): void {
     if (!template) {
       return;
@@ -339,6 +455,33 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
   }
 
+  openKpiDetail(key: string): void {
+    if (!this.dashboardSummary) {
+      return;
+    }
+
+    switch (key) {
+      case 'visitors':
+        this.openDialog(this.visitorsDetail, () => this.renderTrendChart('visitorsTrendChart', this.dashboardSummary.visitors?.trend ?? this.dashboardSummary.visitorsTrend ?? [], 'Broj posjetilaca', '#3366ff'));
+        break;
+      case 'turnover':
+        this.openDialog(this.turnoverDetail, () => this.renderTrendChart('turnoverTrendChart', this.dashboardSummary.turnover?.trend ?? this.dashboardSummary.turnoverTrend ?? [], 'Promet', '#00d68f'));
+        break;
+      case 'shrinkage':
+        this.openDialog(this.shrinkageDetail, () => this.renderTrendChart('shrinkageTrendChart', this.dashboardSummary.shrinkage?.trend ?? [], 'Otpis', '#ff3d71'));
+        break;
+      case 'averageBasket':
+        this.openDialog(this.basketDetail, () => this.renderTrendChart('basketTrendChart', this.dashboardSummary.averageBasket?.trend ?? [], 'Prosječna korpa', '#ffaa00'));
+        break;
+      case 'categoryShare':
+        this.openDialog(this.categoryDetail, () => this.renderCategoryChart());
+        break;
+    }
+  }
+
+  // ---------------------------
+  // RENDER CHART HELPERS (iz originala)
+  // ---------------------------
   private renderTrendChart(elementId: string, data: DashboardTrendPoint[], label: string, color: string): void {
     const config: Chart.ChartConfiguration = {
       type: 'line',
@@ -375,20 +518,28 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   private renderDayComparisonChart(): void {
-    if (!this.dashboardSummary) {
+    if (!this.dashboardSummary) return;
+
+    let currentTotal = 0;
+    let previousTotal = 0;
+
+    if (this.dashboardSummary.dayOnDay) {
+      currentTotal = this.dashboardSummary.dayOnDay.current.reduce((acc: number, item: any) => acc + item.value, 0);
+      previousTotal = this.dashboardSummary.dayOnDay.previous.reduce((acc: number, item: any) => acc + item.value, 0);
+    } else if (this.dashboardSummary.promet !== undefined || this.dashboardSummary.prometProslaGodina !== undefined) {
+      currentTotal = Number(this.dashboardSummary.promet ?? 0);
+      previousTotal = Number(this.dashboardSummary.prometProslaGodina ?? 0);
+    } else {
       return;
     }
-
-    const currentTotal = this.dashboardSummary.dayOnDay.current.reduce((acc, item) => acc + item.value, 0);
-    const previousTotal = this.dashboardSummary.dayOnDay.previous.reduce((acc, item) => acc + item.value, 0);
 
     const config: Chart.ChartConfiguration = {
       type: 'bar',
       data: {
-        labels: ['Danas', 'Prošle godine'],
+        labels: ['Ove godine', 'Prošle godine'],
         datasets: [
           {
-            label: this.dashboardSummary.dayOnDay.currentLabel,
+            label: 'Promet',
             data: [currentTotal, previousTotal],
             backgroundColor: ['#3366ff', '#ffce54'],
           },
@@ -411,74 +562,74 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   private renderMonthComparisonChart(): void {
-    if (!this.dashboardSummary) {
+    if (!this.dashboardSummary) return;
+
+    if (this.dashboardSummary.monthOnMonth) {
+      const current = this.dashboardSummary.monthOnMonth.current;
+      const previousLookup = new Map(this.dashboardSummary.monthOnMonth.previous.map((item: any) => [item.label, item.value]));
+
+      const labels = current.map((item: any) => item.label);
+      const currentValues = current.map((item: any) => item.value);
+      const previousValues = labels.map((label: any) => previousLookup.get(label) ?? 0);
+
+      const config: Chart.ChartConfiguration = {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: this.dashboardSummary.monthOnMonth.currentLabel,
+              data: currentValues,
+              borderColor: '#3366ff',
+              backgroundColor: 'rgba(51, 102, 255, 0.15)',
+              fill: false,
+              lineTension: 0.25,
+              borderWidth: 3,
+              pointRadius: 2,
+            },
+            {
+              label: this.dashboardSummary.monthOnMonth.previousLabel,
+              data: previousValues,
+              borderColor: '#ffce54',
+              backgroundColor: 'rgba(255, 206, 84, 0.15)',
+              fill: false,
+              lineTension: 0.25,
+              borderWidth: 3,
+              pointRadius: 2,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: { display: true, position: 'bottom' },
+          animation: { duration: 250 },
+          tooltips: { mode: 'index', intersect: false },
+          scales: {
+            xAxes: [{ gridLines: { display: false } }],
+            yAxes: [{ ticks: { beginAtZero: true } }],
+          },
+        },
+      };
+
+      this.renderChart('monthComparisonChart', config);
+    } else {
       return;
     }
-
-    const current = this.dashboardSummary.monthOnMonth.current;
-    const previousLookup = new Map(this.dashboardSummary.monthOnMonth.previous.map(item => [item.label, item.value]));
-
-    const labels = current.map(item => item.label);
-    const currentValues = current.map(item => item.value);
-    const previousValues = labels.map(label => previousLookup.get(label) ?? 0);
-
-    const config: Chart.ChartConfiguration = {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: this.dashboardSummary.monthOnMonth.currentLabel,
-            data: currentValues,
-            borderColor: '#3366ff',
-            backgroundColor: 'rgba(51, 102, 255, 0.15)',
-            fill: false,
-            lineTension: 0.25,
-            borderWidth: 3,
-            pointRadius: 2,
-          },
-          {
-            label: this.dashboardSummary.monthOnMonth.previousLabel,
-            data: previousValues,
-            borderColor: '#ffce54',
-            backgroundColor: 'rgba(255, 206, 84, 0.15)',
-            fill: false,
-            lineTension: 0.25,
-            borderWidth: 3,
-            pointRadius: 2,
-          },
-        ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: { display: true, position: 'bottom' },
-        animation: { duration: 250 },
-        tooltips: { mode: 'index', intersect: false },
-        scales: {
-          xAxes: [{ gridLines: { display: false } }],
-          yAxes: [{ ticks: { beginAtZero: true } }],
-        },
-      },
-    };
-
-    this.renderChart('monthComparisonChart', config);
   }
 
   private renderCategoryChart(): void {
-    if (!this.dashboardSummary) {
-      return;
-    }
+    if (!this.dashboardSummary) return;
 
-    const categories = this.dashboardSummary.categoryShare.categories;
+    const categories = this.dashboardSummary.categoryShare?.categories ?? [];
 
     const config: Chart.ChartConfiguration = {
       type: 'doughnut',
       data: {
-        labels: categories.map(c => c.category),
+        labels: categories.map((c: any) => c.category),
         datasets: [
           {
-            data: categories.map(c => c.share * 100),
+            data: categories.map((c: any) => (c.share ?? 0) * 100),
             backgroundColor: ['#3366ff', '#00d68f', '#ff3d71', '#ffaa00', '#8a2be2', '#17a2b8'],
             borderWidth: 0,
           },
@@ -627,11 +778,32 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
   }
 
-//Funkcija za reddirectanje na komponentu "Izdatnice troška"
+  // ---------------------------
+  // QUICK ACTIONS (ostalo identicno)
+  // ---------------------------
+  onQuickAction(action: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+      event.preventDefault();
+    }
+
+    switch (action) {
+      case 'PregledRedovnogOtpisa':
+        this.PregledRedovnogOtpisa();
+        break;
+      case 'Izdatnice':
+        this.Izdatnice();
+        break;
+      case 'NeuslovnaRoba':
+        this.NeuslovnaRoba();
+        break;
+    }
+  }
+
   Izdatnice() {
     this.authService.getToken()
       .subscribe((token: NbAuthJWTToken) => {
-        let rola = token.getPayload()["role"]
+        let rola = token.getPayload()["role"];
         if (rola == "prodavnica") {
           this.router.navigate(['/pages/izdatnice-troska/unos-nove-izdatnice']);
         } else if (rola == "interna") {
@@ -643,19 +815,19 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             text: 'Niste ovlašteni za unos izdatnica troška!',
             showConfirmButton: false,
             timer: 2000
-          })
+          });
         }
       });
   }
-  //Funkcija za reddirectanje na komponentu "Vanredni otpis"
+
   VanredniOtpis() {
     this.router.navigate(['/pages/otpis/vanredni/novi']);
   }
-  //Funkcija za reddirectanje na komponentu "Neuslovna roba"
+
   NeuslovnaRoba() {
     this.authService.getToken()
       .subscribe((token: NbAuthJWTToken) => {
-        let rola = token.getPayload()["role"]
+        let rola = token.getPayload()["role"];
         if (rola == "prodavnica") {
           this.router.navigate(['/pages/neuslovna-roba/neuslovna-roba-unos']);
         } else if (rola == "interna") {
@@ -667,15 +839,15 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             text: 'Niste ovlašteni za unos neuslovne robe!',
             showConfirmButton: false,
             timer: 2000
-          })
+          });
         }
       });
   }
- //Funkcija za reddirectanje na komponentu "Redovni otpis"
+
   PregledRedovnogOtpisa() {
     this.authService.getToken()
       .subscribe((token: NbAuthJWTToken) => {
-        let rola = token.getPayload()["role"]
+        let rola = token.getPayload()["role"];
         if (rola == "prodavnica") {
           Swal.fire({
             title: 'Odaberite pregled otpisa',
@@ -694,7 +866,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             else if(result.isDenied) {
               this.router.navigate(['/pages/otpis/vanredni']);
             }
-          })
+          });
         } else if (rola == "interna") {
           Swal.fire({
             title: 'Odaberite pregled otpisa',
@@ -713,7 +885,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             else if(result.isDenied) {
               this.router.navigate(['/pages/pregled/vanredni-otpis']);
             }
-          })  
+          });
         } else {
           Swal.fire({
             icon: 'error',
@@ -721,10 +893,11 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             text: 'Niste ovlašteni za pregled napravljenih otpisa!',
             showConfirmButton: false,
             timer: 2000
-          })
+          });
         }
       });
   }
+
 
   trackByAction(_: number, action: QuickAction): string {
     return action.action;
