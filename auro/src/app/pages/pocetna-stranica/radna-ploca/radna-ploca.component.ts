@@ -5,9 +5,11 @@ import Swal from 'sweetalert2';
 import { DataService } from '../../../@core/utils/data.service';
 import { NbDialogService, NbIconLibraries } from '@nebular/theme';
 import Chart from 'chart.js';
-import { finalize } from 'rxjs/operators';
+import { finalize, takeUntil } from 'rxjs/operators';
 import { DashboardService } from '../../../@core/utils/dashboard.service';
 import { DashboardSummary, DashboardTrendPoint } from '../../../@core/data/dashboard/dashboard-summary';
+import { DailyTaskService } from '../../../@core/utils/daily-task.service';
+import { Subject } from 'rxjs';
 
 interface QuickAction {
   title: string;
@@ -134,28 +136,25 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   // role set that should be able to select store
   rolesWithStoreSelection: string[] = ['uprava', 'podrucni', 'regionalni'];
-
+  private destroy$ = new Subject<void>();
   constructor(
     private router: Router,
     public authService: NbAuthService,
     private dataService: DataService,
     private iconService: NbIconLibraries,
     private dashboardService: DashboardService,
-    private dialogService: NbDialogService
+    private dialogService: NbDialogService,
+    private readonly dailyTaskService: DailyTaskService
   ) {
     this.iconService.registerFontPack('font-awesome', { packClass: 'fa' });
   }
 
-// --- učitavanje KPI kartica ---
 private loadPromet(storeId: string): void {
   this.isDashboardLoading = true;
 
   this.dataService.getPromet(storeId).pipe(finalize(() => this.isDashboardLoading = false))
     .subscribe({
       next: (r: any) => {
-        console.log("Promet je: " + JSON.stringify(r));
-
-        // mapiramo podatke na dashboard
         this.dashboardSummary = {
           promet: Number(r.promet),
           prometProslaGodina: Number(r.prometProslaGodina),
@@ -184,6 +183,23 @@ private loadPromet(storeId: string): void {
     });
 }
 
+  private loadInitialData(): void {
+  
+      this.dailyTaskService.getStores()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (stores) => {
+            this.stores = stores;
+            if (stores.length > 0) {
+              this.selectedStoreId = stores[0].id;
+            }
+          },
+          error: (err) => {
+            const poruka = err.error?.poruka ?? err.statusText;
+            Swal.fire('Greška', `Greška prilikom učitavanja prodavnica: ${poruka}`, 'error');
+          }
+        });
+  }
 // --- učitavanje statistika za grafove ---
 private loadStoreCharts(storeId?: string | number | null): void {
   this.isStoreChartsLoading = true;
@@ -245,9 +261,9 @@ ngOnInit(): void {
       this.loadStoreCharts(storeId);  // svi grafovi
       return;
     }
-
+    this.loadStores();
     // ako nije prodavnica, učitaj globalne podatke
-    this.loadPromet('001');          // default prodavnica
+    this.loadPromet('000');          // default prodavnica
     this.loadStoreCharts();          // globalni grafovi
   });
 }
@@ -313,48 +329,34 @@ getKpiCards(): KpiCard[] {
     return this.rola === 'prodavnica' || this.rolesWithStoreSelection.includes(this.rola) || this.rola === 'uprava';
   }
 
-  // ---------------------------
-  // STORES + SELECT HANDLING
-  // ---------------------------
-  private loadStores(): void {
-    if (!(this.dataService as any).getStores) {
-      this.stores = [];
-      this.loadDashboardSummary();
-      this.loadStoreCharts();
-      return;
-    }
 
-    (this.dataService as any).getStores().subscribe({
-      next: (response: any[]) => {
-        this.stores = Array.isArray(response) ? response : [];
-        if (this.stores.length) {
-          if (!this.selectedStoreId) {
-            this.selectedStoreId = this.stores[0].id ?? this.stores[0].brojProdavnice ?? this.stores[0].storeId;
+  private loadStores(): void {
+ this.dailyTaskService.getStores()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (stores) => {
+            this.stores = stores;
+            if (stores.length > 0) {
+              this.selectedStoreId = stores[0].code;
+
+            }
+          },
+          error: (err) => {
+            const poruka = err.error?.poruka ?? err.statusText;
+            Swal.fire('Greška', `Greška prilikom učitavanja prodavnica: ${poruka}`, 'error');
           }
-          if (this.selectedStoreId != null) {
-            this.loadDashboardSummary(this.selectedStoreId);
-            this.loadStoreCharts(this.selectedStoreId);
-          } else {
-            this.loadDashboardSummary();
-            this.loadStoreCharts();
-          }
-        } else {
-          this.loadDashboardSummary();
-          this.loadStoreCharts();
-        }
-      },
-      error: () => {
-        this.stores = [];
-        this.loadDashboardSummary();
-        this.loadStoreCharts();
-      }
-    });
+        });
   }
 
-  onStoreChange(storeId: string | number | null): void {
+  onStoreChange(storeId: string | null): void {
     this.selectedStoreId = storeId;
-    this.loadDashboardSummary(this.selectedStoreId);
-    this.loadStoreCharts(this.selectedStoreId);
+              const storeCode = String(parseInt(this.selectedStoreId, 10)).padStart(3, '0');
+                    this.loadPromet(storeCode);       // KPI kartice + promet grafovi
+                    this.loadStoreCharts(storeId);  // svi grafovi
+        console.log("CODE: " + this.selectedStoreId)            
+    this.loadPromet(this.selectedStoreId);          // default prodavnica
+    this.loadStoreCharts(); 
+    return;
   }
 
   

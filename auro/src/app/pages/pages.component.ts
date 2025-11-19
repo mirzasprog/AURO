@@ -115,14 +115,14 @@ export class PagesComponent implements OnInit {
         else if (rola == "uprava") {
           this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
-          this.setMenuHidden(["Inventure"], false);
+          this.setMenuHidden(["Inventure"], true);
           this.setMenuHidden(["Zahtjevi"], true);
           this.setMenuHidden(["Pregled"], true);
           this.setMenuHidden(["Datumi"], true);
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
-          this.setMenuHidden(["Kvaliteta VIP-a"], false);
+          this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else {
           this.setMenuHidden(["Dnevni zadaci"], false);

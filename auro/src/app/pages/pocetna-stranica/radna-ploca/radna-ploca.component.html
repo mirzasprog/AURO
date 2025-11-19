@@ -1,7 +1,5 @@
-<!-- ========================= -->
-<!-- DASHBOARD – INTERNI / PODRUČNI / REGIONALNI -->
-<!-- ========================= -->
-<nb-card *ngIf="rola !== 'prodavnica' && rola !== 'uprava' && rola !== 'podrucni' && rola !== 'regionalni'" class="dashboard-card">
+<nb-card *ngIf="rola !== 'prodavnica' && rola !== 'uprava' && rola !== 'podrucni' && rola !== 'regionalni'"
+  class="dashboard-card">
   <nb-card-header class="dashboard-header">
     <div class="header-content">
       <div class="header-icon">
@@ -17,16 +15,9 @@
 
   <nb-card-body>
     <div class="quick-actions-grid">
-      <nb-card
-        *ngFor="let action of quickActions; trackBy: trackByAction"
-        class="quick-action"
-        [ngClass]="action.accent"
-        (click)="onQuickAction(action.action)"
-        (keyup.enter)="onQuickAction(action.action)"
-        (keyup.space)="onQuickAction(action.action)"
-        tabindex="0"
-        role="button"
-        [attr.aria-label]="action.title">
+      <nb-card *ngFor="let action of quickActions; trackBy: trackByAction" class="quick-action"
+        [ngClass]="action.accent" (click)="onQuickAction(action.action)" (keyup.enter)="onQuickAction(action.action)"
+        (keyup.space)="onQuickAction(action.action)" tabindex="0" role="button" [attr.aria-label]="action.title">
 
         <nb-card-body>
           <div class="quick-action-icon">
@@ -38,12 +29,7 @@
             <p>{{ action.description }}</p>
           </div>
 
-          <button
-            nbButton
-            status="primary"
-            size="small"
-            hero
-            type="button"
+          <button nbButton status="primary" size="small" hero type="button"
             (click)="onQuickAction(action.action, $event)">
             <nb-icon icon="external-link-outline"></nb-icon>
             {{ action.cta }}
@@ -54,13 +40,6 @@
   </nb-card-body>
 </nb-card>
 
-
-
-<!-- ========================= -->
-<!-- DASHBOARD – PRODAVNICA / UPRAVA / PODRUČNI / REGIONALNI -->
-<!-- ========================= -->
-
-<!-- Prikaži store-dashboard ako je rola prodavnica ili ako rola spada u set koji može birati prodavnicu -->
 <nb-card *ngIf="isRoleStoreDashboardVisible()" class="store-dashboard">
 
   <nb-card-header class="store-header text-center">
@@ -72,15 +51,10 @@
         </h2>
         <small>Pratite ključne metrike i trendove u realnom vremenu.</small>
       </div>
-
-      <!-- Dropdown za uprava/podrucni/regionalni -->
       <div class="store-selector" *ngIf="rolesWithStoreSelection.includes(rola)">
-        <nb-select placeholder="Izaberite prodavnicu"
-                   [(selected)]="selectedStoreId"
-                   (selectedChange)="onStoreChange($event)">
-          <nb-option *ngFor="let s of stores" [value]="s.id ?? s.brojProdavnice ?? s.storeId">
-            {{ s.brojProdavnice ? (s.brojProdavnice + ' - ') : '' }}{{ s.adresa || s.naziv }}
-          </nb-option>
+        <nb-select placeholder="Izaberite prodavnicu" [(selected)]="selectedStoreId"
+          (selectedChange)="onStoreChange($event)">
+        <nb-option *ngFor="let store of stores" [value]="store.code">{{ store.name }}</nb-option>
         </nb-select>
       </div>
     </div>
@@ -88,17 +62,14 @@
 
   <nb-card-body>
 
-    <!-- KPI SECTION -->
+    <!-- KPI -->
     <section class="kpi-section">
       <div class="kpi-loading" *ngIf="isDashboardLoading">
         <nb-spinner size="large"></nb-spinner>
       </div>
 
       <div class="kpi-grid" *ngIf="!isDashboardLoading && dashboardSummary">
-        <div
-          class="kpi-card"
-          *ngFor="let card of getKpiCards(); trackBy: trackByKpi"
-          (click)="openKpiDetail(card.key)"
+        <div class="kpi-card" *ngFor="let card of getKpiCards(); trackBy: trackByKpi" (click)="openKpiDetail(card.key)"
           [attr.aria-label]="card.label + ' ' + card.formattedValue + (card.unit ? ' ' + card.unit : '')">
 
           <span class="kpi-title">{{ card.label }}</span>
@@ -109,9 +80,11 @@
           </div>
 
           <div class="kpi-meta" *ngIf="card.previousValue !== undefined || card.delta !== undefined">
-            <span *ngIf="card.previousValue !== undefined">Prošle godine: {{ card.previousValue | number:'1.0-2' }}{{ card.unit ? ' ' + card.unit : '' }}</span> 
+            <span *ngIf="card.previousValue !== undefined">Prošle godine: {{ card.previousValue | number:'1.0-2' }}{{
+              card.unit ? ' ' + card.unit : '' }}</span>
             <br>
-            <span *ngIf="card.delta !== undefined">Promjena: {{ card.delta >= 0 ? '+' : ''}}{{ card.delta | number:'1.0-2' }}%</span>
+            <span *ngIf="card.delta !== undefined">Promjena: {{ card.delta >= 0 ? '+' : ''}}{{ card.delta |
+              number:'1.0-2' }}%</span>
           </div>
 
           <span class="kpi-hint">Kliknite za detalje</span>
@@ -119,12 +92,9 @@
       </div>
     </section>
 
-    <!-- CHARTS -->
     <div class="charts-wrapper" [class.is-loading]="isStoreChartsLoading">
       <section class="chart-grid comparison-grid">
-        <nb-card
-          *ngFor="let chartItem of comparisonCharts; trackBy: trackByChart"
-          class="chart-card">
+        <nb-card *ngFor="let chartItem of comparisonCharts; trackBy: trackByChart" class="chart-card">
 
           <nb-card-header>
             <div class="chart-header">
@@ -155,19 +125,15 @@
   </nb-card-body>
 </nb-card>
 
-
-
-<!-- ========================= -->
-<!-- MODAL TEMPLATES -->
-<!-- ========================= -->
-
 <ng-template #visitorsDetail>
   <nb-card>
     <nb-card-header>Trend posjetilaca</nb-card-header>
     <nb-card-body>
       <div class="modal-values" *ngIf="dashboardSummary">
-        <p>Ove godine: {{ dashboardSummary.brojKupaca ?? dashboardSummary.visitors?.value ?? dashboardSummary.visitors?.ukupno }}</p>
-        <p>Prošle godine: {{ dashboardSummary.brojKupacaProslaGodina ?? dashboardSummary.visitors?.previousValue ?? dashboardSummary.visitors?.prosla }}</p>
+        <p>Ove godine: {{ dashboardSummary.brojKupaca ?? dashboardSummary.visitors?.value ??
+          dashboardSummary.visitors?.ukupno }}</p>
+        <p>Prošle godine: {{ dashboardSummary.brojKupacaProslaGodina ?? dashboardSummary.visitors?.previousValue ??
+          dashboardSummary.visitors?.prosla }}</p>
       </div>
       <div class="modal-chart">
         <canvas id="visitorsTrendChart"></canvas>
@@ -181,8 +147,10 @@
     <nb-card-header>Trend prometa</nb-card-header>
     <nb-card-body>
       <div class="modal-values" *ngIf="dashboardSummary">
-        <p>Ove godine: {{ (dashboardSummary.promet ?? dashboardSummary.turnover?.value) | number:'1.0-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
-        <p>Prošle godine: {{ (dashboardSummary.prometProslaGodina ?? dashboardSummary.turnover?.previousValue) | number:'1.0-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
+        <p>Ove godine: {{ (dashboardSummary.promet ?? dashboardSummary.turnover?.value) | number:'1.0-2' }} {{
+          dashboardSummary.currency ?? 'KM' }}</p>
+        <p>Prošle godine: {{ (dashboardSummary.prometProslaGodina ?? dashboardSummary.turnover?.previousValue) |
+          number:'1.0-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
       </div>
       <div class="modal-chart">
         <canvas id="turnoverTrendChart"></canvas>
