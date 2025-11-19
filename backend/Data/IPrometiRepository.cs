@@ -1,6 +1,7 @@
 namespace backend.Data {
     public interface IPrometiRepository
     {
-        PrometiDto? PreuzmiPromete(string prodavnica);
+        ResponsePrometProdavnice? PreuzmiPrometProdavnice(string prodavnica);
+        ResponsePrometiProdavnica? PreuzmiPrometeSvihProdavnica();
     }
 }

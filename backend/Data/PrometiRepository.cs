@@ -17,15 +17,19 @@ namespace backend.Data
             korisnickoIme = _httpContextAccessor.HttpContext?.User?.Identity?.Name;
         }
 
-        public PrometiDto? PreuzmiPromete(string prodavnica)
+        public ResponsePrometProdavnice? PreuzmiPrometProdavnice(string prodavnica)
         {
            // string brojProdavnice = korisnickoIme ?? "";
 
-            var r = _context.Prometi?.FromSqlInterpolated($"EXEC GetPrometi {prodavnica}") .AsEnumerable() 
+            var r = _context.PrometProdavnice?.FromSqlInterpolated($"EXEC GetPrometi {prodavnica}") .AsEnumerable() 
         .FirstOrDefault();
             return r;
         }
 
-
+        public ResponsePrometiProdavnica? PreuzmiPrometeSvihProdavnica()
+        {
+            var r = _context.PrometiProdavnica?.FromSqlInterpolated($"EXEC GetPrometiSvihProdavnica") .AsEnumerable().FirstOrDefault();
+            return r;
+        }
     }
 }

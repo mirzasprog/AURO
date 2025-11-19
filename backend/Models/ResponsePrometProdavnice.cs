@@ -1,4 +1,4 @@
-public class PrometiDto
+public class ResponsePrometProdavnice
 {
     public string BrojProdavnice { get; set; } = null!;
     public string Adresa { get; set; } = null!;

@@ -23,10 +23,19 @@ namespace backend.Controllers
         }
 
         [HttpGet("{prodavnica}")]
-        public IActionResult PreuzmiPromet(string prodavnica)
+        public IActionResult PreuzmiPrometProdavnice(string prodavnica)
         {
-            var r = _repo.PreuzmiPromete(prodavnica);
+            var r = _repo.PreuzmiPrometProdavnice(prodavnica);
             return Ok(r);
         }
+
+
+        [HttpGet]
+        public IActionResult PreuzmiPromete()
+        {
+            var r = _repo.PreuzmiPrometeSvihProdavnica();
+            return Ok(r);
+        }
+
     }
 }
