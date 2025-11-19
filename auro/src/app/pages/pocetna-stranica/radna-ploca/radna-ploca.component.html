@@ -42,23 +42,55 @@
 
 <nb-card *ngIf="isRoleStoreDashboardVisible()" class="store-dashboard">
 
-  <nb-card-header class="store-header text-center">
-    <div class="store-header-inner">
-      <div>
-        <h2>
-          <nb-icon icon="activity"></nb-icon>
-          Statistika prodavnice
-        </h2>
-        <small>Pratite ključne metrike i trendove u realnom vremenu.</small>
-      </div>
-      <div class="store-selector" *ngIf="rolesWithStoreSelection.includes(rola)">
-        <nb-select placeholder="Izaberite prodavnicu" [(selected)]="selectedStoreId"
-          (selectedChange)="onStoreChange($event)">
-        <nb-option *ngFor="let store of stores" [value]="store.code">{{ store.name }}</nb-option>
-        </nb-select>
-      </div>
+<nb-card-header class="store-header text-center">
+  <div class="store-header-inner">
+    <div>
+      <h2>
+        <nb-icon icon="activity"></nb-icon>
+        Statistika prodavnice
+      </h2>
+      <small>Pratite ključne metrike i trendove u realnom vremenu.</small>
     </div>
-  </nb-card-header>
+
+    <div class="store-selector" *ngIf="rolesWithStoreSelection.includes(rola)">
+
+      <!-- Dropdown + Button wrapper -->
+      <div class="selector-row">
+
+        <!-- DROPDOWN SA PRETRAGOM + AUTO ŠIRINA -->
+        <p-dropdown
+          #storeDropdown
+          class="store-dropdown"
+          [options]="stores"
+          [(ngModel)]="selectedStoreId"
+          optionLabel="name"
+          optionValue="code"
+          [filter]="true"
+          filterBy="name,code"
+          placeholder="Izaberite prodavnicu"
+          (onChange)="clearSearchAndSelect($event.value, storeDropdown)"
+        >
+        </p-dropdown>
+        <div class="col" *ngIf="selectedStoreId && selectedStoreId !== '0000'">
+          <b style="font-size: large;" > Promet za: {{selectedStoreId}}</b>
+        </div>
+        <div class="col">
+        <!-- BUTTON PRIKAŽI CIJELU MREŽU -->
+        <button nbButton status="info" size="small"
+                class="all-network-btn" style="float:inline-end"
+                (click)="showAllStores(storeDropdown)">
+          Prikaži cijelu mrežu
+        </button>
+        </div>
+
+
+
+      </div>
+
+    </div>
+  </div>
+</nb-card-header>
+
 
   <nb-card-body>
 
@@ -79,13 +111,28 @@
             <small *ngIf="card.unit">{{ card.unit }}</small>
           </div>
 
-          <div class="kpi-meta" *ngIf="card.previousValue !== undefined || card.delta !== undefined">
-            <span *ngIf="card.previousValue !== undefined">Prošle godine: {{ card.previousValue | number:'1.0-2' }}{{
-              card.unit ? ' ' + card.unit : '' }}</span>
+          <div class="kpi-meta" *ngIf="card.previousValue !== undefined">
+
+            <!-- Prošle godine -->
+            <span>
+              Prošle godine: {{ card.previousValue | number:'1.2-2' }}
+              {{ card.unit ? ' ' + card.unit : '' }}
+            </span>
+
             <br>
-            <span *ngIf="card.delta !== undefined">Promjena: {{ card.delta >= 0 ? '+' : ''}}{{ card.delta |
-              number:'1.0-2' }}%</span>
+
+            <!-- Razlika broj + % -->
+            <span [ngStyle]="{ 'color': card.delta >= 0 ? 'green' : 'red' }">
+              Razlika:
+              {{ card.deltaValue >= 0 ? '+' : ''}}{{ card.deltaValue | number:'1.2-2' }}
+              {{ card.unit }}
+
+              /
+              {{ card.delta >= 0 ? '+' : ''}}{{ card.delta | number:'1.2-2' }}%
+            </span>
+
           </div>
+
 
           <span class="kpi-hint">Kliknite za detalje</span>
         </div>
@@ -147,10 +194,10 @@
     <nb-card-header>Trend prometa</nb-card-header>
     <nb-card-body>
       <div class="modal-values" *ngIf="dashboardSummary">
-        <p>Ove godine: {{ (dashboardSummary.promet ?? dashboardSummary.turnover?.value) | number:'1.0-2' }} {{
+        <p>Ove godine: {{ (dashboardSummary.promet ?? dashboardSummary.turnover?.value) | number:'1.2-2' }} {{
           dashboardSummary.currency ?? 'KM' }}</p>
         <p>Prošle godine: {{ (dashboardSummary.prometProslaGodina ?? dashboardSummary.turnover?.previousValue) |
-          number:'1.0-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
+          number:'1.2-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
       </div>
       <div class="modal-chart">
         <canvas id="turnoverTrendChart"></canvas>

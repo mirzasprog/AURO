@@ -212,3 +212,74 @@ body[data-theme='dark'] {
   --chart-icon-bg: #0f172a;
   --chart-icon-color: #f1f5f9;
 }
+
+/* ============================================
+   GLOBAL STYLING ZA P-DROPDOWN (LIGHT MODE)
+============================================ */
+.store-dropdown .p-dropdown {
+  background: var(--card-background) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--card-shadow) !important;
+  border-radius: 12px !important;
+  padding: 4px 10px !important;
+  width: 280px !important;      /* fiksirana širina */
+  min-height: 46px !important;  /* lijepa visina */
+}
+
+.store-dropdown .p-dropdown-label {
+  color: var(--text-primary) !important;
+}
+
+/* Panel (lista storeova) */
+.store-dropdown .p-dropdown-panel {
+  background: var(--card-background) !important;
+  border: 1px solid var(--card-border) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+/* Opcije */
+.store-dropdown .p-dropdown-items .p-dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+.store-dropdown .p-dropdown-items .p-dropdown-item:hover {
+  background: rgba(59, 130, 246, 0.12) !important;
+}
+
+/* Input za pretragu */
+.store-dropdown .p-dropdown-filter {
+  background: var(--card-background) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+/* ============================================
+   DARK MODE STYLING
+============================================ */
+body[data-theme='dark'] .store-dropdown .p-dropdown {
+  background: var(--card-background) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-primary) !important;
+  box-shadow: var(--card-shadow) !important;
+}
+
+body[data-theme='dark'] .store-dropdown .p-dropdown-panel {
+  background: var(--card-background) !important;
+  border: 1px solid var(--card-border) !important;
+}
+
+body[data-theme='dark'] .store-dropdown .p-dropdown-items .p-dropdown-item {
+  color: var(--text-primary) !important;
+}
+
+body[data-theme='dark'] .store-dropdown .p-dropdown-items .p-dropdown-item:hover {
+  background: rgba(59, 130, 246, 0.15) !important;
+}
+
+body[data-theme='dark'] .store-dropdown .p-dropdown-filter {
+  background: var(--card-background) !important;
+  border: 1px solid var(--card-border) !important;
+  color: var(--text-primary) !important;
+}
+

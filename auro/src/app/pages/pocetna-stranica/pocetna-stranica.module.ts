@@ -13,6 +13,7 @@ import { ThemeModule } from '../../@theme/theme.module';
 import { OtpisiRoutingModule } from '../otpisi/otpisi-routing.module';
 import { StatistikaComponent } from './radna-ploca/statistika/statistika.component';
 import { NgxChartsModule }from '@swimlane/ngx-charts';
+import { DropdownModule } from 'primeng-lts/dropdown';
 
 
 @NgModule({
@@ -39,6 +40,7 @@ import { NgxChartsModule }from '@swimlane/ngx-charts';
     NbLayoutModule,
     NbEvaIconsModule,
     NbFormFieldModule,
+    DropdownModule,
     CommonModule,
     FormsModule,
     NgxChartsModule,

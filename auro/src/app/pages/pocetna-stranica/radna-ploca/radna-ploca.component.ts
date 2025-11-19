@@ -133,7 +133,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       description: 'Praćenje prometa po mjesecima i poređenje s prethodnom godinom.'
     }
   ];
-
+storeSearch = '';
+filteredStores = [];
   // role set that should be able to select store
   rolesWithStoreSelection: string[] = ['uprava', 'podrucni', 'regionalni'];
   private destroy$ = new Subject<void>();
@@ -151,12 +152,12 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
 private loadPromet(storeId: string): void {
   this.isDashboardLoading = true;
-
+//getPrometCijelaMreza
   this.dataService.getPromet(storeId).pipe(finalize(() => this.isDashboardLoading = false))
     .subscribe({
       next: (r: any) => {
         this.dashboardSummary = {
-          promet: Number(r.promet),
+          promet: Number(r.promet | 1.2-2),
           prometProslaGodina: Number(r.prometProslaGodina),
           brojKupaca: Number(r.brojKupaca),
           brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
@@ -182,6 +183,66 @@ private loadPromet(storeId: string): void {
       }
     });
 }
+  private loadGodisnjiPromet(): void {
+    this.isDashboardLoading = true;
+  //getPrometCijelaMreza
+    this.dataService.getPrometCijelaMreza().pipe(finalize(() => this.isDashboardLoading = false))
+      .subscribe({
+        next: (r: any) => {
+          this.dashboardSummary = {
+            promet: Number(r.promet),
+            prometProslaGodina: Number(r.prometProslaGodina),
+            brojKupaca: Number(r.brojKupaca),
+            brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
+            currency: 'KM',
+            turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
+            visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
+            averageBasket: { 
+              value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
+              previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0 
+            }
+          };
+
+          // odmah renderujemo KPI kartice
+          this.getKpiCards?.();
+
+          // render grafova vezanih za promet
+          this.renderDayComparisonChart?.();
+          this.renderMonthComparisonChart?.();
+        },
+        error: (err) => {
+          const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+          Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
+        }
+      });
+  }
+
+  clearSearchAndSelect(value: string, dropdown: any) {
+  this.selectedStoreId = value;
+
+  // reset filter input
+  if (dropdown && dropdown.filterInputChild) {
+    dropdown.filterInputChild.nativeElement.value = '';
+    dropdown.resetFilter();
+  }
+
+  this.onStoreChange(value);
+}
+
+showAllStores(dropdown: any) {
+  // poništi selekciju
+  this.selectedStoreId = null;
+
+  // reset pretrage u dropdownu ako postoji
+  if (dropdown && dropdown.filterInputChild) {
+    dropdown.filterInputChild.nativeElement.value = '';
+    dropdown.resetFilter();
+  }
+
+  // poziv tvoje funkcije koja učitava podatke za cijelu mrežu
+  this.loadGodisnjiPromet();
+}
+
 
   private loadInitialData(): void {
   
@@ -251,7 +312,7 @@ ngOnInit(): void {
   this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
     this.rola = token.getPayload()['role'] ?? this.rola;
     this.korisnickoIme = token.getPayload()['name'] ?? this.korisnickoIme;
-
+      this.filteredStores = this.stores; // init
     if (this.rola === 'prodavnica') {
       // trim prve nule, uzmi zadnje 3 cifre
       const storeId = String(parseInt(this.korisnickoIme, 10)).padStart(3, '0');
@@ -261,59 +322,87 @@ ngOnInit(): void {
       this.loadStoreCharts(storeId);  // svi grafovi
       return;
     }
+    else if(this.rola=== 'uprava'){
     this.loadStores();
     // ako nije prodavnica, učitaj globalne podatke
-    this.loadPromet('000');          // default prodavnica
-    this.loadStoreCharts();          // globalni grafovi
+    this.loadGodisnjiPromet();          
+    this.loadStoreCharts();  
+    }
   });
 }
 
-// getKpiCards() ostaje isti kao prije
+filterStores() {
+  const term = this.storeSearch.toLowerCase();
+  this.filteredStores = this.stores.filter(s =>
+    s.name.toLowerCase().includes(term) ||
+    s.code.toLowerCase().includes(term)
+  );
+}
+
+// kada se dropdown otvori — reset pretrage
+onStoreDropdownOpen(isOpen: boolean) {
+  if (isOpen) {
+    this.storeSearch = '';
+    this.filteredStores = this.stores;
+  }
+}
+
 getKpiCards(): KpiCard[] {
   if (!this.dashboardSummary) return [];
 
   const cards: KpiCard[] = [];
 
-  const currentPromet = Number(this.dashboardSummary.promet ?? 0);
-  const prevPromet = Number(this.dashboardSummary.prometProslaGodina ?? 0);
-  cards.push({
-    key: 'turnover',
-    label: 'Promet',
-    formattedValue: currentPromet.toFixed(2),
-    unit: this.dashboardSummary.currency ?? 'KM',
-    value: currentPromet,
-    previousValue: prevPromet,
-    delta: prevPromet ? Number((((currentPromet - prevPromet) / prevPromet) * 100).toFixed(2)) : 0,
-    trend: this.dashboardSummary.turnover?.trend ?? []
-  });
+  const buildCard = (key: string, label: string, current: number, prev: number, unit?: string, trend?: any[]) => {
+    const deltaPercent = prev ? Number((((current - prev) / prev) * 100).toFixed(2)) : 0;
+    const deltaValue = Number((current - prev).toFixed(2));
 
-  const currentKupci = Number(this.dashboardSummary.brojKupaca ?? 0);
-  const prevKupci = Number(this.dashboardSummary.brojKupacaProslaGodina ?? 0);
-  cards.push({
-    key: 'visitors',
-    label: 'Broj kupaca',
-    formattedValue: String(currentKupci),
-    value: currentKupci,
-    previousValue: prevKupci,
-    delta: prevKupci ? Number((((currentKupci - prevKupci) / prevKupci) * 100).toFixed(2)) : 0,
-    trend: this.dashboardSummary.visitors?.trend ?? []
-  });
+    return {
+      key,
+      label,
+      formattedValue: current.toFixed(2),
+      unit: unit ?? '',
+      value: current,
+      previousValue: prev,
+      delta: deltaPercent,
+      deltaValue,          // 🔥 dodano — numerička razlika npr. 15000
+      trend: trend ?? []
+    };
+  };
 
-  const avgBasket = Number(this.dashboardSummary.averageBasket?.value ?? 0);
-  const avgBasketPrev = Number(this.dashboardSummary.averageBasket?.previousValue ?? 0);
-  cards.push({
-    key: 'averageBasket',
-    label: 'Prosječna korpa',
-    formattedValue: avgBasket.toFixed(2),
-    unit: this.dashboardSummary.currency ?? 'KM',
-    value: avgBasket,
-    previousValue: avgBasketPrev,
-    delta: avgBasketPrev ? Number((((avgBasket - avgBasketPrev) / avgBasketPrev) * 100).toFixed(2)) : 0,
-    trend: this.dashboardSummary.averageBasket?.trend ?? []
-  });
+  cards.push(
+    buildCard(
+      'turnover',
+      'Promet',
+      Number(this.dashboardSummary.promet ?? 0),
+      Number(this.dashboardSummary.prometProslaGodina ?? 0),
+      this.dashboardSummary.currency ?? 'KM',
+      this.dashboardSummary.turnover?.trend
+    )
+  );
+
+  cards.push(
+    buildCard(
+      'visitors',
+      'Broj kupaca',
+      Number(this.dashboardSummary.brojKupaca ?? 0),
+      Number(this.dashboardSummary.brojKupacaProslaGodina ?? 0)
+    )
+  );
+
+  cards.push(
+    buildCard(
+      'averageBasket',
+      'Prosječna korpa',
+      Number(this.dashboardSummary.averageBasket?.value ?? 0),
+      Number(this.dashboardSummary.averageBasket?.previousValue ?? 0),
+      this.dashboardSummary.currency ?? 'KM',
+      this.dashboardSummary.averageBasket?.trend
+    )
+  );
 
   return cards;
 }
+
 
   ngOnDestroy(): void {
     Object.keys(this.charts).forEach(key => {
