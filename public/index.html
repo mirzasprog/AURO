@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="bs">
+  <head>
+    <meta charset="utf-8" />
+    <title>Vikend Akcije</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <header>
+        <h1>Vikend Akcije</h1>
+        <p>Pregled VIP akcija uz uvid u stavke i izmjene količina.</p>
+      </header>
+      <main>
+        <section>
+          <table id="zaglavlja-table">
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Opis</th>
+                <th>Pocetak</th>
+                <th>Kraj</th>
+                <th>Stavke</th>
+                <th>Status</th>
+                <th class="akcija-col">Akcija</th>
+              </tr>
+            </thead>
+            <tbody id="zaglavlja-body"></tbody>
+          </table>
+        </section>
+      </main>
+    </div>
+
+    <div id="stavke-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>VIP Stavke</h2>
+          <button class="close" aria-label="Zatvori" id="close-modal">×</button>
+        </div>
+        <div class="modal-body">
+          <table>
+            <thead>
+              <tr>
+                <th>Id</th>
+                <th>Sifra</th>
+                <th>Naziv</th>
+                <th>Kolicina</th>
+                <th>Prodavnica</th>
+                <th>***</th>
+              </tr>
+            </thead>
+            <tbody id="stavke-body"></tbody>
+          </table>
+        </div>
+        <div class="modal-actions">
+          <button id="save-stavke" class="primary">Spasi</button>
+          <button id="discard-stavke" class="secondary">Odbaci</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="main.js"></script>
+  </body>
+</html>
