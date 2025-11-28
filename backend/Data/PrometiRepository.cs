@@ -31,5 +31,15 @@ namespace backend.Data
             var r = _context.PrometiProdavnica?.FromSqlInterpolated($"EXEC GetPrometiSvihProdavnica") .AsEnumerable().FirstOrDefault();
             return r;
         }
+
+            public List<ResponsePrometiProdavnica>? PreuzmiSvePromete()
+            {
+                var r = _context.ResponsePrometiProdavnica?
+                    .FromSqlInterpolated($"EXEC GetPrometSvihProdavnica")
+                    .ToList();
+
+                return r;
+            }
+
     }
 }

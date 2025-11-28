@@ -355,12 +355,12 @@ body[data-theme='dark'] .charts-loading {
 }
 
 .store-dropdown {
-  min-width: 250px;        // bazna širina
+  min-width: 250px;      
   width: auto;
 }
 
 .store-dropdown ::ng-deep .select-button {
-  width: auto !important;  // proširi prema sadržaju
+  width: auto !important;  
   min-width: 250px;
   white-space: nowrap;
 }
@@ -377,4 +377,283 @@ body[data-theme='dark'] .charts-loading {
 
 .select-search-wrapper input {
   font-size: 14px !important;
+}
+
+.compact-table {
+  width: 100%;
+  font-size: 12px;
+}
+
+.compact-table th,
+.compact-table td {
+  padding: 4px 6px !important;
+}
+
+.header-title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.header-filter {
+  width: 100%;
+  font-size: 11px;
+  padding: 2px 4px !important;
+  margin-top: 3px;
+}
+
+
+:host ::ng-deep .smart-table.compact-table {
+  font-size: 0.40rem !important;
+  th, td {
+    padding: 2px 6px !important;
+    white-space: nowrap;
+  }
+
+  overflow-x: auto;
+}
+
+:host ::ng-deep .ng2-smart-filters input {
+  background-color: var(--card-background, #fff) !important; 
+  color: var(--text-primary, #000) !important;
+  border: 1px solid var(--card-border, #ccc) !important;
+  border-radius: 4px;
+  padding: 2px 4px;
+  width: 100%;
+}
+
+:host ::ng-deep .ng2-smart-filters input::placeholder {
+  color: var(--text-secondary, #888) !important;
+  opacity: 1;
+}
+
+:host ::ng-deep .smart-table.compact-table tbody tr.row-green {
+  background-color: rgba(6, 246, 94, 0.15) !important;
+}
+
+:host ::ng-deep .smart-table.compact-table tbody tr.row-red {
+  background-color: rgba(246, 10, 10, 0.15) !important;
+}
+
+:host ::ng-deep .smart-table.compact-table tbody tr.row-yellow {
+  background-color: rgba(253, 244, 4, 0.15) !important;
+}
+
+:host ::ng-deep .smart-table.compact-table tbody tr[_isEmpty] {
+  background-color: var(--table-empty-background, #f7f7f7) !important;
+  color: var(--text-secondary, #888) !important;
+}
+
+:host ::ng-deep .smart-table.compact-table tbody tr[_isEmpty].row-red,
+:host ::ng-deep .smart-table.compact-table tbody tr[_isEmpty].row-green,
+:host ::ng-deep .smart-table.compact-table tbody tr[_isEmpty].row-yellow {
+  background-color: var(--table-empty-background, #f7f7f7) !important;
+}
+
+:host ::ng-deep .smart-table.compact-table thead th .ng2-smart-filters {
+  margin-top: 2px !important;
+  display: block !important;
+}
+
+:host ::ng-deep .smart-table.compact-table thead th .ng2-smart-filters input {
+  background-color: var(--card-background) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 4px;
+  padding: 2px 4px;
+  width: 100%;
+}
+
+:host ::ng-deep .smart-table.compact-table thead th .ng2-smart-filters input::placeholder {
+  color: var(--text-secondary) !important;
+  opacity: 1;
+}
+
+:host ::ng-deep .smart-table.compact-table td span {
+  font-weight: 600;
+}
+
+/* Panel */
+.settings-panel {
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 5px;
+  background: var(--card-background);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-primary);
+  width: 1200px;
+  transition: all 0.4s ease-in-out;
+  transform: scale(0.95);
+  opacity: 0;
+  animation: panelFadeIn 0.35s forwards;
+}
+
+@keyframes panelFadeIn {
+  to { transform: scale(1); opacity: 1; }
+}
+
+.settings-actions button {
+  font-size: 13px;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--app-surface);
+  color: var(--text-primary);
+  box-shadow: var(--card-shadow);
+  transition: all 0.25s ease;
+}
+
+.settings-actions button:hover {
+  background: var(--quick-action-primary);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--card-hover-shadow, 0 6px 12px rgba(0,0,0,0.15));
+}
+
+.settings-actions button.active {
+  background: var(--quick-action-success);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--card-hover-shadow, 0 6px 12px rgba(0,0,0,0.15));
+}
+
+.columns-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 12px 15px;
+  margin: 10px;
+}
+
+.tiny-toggle {
+  transform: scale(0.78);
+  margin: 0;
+  padding: 0;
+  --toggle-width: 32px;
+  --toggle-height: 16px;
+  --toggle-outline-width: 1px;
+}
+
+.tiny-toggle .label {
+  font-size: 12px !important;
+  margin-left: 6px !important;
+}
+
+.column-checkbox {
+  position: relative;
+  padding-left: 28px;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 160px;
+  border-radius: 6px;
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+}
+
+.column-checkbox:hover {
+  background: var(--sidebar-border);
+}
+
+.column-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.column-checkbox .checkmark {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 18px;
+  width: 18px;
+  background-color: var(--card-border);
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.column-checkbox input:checked ~ .checkmark {
+  background-color: var(--link-color);
+}
+
+.column-checkbox .checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+
+.column-checkbox input:checked ~ .checkmark:after {
+  display: block;
+}
+
+.column-checkbox .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 4px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.row.form-group {
+  border-bottom: 2px solid var(--card-border);
+  padding-bottom: 12px;
+  margin-bottom: 15px;
+}
+
+.columns-checkboxes .row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.columns-checkboxes .row:last-child {
+  border-bottom: none;
+}
+
+.column-checkbox {
+  position: relative;
+  padding-left: 28px;
+  cursor: pointer;
+  font-size: 14px;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  height: 24px;
+  color: var(--text-primary);
+}
+
+.column-checkbox .checkmark {
+  background-color: var(--card-border);
+}
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border-radius: 12px;
+  padding-bottom: 6px; 
+}
+
+.table-wrapper ng2-smart-table table {
+  min-width: 1200px !important;
+}
+
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(100, 100, 100, 0.4);
+  border-radius: 10px;
+}
+
+body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(200, 200, 200, 0.4);
 }

@@ -7,13 +7,17 @@ import { PocetnaStranicaComponent } from './pocetna-stranica.component';
 import { FormsModule } from '@angular/forms';
 import { NbDateFnsDateModule } from '@nebular/date-fns';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
-import { NbCardModule, NbIconModule, NbInputModule, NbButtonModule, NbDatepickerModule, NbSelectModule, NbSpinnerModule, NbLayoutModule, NbFormFieldModule, NbDialogModule } from '@nebular/theme';
+import { NbCardModule, NbIconModule, NbInputModule, NbButtonModule, NbDatepickerModule, NbSelectModule, NbSpinnerModule, NbLayoutModule, NbFormFieldModule, NbDialogModule, NbToggleModule } from '@nebular/theme';
 import { Ng2SmartTableModule } from 'ng2-smart-table';
 import { ThemeModule } from '../../@theme/theme.module';
 import { OtpisiRoutingModule } from '../otpisi/otpisi-routing.module';
 import { StatistikaComponent } from './radna-ploca/statistika/statistika.component';
-import { NgxChartsModule }from '@swimlane/ngx-charts';
+import { NgxChartsModule } from '@swimlane/ngx-charts';
 import { DropdownModule } from 'primeng-lts/dropdown';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
+import { MatInputModule } from '@angular/material/input';
 
 
 @NgModule({
@@ -28,6 +32,11 @@ import { DropdownModule } from 'primeng-lts/dropdown';
     NbCardModule,
     NbIconModule,
     NbInputModule,
+    MatTableModule,
+    MatPaginatorModule,
+    MatSortModule,
+    MatInputModule,
+    NbToggleModule,
     NbButtonModule,
     ThemeModule,
     OtpisiRoutingModule,
@@ -49,5 +58,5 @@ import { DropdownModule } from 'primeng-lts/dropdown';
   ],
   providers: [],
 })
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: 'root' })
 export class PocetnaStranicaModule { }

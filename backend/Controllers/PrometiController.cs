@@ -35,6 +35,13 @@ namespace backend.Controllers
         {
             var r = _repo.PreuzmiPrometeSvihProdavnica();
             return Ok(r);
+        }        
+        
+        [HttpGet("sviPrometi")]
+        public IActionResult PreuzmiSvePromete()
+        {
+            var r = _repo.PreuzmiSvePromete();
+            return Ok(r);
         }
 
     }

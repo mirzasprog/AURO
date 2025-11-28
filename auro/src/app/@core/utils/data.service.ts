@@ -224,6 +224,10 @@ export class DataService {
 
   public getPromet(brojProd: string): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/${brojProd}`)
+  }    
+  
+  public getSviPrometi(): Observable<Prometi[]> {
+    return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/sviPrometi`)
   }  
   
   public getPrometCijelaMreza(): Observable<Prometi[]> {

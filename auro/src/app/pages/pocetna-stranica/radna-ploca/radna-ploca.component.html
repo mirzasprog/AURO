@@ -41,99 +41,68 @@
 </nb-card>
 
 <nb-card *ngIf="isRoleStoreDashboardVisible()" class="store-dashboard">
-
-<nb-card-header class="store-header text-center">
-  <div class="store-header-inner">
-    <div>
-      <h2>
-        <nb-icon icon="activity"></nb-icon>
-        Statistika prodavnice
-      </h2>
-      <small>Pratite ključne metrike i trendove u realnom vremenu.</small>
-    </div>
-
-    <div class="store-selector" *ngIf="rolesWithStoreSelection.includes(rola)">
-
-      <!-- Dropdown + Button wrapper -->
-      <div class="selector-row">
-
-        <!-- DROPDOWN SA PRETRAGOM + AUTO ŠIRINA -->
-        <p-dropdown
-          #storeDropdown
-          class="store-dropdown"
-          [options]="stores"
-          [(ngModel)]="selectedStoreId"
-          optionLabel="name"
-          optionValue="code"
-          [filter]="true"
-          filterBy="name,code"
-          placeholder="Izaberite prodavnicu"
-          (onChange)="clearSearchAndSelect($event.value, storeDropdown)"
-        >
-        </p-dropdown>
-        <div class="col" *ngIf="selectedStoreId && selectedStoreId !== '0000'">
-          <b style="font-size: large;" > Promet za: {{selectedStoreId}}</b>
-        </div>
-        <div class="col">
-        <!-- BUTTON PRIKAŽI CIJELU MREŽU -->
-        <button nbButton status="info" size="small"
-                class="all-network-btn" style="float:inline-end"
-                (click)="showAllStores(storeDropdown)">
-          Prikaži cijelu mrežu
-        </button>
-        </div>
-
-
-
+  <nb-card-header class="store-header text-center">
+    <div class="store-header-inner">
+      <div>
+        <h2>
+          <i class="fas fa-store"></i>
+          Statistika prodavnice
+        </h2>
+        <small>Pratite ključne metrike i trendove u realnom vremenu.</small>
       </div>
 
+      <div class="store-selector" *ngIf="rolesWithStoreSelection.includes(rola)">
+
+        <div class="selector-row">
+          <p-dropdown #storeDropdown class="store-dropdown" [options]="stores" [(ngModel)]="selectedStoreId"
+            optionLabel="name" optionValue="code" [filter]="true" filterBy="name,code"
+            placeholder="Izaberite prodavnicu" (onChange)="clearSearchAndSelect($event.value, storeDropdown)"
+            appendTo="body">
+          </p-dropdown>
+
+          <div class="col" *ngIf="selectedStoreId && selectedStoreId !== '0000'">
+            <b style="font-size: large; float:inline-end;"> Promet za: {{selectedStoreId}}</b>
+          </div>
+          <div class="col">
+            <button nbButton status="info" size="small" class="all-network-btn" style="float:inline-end"
+              (click)="showAllStores(storeDropdown)">
+              Prikaži cijelu mrežu
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</nb-card-header>
-
-
+  </nb-card-header>
   <nb-card-body>
-
     <!-- KPI -->
     <section class="kpi-section">
       <div class="kpi-loading" *ngIf="isDashboardLoading">
         <nb-spinner size="large"></nb-spinner>
       </div>
-
       <div class="kpi-grid" *ngIf="!isDashboardLoading && dashboardSummary">
         <div class="kpi-card" *ngFor="let card of getKpiCards(); trackBy: trackByKpi" (click)="openKpiDetail(card.key)"
           [attr.aria-label]="card.label + ' ' + card.formattedValue + (card.unit ? ' ' + card.unit : '')">
-
-          <span class="kpi-title">{{ card.label }}</span>
-
+          <span class="kpi-title">{{ card.label }}
+            <nb-icon *ngIf="card.icon" [icon]="card.icon" status="primary" class="kpi-icon" size="large"></nb-icon>
+          </span>
           <div class="kpi-value">
             {{ card.formattedValue }}
             <small *ngIf="card.unit">{{ card.unit }}</small>
           </div>
-
           <div class="kpi-meta" *ngIf="card.previousValue !== undefined">
-
-            <!-- Prošle godine -->
             <span>
               Prošle godine: {{ card.previousValue | number:'1.2-2' }}
               {{ card.unit ? ' ' + card.unit : '' }}
             </span>
-
             <br>
-
-            <!-- Razlika broj + % -->
             <span [ngStyle]="{ 'color': card.delta >= 0 ? 'green' : 'red' }">
               Razlika:
               {{ card.deltaValue >= 0 ? '+' : ''}}{{ card.deltaValue | number:'1.2-2' }}
               {{ card.unit }}
-
               /
               {{ card.delta >= 0 ? '+' : ''}}{{ card.delta | number:'1.2-2' }}%
             </span>
-
           </div>
-
-
           <span class="kpi-hint">Kliknite za detalje</span>
         </div>
       </div>
@@ -142,13 +111,11 @@
     <div class="charts-wrapper" [class.is-loading]="isStoreChartsLoading">
       <section class="chart-grid comparison-grid">
         <nb-card *ngFor="let chartItem of comparisonCharts; trackBy: trackByChart" class="chart-card">
-
           <nb-card-header>
             <div class="chart-header">
               <div class="icon-wrapper">
                 <nb-icon [icon]="chartItem.icon"></nb-icon>
               </div>
-
               <div>
                 <h5>{{ chartItem.title }}</h5>
                 <small>{{ chartItem.description }}</small>
@@ -238,3 +205,71 @@
     </nb-card-body>
   </nb-card>
 </ng-template>
+
+<hr *ngIf="this.rola =='uprava'">
+
+<div *ngIf="this.rola =='uprava'" class="column-settings">
+  <button id="button" nbButton size="small" status="primary" (click)="showColumnSettings = !showColumnSettings">
+    <nb-icon icon="settings-2"></nb-icon> Kolone
+  </button>
+
+  <div *ngIf="showColumnSettings" class="settings-panel wow-panel">
+
+    <!-- Dugmad akcija -->
+    <div class="row form-group">
+      <div class="col">
+        <nb-toggle id="toggleSelectAll" class="tiny-toggle" status="info" [checked]="allSelected"
+          (checkedChange)="toggleAllColumns($event)" labelPosition="right">
+          <nb-icon icon="list" status="info"></nb-icon> Sve kolone
+        </nb-toggle>
+      </div>
+
+      <div class="col d-flex align-items-center">
+        <nb-toggle status="success" class="tiny-toggle" size="small" [checked]="positiveFilterActive"
+          (checkedChange)="onPositiveToggleChange($event)" labelPosition="right">
+          <nb-icon icon="trending-up" status="success"></nb-icon> Pozitivni promet
+        </nb-toggle>
+      </div>
+
+      <div class="col d-flex align-items-center">
+        <nb-toggle status="danger" class="tiny-toggle" [checked]="negativeFilterActive"
+          (checkedChange)="onNegativeToggleChange($event)" labelPosition="right">
+          <nb-icon icon="trending-down" status="danger"></nb-icon> Negativni promet
+        </nb-toggle>
+      </div>
+
+      <div class="col">
+        <button id="button" nbButton size="tiny" status="warning" style="margin-top:5px; float:inline-end;"
+          (click)="resetFilter()">
+          <nb-icon icon="sync"></nb-icon> Reset</button>
+      </div>
+    </div>
+
+    <!-- Checkboxovi horizontalno u dva reda -->
+    <div class="columns-checkboxes">
+      <div class="row" *ngFor="let row of columnRows">
+        <label *ngFor="let col of row" class="column-checkbox">
+          <input type="checkbox" [checked]="!settings.columns[col].hide"
+            (change)="toggleColumn(col, $event.target.checked)" />
+          <span class="checkmark"></span>
+          {{ settings.columns[col].title }}
+        </label>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<hr *ngIf="this.rola =='uprava'">
+
+<div class="table-wrapper" *ngIf="this.rola =='uprava'">
+  <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
+</div>
+
+<div *ngIf="this.rola =='uprava'" class="row">
+  <div class="col">
+    <button nbButton style="float:inline-end; margin:8px;" size="small" (click)="preuzmiExcel()" status="success">
+      <nb-icon icon="download"></nb-icon> excel
+    </button>
+  </div>
+</div>
