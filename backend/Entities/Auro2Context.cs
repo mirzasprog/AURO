@@ -1121,7 +1121,7 @@ namespace backend.Entities
 
             modelBuilder.Entity<VipZaglavlje>(entity =>
             {
-                entity.ToTable("VIPZaglavljes");
+                entity.ToTable("VIPZaglavlje");
 
                 entity.Property(e => e.Id).HasColumnName("Id");
 
@@ -1168,7 +1168,7 @@ namespace backend.Entities
                 entity.HasOne(d => d.VipZaglavlje)
                     .WithMany(p => p.VipStavkes)
                     .HasForeignKey(d => d.VipZaglavljeId)
-                    .HasConstraintName("FK_dbo.VIPStavkes_dbo.VIPZaglavljes_VIPZaglavlje_Id");
+                    .HasConstraintName("FK_dbo.VIPStavkes_dbo.VIPZaglavlje_VIPZaglavlje_Id");
             });
 
             OnModelCreatingPartial(modelBuilder);
