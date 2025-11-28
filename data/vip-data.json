@@ -1,0 +1,13 @@
+{
+  "zaglavlja": [
+    { "Id": 654, "Opis": "Aktivna prodaja 29.04.-04.05.2025", "Pocetak": "2025-04-29T10:00:00", "Kraj": "2025-05-04T23:59:00", "Status": "Aktivna" },
+    { "Id": 662, "Opis": "Vikend akcija 09.05-12.05.2025 (dopuna)", "Pocetak": "2025-05-09T12:00:00", "Kraj": "2025-05-12T10:00:00", "Status": "Planirana" },
+    { "Id": 669, "Opis": "Aktivna prodaja - dopuna", "Pocetak": "2025-01-30T20:50:00", "Kraj": "2025-02-13T12:00:00", "Status": "Zavrsena" }
+  ],
+  "stavke": [
+    { "Id": 2443728, "SifraArtikla": "04140741", "NazivArtikla": "KEKS BOSANSKI LOKUM 180G", "Kolicina": 60, "Prodavnica": "P147", "VIPZaglavlje_Id": 654 },
+    { "Id": 2443729, "SifraArtikla": "90532972", "NazivArtikla": "TREND TUNA PREMIUM KOMADI U SUNCOKRETOVOM ULJU 4x80g/8", "Kolicina": 40, "Prodavnica": "P147", "VIPZaglavlje_Id": 654 },
+    { "Id": 2443730, "SifraArtikla": "06600024", "NazivArtikla": "MARAMICE VL VIOLETA BABY 72/1 SOF", "Kolicina": 72, "Prodavnica": "P147", "VIPZaglavlje_Id": 654 },
+    { "Id": 5551001, "SifraArtikla": "12345678", "NazivArtikla": "Artikal vikend", "Kolicina": 12, "Prodavnica": "P045", "VIPZaglavlje_Id": 662 }
+  ]
+}
