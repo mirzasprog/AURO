@@ -97,6 +97,8 @@ namespace backend.Entities
         public virtual DbSet<ResponsePrometProdavnice> PrometProdavnice { get; set; } = null!;
         public virtual DbSet<ResponsePrometiProdavnica> PrometiProdavnica { get; set; } = null!;
         public virtual DbSet<ResponsePrometiProdavnica> ResponsePrometiProdavnica { get; set; } = null!;
+        public virtual DbSet<VipZaglavlje> VipZaglavljes { get; set; } = null!;
+        public virtual DbSet<VipStavke> VipStavkes { get; set; } = null!;
 
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -1116,6 +1118,58 @@ namespace backend.Entities
             modelBuilder.Entity<ResponsePrometiProdavnica>(entity =>
                 entity.HasNoKey()
             );
+
+            modelBuilder.Entity<VipZaglavlje>(entity =>
+            {
+                entity.ToTable("VIPZaglavljes");
+
+                entity.Property(e => e.Id).HasColumnName("Id");
+
+                entity.Property(e => e.Kraj)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Opis)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.Pocetak)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.Status)
+                    .HasColumnType("nvarchar(max)");
+            });
+
+            modelBuilder.Entity<VipStavke>(entity =>
+            {
+                entity.ToTable("VIPStavkes");
+
+                entity.Property(e => e.Id).HasColumnName("Id");
+
+                entity.Property(e => e.Kolicina)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.NazivArtikla)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.Prodavnica)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.SifraArtikla)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.VipZaglavljeId)
+                    .HasColumnName("VIPZaglavlje_Id");
+
+                entity.Property(e => e.VrijemeUnosaIzProdavnice)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.VrijemeUnosaSaSourcea)
+                    .HasColumnType("datetime");
+
+                entity.HasOne(d => d.VipZaglavlje)
+                    .WithMany(p => p.VipStavkes)
+                    .HasForeignKey(d => d.VipZaglavljeId)
+                    .HasConstraintName("FK_dbo.VIPStavkes_dbo.VIPZaglavljes_VIPZaglavlje_Id");
+            });
 
             OnModelCreatingPartial(modelBuilder);
         }

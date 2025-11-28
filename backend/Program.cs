@@ -41,6 +41,7 @@ builder.Services.AddScoped<IAkcijeRepository, AkcijeRepository>();
 builder.Services.AddScoped<IDailyTaskRepository, DailyTaskRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IPrometiRepository, PrometiRepository>();
+builder.Services.AddScoped<IVikendAkcijeRepository, VikendAkcijeRepository>();
 
 builder.Services.AddHttpContextAccessor();
 

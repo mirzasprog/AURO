@@ -1,0 +1,21 @@
+.vikend-akcije-table th,
+.vikend-akcije-table td {
+  vertical-align: middle;
+}
+
+.vikend-akcije-table tr.row-aktivna {
+  background: #e74c3c;
+  color: #fff;
+}
+
+.vikend-akcije-table tr.row-istaknuta {
+  background: #f7c36e;
+}
+
+.vikend-akcije-table tr.row-najava {
+  background: #f5a6232e;
+}
+
+.vikend-akcije-table tr:hover {
+  filter: brightness(0.97);
+}

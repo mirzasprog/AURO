@@ -1,0 +1,50 @@
+<nb-card>
+  <nb-card-header>
+    Vikend akcije
+  </nb-card-header>
+  <nb-card-body>
+    <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
+    <div class="table-responsive" *ngIf="!loading; else loadingTemplate">
+      <table class="table table-hover vikend-akcije-table">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Opis</th>
+            <th>Pocetak</th>
+            <th>Kraj</th>
+            <th>Stavke</th>
+            <th>Status</th>
+            <th *ngIf="prikaziAkcijeKolonu()">Akcija</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let akcija of vikendAkcije" [ngClass]="redKlasa(akcija)">
+            <td>{{ akcija.id }}</td>
+            <td>{{ akcija.opis }}</td>
+            <td>{{ akcija.pocetak | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>{{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</td>
+            <td>
+              <button nbButton size="tiny" status="info" (click)="otvoriStavke(akcija)" nbTooltip="Prikaz stavki">
+                {{ akcija.brojStavki }}
+              </button>
+            </td>
+            <td>
+              <nb-badge [text]="akcija.status || 'N/A'" status="basic" size="large"></nb-badge>
+            </td>
+            <td *ngIf="prikaziAkcijeKolonu()">
+              <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
+                Uredi stavke
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div *ngIf="!vikendAkcije.length" class="text-center text-muted">Nema definisanih vikend akcija.</div>
+    </div>
+    <ng-template #loadingTemplate>
+      <div class="d-flex justify-content-center">
+        <nb-spinner></nb-spinner>
+      </div>
+    </ng-template>
+  </nb-card-body>
+</nb-card>

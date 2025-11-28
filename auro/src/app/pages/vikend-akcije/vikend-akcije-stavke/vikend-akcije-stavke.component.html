@@ -1,0 +1,47 @@
+<nb-card class="stavke-modal">
+  <nb-card-header>
+    {{ naslov }} - stavke
+  </nb-card-header>
+  <nb-card-body>
+    <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
+    <div class="table-responsive" *ngIf="!loading; else loadingStavke">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Sifra</th>
+            <th>Naziv</th>
+            <th class="text-center">Kolicina</th>
+            <th>Prodavnica</th>
+            <th class="text-center">***</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stavka of stavke">
+            <td>{{ stavka.id }}</td>
+            <td>{{ stavka.sifra }}</td>
+            <td>{{ stavka.naziv }}</td>
+            <td class="kolicina-cell">
+              <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina" [disabled]="rola !== 'uprava'" />
+            </td>
+            <td>{{ stavka.prodavnica }}</td>
+            <td class="text-center">
+              <nb-icon *ngIf="!kolicinaPromijenjena(stavka)" icon="checkmark-circle-2-outline" status="success"></nb-icon>
+              <nb-icon *ngIf="kolicinaPromijenjena(stavka)" icon="alert-circle-outline" status="warning"></nb-icon>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #loadingStavke>
+      <div class="d-flex justify-content-center">
+        <nb-spinner></nb-spinner>
+      </div>
+    </ng-template>
+  </nb-card-body>
+  <nb-card-footer class="d-flex justify-content-end gap-2">
+    <button nbButton status="basic" size="small" (click)="zatvori(false)" [disabled]="saving">Zatvori</button>
+    <button nbButton status="primary" size="small" (click)="ucitajStavke()" [disabled]="saving">Osvježi</button>
+    <button nbButton status="success" size="small" (click)="sacuvaj()" [disabled]="!mozeSpasiti()">Sačuvaj</button>
+  </nb-card-footer>
+</nb-card>

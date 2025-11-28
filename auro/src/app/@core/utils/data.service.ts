@@ -52,6 +52,8 @@ import { ZahtjevObradaInterna } from '../data/zahtjevObradaInterna';
 import { GetPodaciArtiklaReklamacije } from '../data/getPodaciArtiklaReklamacije';
 import { ReklamacijaKvaliteta } from '../data/reklamacijaKvaliteta';
 import { Prometi } from '../data/prometi';
+import { VikendAkcija } from '../data/vikend-akcija';
+import { VikendAkcijaStavka, VikendAkcijaStavkaUpdate } from '../data/vikend-akcija-stavka';
 @Injectable({
   providedIn: 'root'
 })
@@ -340,5 +342,18 @@ export class DataService {
 
   public preuzmiIzvjestajPotpuneInventure(datumInventure: string, vrstaInventure: string): Observable<IzvjestajParcijalnaInventura[]> {
     return this.sendRequest<IzvjestajParcijalnaInventura[]>("GET", this.baseUrl + `/api/parcijalnaInventura/internaKontrola/izvjestaj/poptunaInventura?datumInventure=${datumInventure}&vrstaInventure=${vrstaInventure}`);
+  }
+
+  // Vikend akcije
+  public preuzmiVikendAkcije(): Observable<VikendAkcija[]> {
+    return this.sendRequest<VikendAkcija[]>("GET", this.baseUrl + '/api/vikend-akcije');
+  }
+
+  public preuzmiStavkeVikendAkcije(vikendAkcijaId: number): Observable<VikendAkcijaStavka[]> {
+    return this.sendRequest<VikendAkcijaStavka[]>("GET", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`);
+  }
+
+  public azurirajStavkeVikendAkcije(vikendAkcijaId: number, stavke: VikendAkcijaStavkaUpdate[]) {
+    return this.posaljiRequest<void>("PUT", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`, stavke);
   }
 }

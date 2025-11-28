@@ -167,13 +167,18 @@ export const MENU_ITEMS: NbMenuItem[] = [
     ]
   },  
   // Akcije -- rola: prodavnica [8]
-  {
+  { 
     title: "Akcije",
     icon: "pricetags-outline",
     link: "/pages/akcije-unos"
   },
-  //Reklamacija kvaliteta Voća i povrća -- rola: prodavnica [8], kontrolaKvaliteta
   {
+    title: "Vikend akcije",
+    icon: "shopping-bag-outline",
+    link: "/pages/vikend-akcije"
+  },
+  //Reklamacija kvaliteta Voća i povrća -- rola: prodavnica [8], kontrolaKvaliteta
+  { 
     title: "Kvaliteta VIP-a",
     icon: "swap-outline",
     link: "/pages/kvalitetaVIP"
