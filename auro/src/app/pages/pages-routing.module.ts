@@ -92,6 +92,11 @@ const routes: Routes = [{
       loadChildren: () => import('./dnevni-zadaci/dnevni-zadaci.module')
       .then(m => m.DnevniZadaciModule)
     },
+    {
+      path: 'vikend-akcije',
+      loadChildren: () => import('./vikend-akcije/vikend-akcije.module')
+      .then(m => m.VikendAkcijeModule)
+    },
 
     {
       path: '',

@@ -60,6 +60,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
         }
         else if (rola == "interna") {
@@ -73,6 +74,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], false);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "podrucni") {
@@ -86,6 +88,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], false);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "regionalni") {
@@ -98,6 +101,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], false);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else if (rola == "kontrola_kvaliteta") {
@@ -110,8 +114,9 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
-        }        
+        }
         else if (rola == "uprava") {
           this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
@@ -122,6 +127,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
         else {
@@ -134,6 +140,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         }
       })
