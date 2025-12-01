@@ -136,24 +136,18 @@ namespace backend.Data
                 for (var i = 0; i < table.Rows.Count; i++)
                 {
                     var row = table.Rows[i];
-                    var rowAkcijaId = row[0]?.ToString()?.Trim();
-                    var naziv = row[1]?.ToString()?.Trim();
-                    var sifra = row[2]?.ToString()?.Trim();
+                    var naziv = row[0]?.ToString()?.Trim();
+                    var sifra = row[1]?.ToString()?.Trim();
 
-                    if (i == 0 && string.Equals(rowAkcijaId, "IDAkcije", StringComparison.OrdinalIgnoreCase))
+                    if (i == 0 && (string.Equals(naziv, "NazivArtk", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(naziv, "NazivArtikla", StringComparison.OrdinalIgnoreCase)))
                     {
-                        continue;
+                        continue; // preskoči header
                     }
 
                     if (string.IsNullOrWhiteSpace(naziv) && string.IsNullOrWhiteSpace(sifra))
                     {
                         continue;
-                    }
-
-                    var efektivniId = string.IsNullOrWhiteSpace(rowAkcijaId) ? akcijaId : rowAkcijaId;
-                    if (!efektivniId.Equals(akcijaId, StringComparison.OrdinalIgnoreCase))
-                    {
-                        throw new InvalidOperationException("Vrijednost u koloni IDAkcije ne odgovara odabranoj akciji.");
                     }
 
                     uneseniRedovi.Add(new VipArtikli
