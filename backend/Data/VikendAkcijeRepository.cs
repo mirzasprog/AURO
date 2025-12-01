@@ -56,6 +56,22 @@ namespace backend.Data
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<VipArtikalDto>> GetVipArtikliAsync(string akcijaId)
+        {
+            return await _context.VipArtiklis
+                .AsNoTracking()
+                .Where(a => a.Idakcije == akcijaId)
+                .OrderBy(a => a.NazivArtk)
+                .Select(a => new VipArtikalDto
+                {
+                    Id = a.Id,
+                    IdAkcije = a.Idakcije,
+                    NazivArtk = a.NazivArtk,
+                    SifraArtk = a.SifraArtk
+                })
+                .ToListAsync();
+        }
+
         public async Task UpdateStavkeAsync(int vikendAkcijaId, IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
         {
             var izmjeneLista = izmjene.ToList();

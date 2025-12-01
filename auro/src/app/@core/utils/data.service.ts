@@ -54,6 +54,7 @@ import { ReklamacijaKvaliteta } from '../data/reklamacijaKvaliteta';
 import { Prometi } from '../data/prometi';
 import { VikendAkcija } from '../data/vikend-akcija';
 import { VikendAkcijaStavka, VikendAkcijaStavkaUpdate } from '../data/vikend-akcija-stavka';
+import { VipArtikal } from '../data/vip-artikal';
 @Injectable({
   providedIn: 'root'
 })
@@ -351,6 +352,10 @@ export class DataService {
 
   public kreirajVikendAkciju(podaci: { opis?: string, pocetak: string, kraj: string }): Observable<VikendAkcija> {
     return this.posaljiRequest<VikendAkcija>("POST", this.baseUrl + '/api/vikend-akcije', podaci);
+  }
+
+  public preuzmiVipArtikle(akcijaId: string): Observable<VipArtikal[]> {
+    return this.sendRequest<VipArtikal[]>("GET", this.baseUrl + `/api/vikend-akcije/${akcijaId}/artikli`);
   }
 
   public preuzmiStavkeVikendAkcije(vikendAkcijaId: number): Observable<VikendAkcijaStavka[]> {
