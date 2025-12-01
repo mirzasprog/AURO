@@ -19,3 +19,22 @@
 .vikend-akcije-table tr:hover {
   filter: brightness(0.97);
 }
+
+.admin-zone {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.admin-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fafafa;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.admin-card .form-label {
+  font-weight: 600;
+}

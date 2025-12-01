@@ -10,5 +10,6 @@ namespace backend.Models
         public DateTime Kraj { get; set; }
         public string? Status { get; set; }
         public int BrojStavki { get; set; }
+        public string? UniqueId { get; set; }
     }
 }

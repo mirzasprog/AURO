@@ -17,6 +17,17 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   rola = '';
   loading = false;
   greska = '';
+  kreiranjeLoading = false;
+  importLoading = false;
+  uspjehPoruka = '';
+  importPoruka = '';
+  odabraniFajl?: File;
+  akcijaIdZaImport = '';
+  novaAkcija = {
+    opis: '',
+    pocetak: '',
+    kraj: ''
+  };
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -92,5 +103,81 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       return 'row-istaknuta';
     }
     return 'row-najava';
+  }
+
+  kreirajAkciju(): void {
+    this.ocistiPoruke();
+    if (!this.novaAkcija.pocetak || !this.novaAkcija.kraj) {
+      this.greska = 'Potrebno je unijeti datume početka i kraja.';
+      return;
+    }
+
+    this.kreiranjeLoading = true;
+    const tijelo = {
+      opis: this.novaAkcija.opis,
+      pocetak: new Date(this.novaAkcija.pocetak).toISOString(),
+      kraj: new Date(this.novaAkcija.kraj).toISOString()
+    };
+
+    this.dataService.kreirajVikendAkciju(tijelo)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rezultat) => {
+          this.kreiranjeLoading = false;
+          this.akcijaIdZaImport = rezultat.uniqueId ?? '';
+          this.ocistiFormu();
+          this.ucitajAkcije();
+          this.uspjehPoruka = `Akcija je kreirana. ID akcije: ${this.akcijaIdZaImport || rezultat.id}`;
+        },
+        error: (err) => {
+          this.kreiranjeLoading = false;
+          this.greska = err.error?.poruka ?? 'Greška pri kreiranju vikend akcije.';
+        }
+      });
+  }
+
+  zapamtiFajl(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target?.files && target.files.length) {
+      this.odabraniFajl = target.files[0];
+    }
+  }
+
+  importujArtikle(): void {
+    this.importPoruka = '';
+    this.greska = '';
+    if (!this.akcijaIdZaImport) {
+      this.greska = 'Unesite ID akcije za koju importujete artikle.';
+      return;
+    }
+    if (!this.odabraniFajl) {
+      this.greska = 'Odaberite Excel fajl (.xlsx) sa podacima.';
+      return;
+    }
+
+    this.importLoading = true;
+    this.dataService.importujVikendArtikle(this.akcijaIdZaImport, this.odabraniFajl)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rezultat: any) => {
+          this.importLoading = false;
+          this.importPoruka = rezultat?.poruka ?? 'Import uspješno završen.';
+          this.ucitajAkcije();
+        },
+        error: (err) => {
+          this.importLoading = false;
+          this.greska = err.error?.poruka ?? 'Greška pri importu artikala.';
+        }
+      });
+  }
+
+  private ocistiPoruke(): void {
+    this.uspjehPoruka = '';
+    this.importPoruka = '';
+    this.greska = '';
+  }
+
+  private ocistiFormu(): void {
+    this.novaAkcija = { opis: '', pocetak: '', kraj: '' };
   }
 }

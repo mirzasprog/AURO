@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using backend.Entities;
 using backend.Models;
 using Microsoft.EntityFrameworkCore;
+using ExcelDataReader;
+using Microsoft.AspNetCore.Http;
 
 namespace backend.Data
 {
@@ -18,6 +21,8 @@ namespace backend.Data
 
         public async Task<IEnumerable<VikendAkcijaDto>> GetAkcijeAsync()
         {
+            var trenutniDatum = DateTime.Now;
+
             return await _context.VipZaglavljes
                 .AsNoTracking()
                 .OrderByDescending(z => z.Pocetak)
@@ -27,8 +32,9 @@ namespace backend.Data
                     Opis = z.Opis,
                     Pocetak = z.Pocetak,
                     Kraj = z.Kraj,
-                    Status = z.Status,
-                    BrojStavki = z.VipStavkes.Count
+                    Status = IzracunajStatus(z.Pocetak, z.Kraj, trenutniDatum),
+                    BrojStavki = z.VipStavkes.Count,
+                    UniqueId = z.UniqueId
                 })
                 .ToListAsync();
         }
@@ -71,6 +77,119 @@ namespace backend.Data
             }
 
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<VikendAkcijaDto> KreirajAkcijuAsync(VikendAkcijaCreateRequest zahtjev)
+        {
+            var uniqueId = GenerisiId();
+            var status = IzracunajStatus(zahtjev.Pocetak, zahtjev.Kraj);
+            var zaglavlje = new VipZaglavlje
+            {
+                Opis = zahtjev.Opis,
+                Pocetak = zahtjev.Pocetak,
+                Kraj = zahtjev.Kraj,
+                Status = status,
+                UniqueId = uniqueId
+            };
+
+            _context.VipZaglavljes.Add(zaglavlje);
+            await _context.SaveChangesAsync();
+
+            return new VikendAkcijaDto
+            {
+                Id = zaglavlje.Id,
+                Opis = zaglavlje.Opis,
+                Pocetak = zaglavlje.Pocetak,
+                Kraj = zaglavlje.Kraj,
+                Status = zaglavlje.Status,
+                BrojStavki = 0,
+                UniqueId = zaglavlje.UniqueId
+            };
+        }
+
+        public async Task<VikendAkcijaImportResult> ImportArtikalaAsync(string akcijaId, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                throw new ArgumentException("Fajl za import nije ispravan.");
+            }
+
+            var zaglavlje = await _context.VipZaglavljes.FirstOrDefaultAsync(z => z.UniqueId == akcijaId);
+            if (zaglavlje == null)
+            {
+                throw new InvalidOperationException("Akcija sa zadanim ID-jem nije pronađena.");
+            }
+
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+            var uneseniRedovi = new List<VipArtikli>();
+            using (var stream = file.OpenReadStream())
+            using (var reader = ExcelReaderFactory.CreateReader(stream))
+            {
+                var dataSet = reader.AsDataSet();
+                if (dataSet.Tables.Count == 0)
+                {
+                    throw new InvalidOperationException("Excel fajl ne sadrži podatke.");
+                }
+
+                var table = dataSet.Tables[0];
+                for (var i = 0; i < table.Rows.Count; i++)
+                {
+                    var row = table.Rows[i];
+                    var rowAkcijaId = row[0]?.ToString()?.Trim();
+                    var naziv = row[1]?.ToString()?.Trim();
+                    var sifra = row[2]?.ToString()?.Trim();
+
+                    if (i == 0 && string.Equals(rowAkcijaId, "IDAkcije", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(naziv) && string.IsNullOrWhiteSpace(sifra))
+                    {
+                        continue;
+                    }
+
+                    var efektivniId = string.IsNullOrWhiteSpace(rowAkcijaId) ? akcijaId : rowAkcijaId;
+                    if (!efektivniId.Equals(akcijaId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new InvalidOperationException("Vrijednost u koloni IDAkcije ne odgovara odabranoj akciji.");
+                    }
+
+                    uneseniRedovi.Add(new VipArtikli
+                    {
+                        Idakcije = akcijaId,
+                        NazivArtk = naziv,
+                        SifraArtk = sifra
+                    });
+                }
+            }
+
+            if (uneseniRedovi.Count == 0)
+            {
+                throw new InvalidOperationException("Nema validnih redova za import.");
+            }
+
+            await _context.VipArtiklis.AddRangeAsync(uneseniRedovi);
+            await _context.SaveChangesAsync();
+
+            return new VikendAkcijaImportResult
+            {
+                BrojRedova = uneseniRedovi.Count,
+                Poruka = $"Uspješno importovano {uneseniRedovi.Count} artikala."
+            };
+        }
+
+        private static string GenerisiId()
+        {
+            return $"VIP-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
+        }
+
+        private static string IzracunajStatus(DateTime pocetak, DateTime kraj, DateTime? trenutno = null)
+        {
+            var referentni = trenutno ?? DateTime.Now;
+            var aktivno = referentni >= pocetak && referentni <= kraj;
+            return aktivno ? "Aktivno" : "Istekao";
         }
     }
 }

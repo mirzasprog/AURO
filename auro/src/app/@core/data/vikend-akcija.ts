@@ -5,4 +5,5 @@ export interface VikendAkcija {
   kraj: string;
   status?: string;
   brojStavki: number;
+  uniqueId?: string;
 }

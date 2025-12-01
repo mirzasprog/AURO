@@ -99,6 +99,7 @@ namespace backend.Entities
         public virtual DbSet<ResponsePrometiProdavnica> ResponsePrometiProdavnica { get; set; } = null!;
         public virtual DbSet<VipZaglavlje> VipZaglavljes { get; set; } = null!;
         public virtual DbSet<VipStavke> VipStavkes { get; set; } = null!;
+        public virtual DbSet<VipArtikli> VipArtiklis { get; set; } = null!;
 
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -1136,6 +1137,9 @@ namespace backend.Entities
 
                 entity.Property(e => e.Status)
                     .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.UniqueId)
+                    .HasColumnType("nvarchar(64)");
             });
 
             modelBuilder.Entity<VipStavke>(entity =>
@@ -1169,6 +1173,23 @@ namespace backend.Entities
                     .WithMany(p => p.VipStavkes)
                     .HasForeignKey(d => d.VipZaglavljeId)
                     .HasConstraintName("FK_dbo.VIPStavkes_dbo.VIPZaglavlje_VIPZaglavlje_Id");
+            });
+
+            modelBuilder.Entity<VipArtikli>(entity =>
+            {
+                entity.ToTable("VIPArtikli");
+
+                entity.Property(e => e.Id).HasColumnName("Id");
+
+                entity.Property(e => e.Idakcije)
+                    .HasColumnName("IDAkcije")
+                    .HasColumnType("nvarchar(64)");
+
+                entity.Property(e => e.NazivArtk)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.SifraArtk)
+                    .HasColumnType("nvarchar(max)");
             });
 
             OnModelCreatingPartial(modelBuilder);
