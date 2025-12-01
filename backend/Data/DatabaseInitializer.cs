@@ -89,6 +89,39 @@ BEGIN
     END
 END";
 
+        private const string EnsureVipZaglavljeTableSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'VIPZaglavlje' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[VIPZaglavlje]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [Opis] NVARCHAR(MAX) NULL,
+        [Pocetak] DATETIME NOT NULL,
+        [Kraj] DATETIME NOT NULL,
+        [Status] NVARCHAR(MAX) NULL,
+        CONSTRAINT [PK_VIPZaglavlje] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+END";
+
+        private const string EnsureVipStavkesTableSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'VIPStavkes' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[VIPStavkes]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [SifraArtikla] NVARCHAR(MAX) NULL,
+        [NazivArtikla] NVARCHAR(MAX) NULL,
+        [Kolicina] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_VIPStavkes_Kolicina] DEFAULT(0),
+        [Prodavnica] NVARCHAR(MAX) NULL,
+        [VIPZaglavlje_Id] INT NULL,
+        [VrijemeUnosaSaSourcea] DATETIME NULL,
+        [VrijemeUnosaIzProdavnice] DATETIME NULL,
+        CONSTRAINT [PK_VIPStavkes] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [FK_dbo.VIPStavkes_dbo.VIPZaglavlje_VIPZaglavlje_Id] FOREIGN KEY([VIPZaglavlje_Id])
+            REFERENCES [dbo].[VIPZaglavlje]([Id])
+    );
+END";
+
         public static async Task EnsureDailyTaskTablesAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
@@ -98,6 +131,15 @@ END";
             await context.Database.ExecuteSqlRawAsync(EnsureDailyTaskTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureDailyTaskRecurringColumnSql);
             await context.Database.ExecuteSqlRawAsync(SeedDailyTaskTemplatesSql);
+        }
+
+        public static async Task EnsureVipTablesAsync(IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<Auro2Context>();
+
+            await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeTableSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipStavkesTableSql);
         }
     }
 }
