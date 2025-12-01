@@ -14,6 +14,14 @@
   </nb-card-header>
 
   <nb-card-body>
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">Najčešće radnje</p>
+        <h4 class="section-title">Organizovani prečaci</h4>
+        <p class="muted">Odaberite jednu od ponuđenih akcija i brže dođite do željenih procesa.</p>
+      </div>
+    </div>
+
     <div class="quick-actions-grid">
       <nb-card *ngFor="let action of quickActions; trackBy: trackByAction" class="quick-action"
         [ngClass]="action.accent" (click)="onQuickAction(action.action)" (keyup.enter)="onQuickAction(action.action)"
@@ -41,9 +49,10 @@
 </nb-card>
 
 <nb-card *ngIf="isRoleStoreDashboardVisible()" class="store-dashboard">
-  <nb-card-header class="store-header text-center">
+  <nb-card-header class="store-header">
     <div class="store-header-inner">
-      <div>
+      <div class="store-title-block">
+        <p class="eyebrow">Operativni pregled</p>
         <h2>
           <i class="fas fa-store"></i>
           Statistika prodavnice
@@ -52,7 +61,7 @@
       </div>
 
       <div class="store-selector" *ngIf="rolesWithStoreSelection.includes(rola)">
-
+        <p class="eyebrow">Izbor prodavnice</p>
         <div class="selector-row">
           <p-dropdown #storeDropdown class="store-dropdown" [options]="stores" [(ngModel)]="selectedStoreId"
             optionLabel="name" optionValue="code" [filter]="true" filterBy="name,code"
@@ -60,15 +69,13 @@
             appendTo="body">
           </p-dropdown>
 
-          <div class="col" *ngIf="selectedStoreId && selectedStoreId !== '0000'">
-            <b style="font-size: large; float:inline-end;"> Promet za: {{selectedStoreId}}</b>
+          <div class="selector-hint" *ngIf="selectedStoreId && selectedStoreId !== '0000'">
+            <b>Promet za: {{selectedStoreId}}</b>
           </div>
-          <div class="col">
-            <button nbButton status="info" size="small" class="all-network-btn" style="float:inline-end"
-              (click)="showAllStores(storeDropdown)">
-              Prikaži cijelu mrežu
-            </button>
-          </div>
+          <button nbButton status="info" size="small" class="all-network-btn"
+            (click)="showAllStores(storeDropdown)">
+            Prikaži cijelu mrežu
+          </button>
         </div>
       </div>
     </div>
@@ -206,46 +213,45 @@
   </nb-card>
 </ng-template>
 
-<hr *ngIf="this.rola =='uprava'">
+<div *ngIf="this.rola =='uprava'" class="data-section">
+  <div class="section-heading data-heading">
+    <div>
+      <p class="eyebrow">Detaljni pregled</p>
+      <h3 class="section-title">Prometi prodavnica</h3>
+      <p class="muted">Filtrirajte i prilagodite kolone prije izvoza ili daljnje analize.</p>
+    </div>
+    <div class="section-actions">
+      <button nbButton size="small" status="primary" (click)="showColumnSettings = !showColumnSettings">
+        <nb-icon icon="settings-2"></nb-icon> Kolone
+      </button>
+      <button nbButton size="small" status="success" (click)="preuzmiExcel()">
+        <nb-icon icon="download"></nb-icon> Excel
+      </button>
+    </div>
+  </div>
 
-<div *ngIf="this.rola =='uprava'" class="column-settings">
-  <button id="button" nbButton size="small" status="primary" (click)="showColumnSettings = !showColumnSettings">
-    <nb-icon icon="settings-2"></nb-icon> Kolone
-  </button>
+  <div class="filter-row">
+    <nb-toggle id="toggleSelectAll" class="tiny-toggle" status="info" [checked]="allSelected"
+      (checkedChange)="toggleAllColumns($event)" labelPosition="right">
+      <nb-icon icon="list" status="info"></nb-icon> Sve kolone
+    </nb-toggle>
+
+    <nb-toggle status="success" class="tiny-toggle" size="small" [checked]="positiveFilterActive"
+      (checkedChange)="onPositiveToggleChange($event)" labelPosition="right">
+      <nb-icon icon="trending-up" status="success"></nb-icon> Pozitivni promet
+    </nb-toggle>
+
+    <nb-toggle status="danger" class="tiny-toggle" [checked]="negativeFilterActive"
+      (checkedChange)="onNegativeToggleChange($event)" labelPosition="right">
+      <nb-icon icon="trending-down" status="danger"></nb-icon> Negativni promet
+    </nb-toggle>
+
+    <button nbButton size="tiny" status="warning" (click)="resetFilter()">
+      <nb-icon icon="sync"></nb-icon> Reset filtera
+    </button>
+  </div>
 
   <div *ngIf="showColumnSettings" class="settings-panel wow-panel">
-
-    <!-- Dugmad akcija -->
-    <div class="row form-group">
-      <div class="col">
-        <nb-toggle id="toggleSelectAll" class="tiny-toggle" status="info" [checked]="allSelected"
-          (checkedChange)="toggleAllColumns($event)" labelPosition="right">
-          <nb-icon icon="list" status="info"></nb-icon> Sve kolone
-        </nb-toggle>
-      </div>
-
-      <div class="col d-flex align-items-center">
-        <nb-toggle status="success" class="tiny-toggle" size="small" [checked]="positiveFilterActive"
-          (checkedChange)="onPositiveToggleChange($event)" labelPosition="right">
-          <nb-icon icon="trending-up" status="success"></nb-icon> Pozitivni promet
-        </nb-toggle>
-      </div>
-
-      <div class="col d-flex align-items-center">
-        <nb-toggle status="danger" class="tiny-toggle" [checked]="negativeFilterActive"
-          (checkedChange)="onNegativeToggleChange($event)" labelPosition="right">
-          <nb-icon icon="trending-down" status="danger"></nb-icon> Negativni promet
-        </nb-toggle>
-      </div>
-
-      <div class="col">
-        <button id="button" nbButton size="tiny" status="warning" style="margin-top:5px; float:inline-end;"
-          (click)="resetFilter()">
-          <nb-icon icon="sync"></nb-icon> Reset</button>
-      </div>
-    </div>
-
-    <!-- Checkboxovi horizontalno u dva reda -->
     <div class="columns-checkboxes">
       <div class="row" *ngFor="let row of columnRows">
         <label *ngFor="let col of row" class="column-checkbox">
@@ -256,20 +262,9 @@
         </label>
       </div>
     </div>
-
   </div>
-</div>
 
-<hr *ngIf="this.rola =='uprava'">
-
-<div class="table-wrapper" *ngIf="this.rola =='uprava'">
-  <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
-</div>
-
-<div *ngIf="this.rola =='uprava'" class="row">
-  <div class="col">
-    <button nbButton style="float:inline-end; margin:8px;" size="small" (click)="preuzmiExcel()" status="success">
-      <nb-icon icon="download"></nb-icon> excel
-    </button>
+  <div class="table-wrapper">
+    <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
   </div>
 </div>
