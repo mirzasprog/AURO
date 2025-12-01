@@ -4,11 +4,63 @@
   </nb-card-header>
   <nb-card-body>
     <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
+    <div class="alert alert-success" *ngIf="uspjehPoruka">{{ uspjehPoruka }}</div>
+    <div class="alert alert-info" *ngIf="importPoruka">{{ importPoruka }}</div>
+
+    <div class="admin-zone" *ngIf="prikaziAkcijeKolonu()">
+      <div class="admin-card">
+        <h6 class="mb-3">Novi zapis vikend akcije</h6>
+        <form (ngSubmit)="kreirajAkciju()" class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label">Opis</label>
+            <input nbInput fullWidth placeholder="Opis akcije" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Početak</label>
+            <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.pocetak" name="pocetakAkcije" required>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Kraj</label>
+            <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
+          </div>
+          <div class="col-12 d-flex justify-content-end">
+            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit">
+              <nb-spinner size="tiny" *ngIf="kreiranjeLoading"></nb-spinner>
+              <span *ngIf="!kreiranjeLoading">Sačuvaj zaglavlje</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="admin-card">
+        <h6 class="mb-3">Import artikala (.xlsx)</h6>
+        <form (ngSubmit)="importujArtikle()" class="row g-3" enctype="multipart/form-data">
+          <div class="col-md-4">
+            <label class="form-label">ID akcije (IDAkcije)</label>
+            <input nbInput fullWidth placeholder="VIP-XXXXXX" [(ngModel)]="akcijaIdZaImport" name="akcijaId" required>
+            <small class="text-muted">Koristite ID generisan kod kreiranja zaglavlja.</small>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Excel fajl</label>
+            <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
+            <small class="text-muted">Kolone: IDAkcije, NazivArtk, SifraArtk</small>
+          </div>
+          <div class="col-md-4 d-flex align-items-end justify-content-end">
+            <button nbButton status="primary" [disabled]="importLoading" type="submit">
+              <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
+              <span *ngIf="!importLoading">Importuj artikle</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <div class="table-responsive" *ngIf="!loading; else loadingTemplate">
       <table class="table table-hover vikend-akcije-table">
         <thead>
           <tr>
             <th>Id</th>
+            <th>ID akcije</th>
             <th>Opis</th>
             <th>Pocetak</th>
             <th>Kraj</th>
@@ -20,6 +72,7 @@
         <tbody>
           <tr *ngFor="let akcija of vikendAkcije" [ngClass]="redKlasa(akcija)">
             <td>{{ akcija.id }}</td>
+            <td>{{ akcija.uniqueId }}</td>
             <td>{{ akcija.opis }}</td>
             <td>{{ akcija.pocetak | date:'dd.MM.yyyy HH:mm' }}</td>
             <td>{{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</td>

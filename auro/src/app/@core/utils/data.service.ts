@@ -63,13 +63,13 @@ export class DataService {
   constructor(private http: HttpClient) {
   }
 
-  private sendRequest<T>(verb: string, url: string, body?: Array<object>): Observable<T> {
+  private sendRequest<T>(verb: string, url: string, body?: any): Observable<T> {
     return this.http.request<T>(verb, url, {
       body: body
     });
   }
 
-  private posaljiRequest<T>(verb: string, url: string, body?: object): Observable<T> {
+  private posaljiRequest<T>(verb: string, url: string, body?: any): Observable<T> {
     return this.http.request<T>(verb, url, { body: body });
   }
 
@@ -349,11 +349,22 @@ export class DataService {
     return this.sendRequest<VikendAkcija[]>("GET", this.baseUrl + '/api/vikend-akcije');
   }
 
+  public kreirajVikendAkciju(podaci: { opis?: string, pocetak: string, kraj: string }): Observable<VikendAkcija> {
+    return this.posaljiRequest<VikendAkcija>("POST", this.baseUrl + '/api/vikend-akcije', podaci);
+  }
+
   public preuzmiStavkeVikendAkcije(vikendAkcijaId: number): Observable<VikendAkcijaStavka[]> {
     return this.sendRequest<VikendAkcijaStavka[]>("GET", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`);
   }
 
   public azurirajStavkeVikendAkcije(vikendAkcijaId: number, stavke: VikendAkcijaStavkaUpdate[]) {
     return this.posaljiRequest<void>("PUT", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`, stavke);
+  }
+
+  public importujVikendArtikle(akcijaId: string, fajl: File) {
+    const formData = new FormData();
+    formData.append('akcijaId', akcijaId);
+    formData.append('file', fajl, fajl.name);
+    return this.posaljiRequest("POST", this.baseUrl + '/api/vikend-akcije/artikli-import', formData);
   }
 }

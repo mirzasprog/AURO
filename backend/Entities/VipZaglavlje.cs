@@ -15,6 +15,7 @@ namespace backend.Entities
         public DateTime Pocetak { get; set; }
         public DateTime Kraj { get; set; }
         public string? Status { get; set; }
+        public string? UniqueId { get; set; }
 
         public virtual ICollection<VipStavke> VipStavkes { get; set; }
     }

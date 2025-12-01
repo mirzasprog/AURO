@@ -99,6 +99,7 @@ BEGIN
         [Pocetak] DATETIME NOT NULL,
         [Kraj] DATETIME NOT NULL,
         [Status] NVARCHAR(MAX) NULL,
+        [UniqueId] NVARCHAR(64) NULL,
         CONSTRAINT [PK_VIPZaglavlje] PRIMARY KEY CLUSTERED ([Id] ASC)
     );
 END";
@@ -122,6 +123,39 @@ BEGIN
     );
 END";
 
+        private const string EnsureVipZaglavljeUniqueIdSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'UniqueId' AND Object_ID = OBJECT_ID('dbo.VIPZaglavlje'))
+BEGIN
+    ALTER TABLE [dbo].[VIPZaglavlje]
+    ADD [UniqueId] NVARCHAR(64) NULL;
+END
+
+IF EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'UniqueId' AND Object_ID = OBJECT_ID('dbo.VIPZaglavlje'))
+BEGIN
+    UPDATE [dbo].[VIPZaglavlje]
+    SET [UniqueId] = ISNULL([UniqueId], CONVERT(varchar(64), NEWID()))
+    WHERE [UniqueId] IS NULL OR LTRIM(RTRIM([UniqueId])) = '';
+
+    IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'UX_VIPZaglavlje_UniqueId')
+    BEGIN
+        CREATE UNIQUE NONCLUSTERED INDEX [UX_VIPZaglavlje_UniqueId]
+        ON [dbo].[VIPZaglavlje]([UniqueId]);
+    END
+END";
+
+        private const string EnsureVipArtikliTableSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'VIPArtikli' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[VIPArtikli]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [IDAkcije] NVARCHAR(64) NOT NULL,
+        [NazivArtk] NVARCHAR(MAX) NULL,
+        [SifraArtk] NVARCHAR(MAX) NULL,
+        CONSTRAINT [PK_VIPArtikli] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+END";
+
         public static async Task EnsureDailyTaskTablesAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
@@ -140,6 +174,8 @@ END";
 
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipStavkesTableSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliTableSql);
         }
     }
 }
