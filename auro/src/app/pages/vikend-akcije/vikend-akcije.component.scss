@@ -43,7 +43,23 @@
   margin-bottom: 1.5rem;
 }
 
-.admin-card {
+.opis {
+  font-weight: 600;
+}
+
+.muted {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+
+.table-actions {
+  display: flex;
+  gap: 0.4rem;
+  justify-content: flex-end;
+}
+
+.stavke-panel {
+  margin-top: 1rem;
   border: 1px solid #e8e8e8;
   border-radius: 12px;
   padding: 1.25rem;
@@ -54,8 +70,41 @@
   gap: 1rem;
 }
 
-.admin-card .form-label {
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stavke-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.stavka {
+  padding: 0.75rem;
+  border: 1px solid #e7eaf0;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.stavka-title {
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #2f3b75;
   font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .card-heading {

@@ -82,7 +82,7 @@
             <small class="text-muted">Kolone: NazivArtk, SifraArtk (bez IDAkcije)</small>
           </div>
           <div class="col-md-4 d-flex align-items-end justify-content-end">
-            <button nbButton status="primary" [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length" type="submit">
+            <button nbButton status="primary" size="small" [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length" type="submit">
               <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
               <span *ngIf="!importLoading">Importuj artikle</span>
             </button>
@@ -159,6 +159,33 @@
         </table>
       </div>
       <div *ngIf="!vikendAkcije.length" class="text-center text-muted">Nema definisanih vikend akcija.</div>
+    </div>
+
+    <div class="stavke-panel" *ngIf="selektovanaAkcija || stavkeLoading || stavkeGreska">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow mb-1">Stavke akcije</p>
+          <h6 class="mb-0" *ngIf="selektovanaAkcija">{{ selektovanaAkcija.opis || ('Akcija #' + selektovanaAkcija.id) }}</h6>
+          <small class="text-muted" *ngIf="selektovanaAkcija">ID: {{ selektovanaAkcija.uniqueId }}</small>
+        </div>
+        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija" (click)="otvoriStavke(selektovanaAkcija)">
+          Uredi
+        </button>
+      </div>
+      <div *ngIf="stavkeLoading" class="d-flex justify-content-center py-3">
+        <nb-spinner size="small"></nb-spinner>
+      </div>
+      <div *ngIf="stavkeGreska" class="alert alert-danger mb-3">{{ stavkeGreska }}</div>
+      <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length" class="stavke-grid">
+        <div class="stavka" *ngFor="let stavka of selektovaneStavke">
+          <div class="stavka-title">{{ stavka.nazivArtk }}</div>
+          <div class="muted">Šifra: {{ stavka.sifraArtk }}</div>
+          <div class="badge">Količina: {{ stavka.kolicina }}</div>
+        </div>
+      </div>
+      <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length === 0" class="text-muted text-center py-2">
+        Odaberite akciju za pregled stavki.
+      </div>
     </div>
     <ng-template #loadingTemplate>
       <div class="d-flex justify-content-center">
