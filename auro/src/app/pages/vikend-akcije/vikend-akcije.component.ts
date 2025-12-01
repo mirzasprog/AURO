@@ -6,7 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { DataService } from '../../@core/utils/data.service';
 import { VikendAkcija } from '../../@core/data/vikend-akcija';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
-import { VipArtikal } from '../../@core/data/vip-artikal';
+import { VikendAkcijaStavka } from '../../@core/data/vikend-akcija-stavka';
 
 @Component({
   selector: 'ngx-vikend-akcije',
@@ -26,7 +26,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   odabraniFajl?: File;
   odabranaAkcijaId = '';
   selektovanaAkcija?: VikendAkcija;
-  selektovaneStavke: VipArtikal[] = [];
+  selektovaneStavke: VikendAkcijaStavka[] = [];
   stavkeLoading = false;
   stavkeGreska = '';
   novaAkcija = {
@@ -161,14 +161,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     this.selektovanaAkcija = akcija;
     this.selektovaneStavke = [];
     this.stavkeGreska = '';
-
-    if (!akcija.uniqueId) {
-      this.stavkeGreska = 'ID akcije nije definisan.';
-      return;
-    }
-
     this.stavkeLoading = true;
-    this.dataService.preuzmiVipArtikle(akcija.uniqueId)
+    this.dataService.preuzmiStavkeVikendAkcije(akcija.id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {
