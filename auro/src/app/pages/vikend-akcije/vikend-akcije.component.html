@@ -3,13 +3,13 @@
     <div class="header-content">
       <div>
         <div class="eyebrow">Promocije • Vikend akcije</div>
-        <h5 class="title">Pregled i uređivanje vikend akcija</h5>
-        <p class="subtitle">Pripremite artikle, kreirajte nove periode i importujte Excel fajl sa ponudom.</p>
+        <h4 class="title">Pregled i uređivanje vikend akcija</h4>
+        <p class="subtitle">Pripremite artikle, kreirajte nove periode i brzo importujte Excel fajl sa ponudom.</p>
       </div>
       <div class="header-actions" *ngIf="prikaziAkcijeKolonu()">
-        <button nbButton status="info" ghost size="small" type="button" (click)="scrollToAdminZone()">
+        <button nbButton status="info" ghost size="small" type="button" (click)="adminZone.scrollIntoView({ behavior: 'smooth', block: 'start' })">
           <nb-icon icon="plus-circle-outline"></nb-icon>
-          <span>Novo zaglavlje</span>
+          <span>Novi period</span>
         </button>
       </div>
     </div>
@@ -27,7 +27,7 @@
           <div>
             <p class="eyebrow">Zaglavlje akcije</p>
             <h6 class="mb-1">Novi zapis vikend akcije</h6>
-              <small class="text-muted">Popunite osnovne informacije i sačuvajte period.</small>
+            <small class="text-muted">Popunite osnovne informacije i sačuvajte novi period.</small>
           </div>
           <div class="status-chip status-info">Novi period</div>
         </div>
@@ -131,8 +131,8 @@
                 <div class="muted">do {{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</div>
               </td>
               <td class="text-center">
-                <button nbButton size="tiny" status="info" ghost (click)="prikaziStavke(akcija)" nbTooltip="Prikaz stavki">
-                  {{ akcija.brojStavki || 0 }}
+                <button nbButton size="tiny" status="info" (click)="otvoriStavke(akcija)" nbTooltip="Prikaz stavki">
+                  {{ akcija.brojStavki }}
                 </button>
               </td>
               <td>
@@ -144,13 +144,15 @@
                   {{ akcija.status || 'N/A' }}
                 </div>
               </td>
-              <td *ngIf="prikaziAkcijeKolonu()" class="text-end table-actions">
-                <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
-                  Uredi stavke
-                </button>
-                <button nbButton size="tiny" status="basic" ghost (click)="odabranaAkcijaId = akcija.uniqueId" nbTooltip="Postavi ovu akciju za import">
-                  Označi za import
-                </button>
+              <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
+                <div class="btn-group">
+                  <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
+                    Uredi stavke
+                  </button>
+                  <button nbButton size="tiny" status="basic" ghost (click)="odabranaAkcijaId = akcija.uniqueId" nbTooltip="Postavi ovu akciju za import">
+                    Označi za import
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
