@@ -22,7 +22,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   uspjehPoruka = '';
   importPoruka = '';
   odabraniFajl?: File;
-  akcijaIdZaImport = '';
+  odabranaAkcijaId = '';
   novaAkcija = {
     opis: '',
     pocetak: '',
@@ -60,6 +60,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (podaci) => {
           this.vikendAkcije = podaci;
+          this.postaviOdabranuAkciju(podaci);
           this.loading = false;
         },
         error: (err) => {
@@ -124,10 +125,10 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (rezultat) => {
           this.kreiranjeLoading = false;
-          this.akcijaIdZaImport = rezultat.uniqueId ?? '';
+          this.odabranaAkcijaId = rezultat.uniqueId ?? '';
           this.ocistiFormu();
           this.ucitajAkcije();
-          this.uspjehPoruka = `Akcija je kreirana. ID akcije: ${this.akcijaIdZaImport || rezultat.id}`;
+          this.uspjehPoruka = `Akcija je kreirana. ID akcije: ${this.odabranaAkcijaId || rezultat.id}`;
         },
         error: (err) => {
           this.kreiranjeLoading = false;
@@ -146,8 +147,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   importujArtikle(): void {
     this.importPoruka = '';
     this.greska = '';
-    if (!this.akcijaIdZaImport) {
-      this.greska = 'Unesite ID akcije za koju importujete artikle.';
+    if (!this.odabranaAkcijaId) {
+      this.greska = 'Odaberite akciju za koju importujete artikle.';
       return;
     }
     if (!this.odabraniFajl) {
@@ -156,7 +157,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     }
 
     this.importLoading = true;
-    this.dataService.importujVikendArtikle(this.akcijaIdZaImport, this.odabraniFajl)
+    this.dataService.importujVikendArtikle(this.odabranaAkcijaId, this.odabraniFajl)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (rezultat: any) => {
@@ -179,5 +180,17 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
 
   private ocistiFormu(): void {
     this.novaAkcija = { opis: '', pocetak: '', kraj: '' };
+  }
+
+  private postaviOdabranuAkciju(akcije: VikendAkcija[]): void {
+    if (!akcije?.length) {
+      this.odabranaAkcijaId = '';
+      return;
+    }
+
+    const postojeci = akcije.find(a => a.uniqueId === this.odabranaAkcijaId);
+    if (!postojeci) {
+      this.odabranaAkcijaId = akcije[0].uniqueId ?? '';
+    }
   }
 }

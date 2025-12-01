@@ -36,17 +36,22 @@
         <h6 class="mb-3">Import artikala (.xlsx)</h6>
         <form (ngSubmit)="importujArtikle()" class="row g-3" enctype="multipart/form-data">
           <div class="col-md-4">
-            <label class="form-label">ID akcije (IDAkcije)</label>
-            <input nbInput fullWidth placeholder="VIP-XXXXXX" [(ngModel)]="akcijaIdZaImport" name="akcijaId" required>
-            <small class="text-muted">Koristite ID generisan kod kreiranja zaglavlja.</small>
+            <label class="form-label">Akcija</label>
+            <select class="form-select" [(ngModel)]="odabranaAkcijaId" name="akcijaId" required>
+              <option value="" disabled [selected]="!odabranaAkcijaId">Odaberite akciju</option>
+              <option *ngFor="let akcija of vikendAkcije" [value]="akcija.uniqueId">
+                {{ akcija.opis || akcija.uniqueId }} ({{ akcija.uniqueId }})
+              </option>
+            </select>
+            <small class="text-muted">ID akcije se generiše automatski prilikom kreiranja.</small>
           </div>
           <div class="col-md-4">
             <label class="form-label">Excel fajl</label>
             <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
-            <small class="text-muted">Kolone: IDAkcije, NazivArtk, SifraArtk</small>
+            <small class="text-muted">Kolone: NazivArtk, SifraArtk (bez IDAkcije)</small>
           </div>
           <div class="col-md-4 d-flex align-items-end justify-content-end">
-            <button nbButton status="primary" [disabled]="importLoading" type="submit">
+            <button nbButton status="primary" [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length" type="submit">
               <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
               <span *ngIf="!importLoading">Importuj artikle</span>
             </button>
