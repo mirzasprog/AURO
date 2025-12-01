@@ -123,13 +123,14 @@ BEGIN
     );
 END";
 
-        private const string EnsureVipZaglavljeUniqueIdSql = @"
+        private const string EnsureVipZaglavljeUniqueIdColumnSql = @"
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'UniqueId' AND Object_ID = OBJECT_ID('dbo.VIPZaglavlje'))
 BEGIN
     ALTER TABLE [dbo].[VIPZaglavlje]
     ADD [UniqueId] NVARCHAR(64) NULL;
-END
+END";
 
+        private const string EnsureVipZaglavljeUniqueIdIndexSql = @"
 IF EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'UniqueId' AND Object_ID = OBJECT_ID('dbo.VIPZaglavlje'))
 BEGIN
     UPDATE [dbo].[VIPZaglavlje]
@@ -174,7 +175,8 @@ END";
 
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipStavkesTableSql);
-            await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdColumnSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdIndexSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliTableSql);
         }
     }
