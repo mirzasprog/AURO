@@ -39,21 +39,10 @@ namespace backend.Data
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<VikendAkcijaStavkaDto>> GetStavkeAsync(int vikendAkcijaId)
+        public async Task<IEnumerable<VikendAkcijaStavkaDto>> GetStavkeAsync(string vikendAkcijaId)
         {
-            return await _context.VipStavkes
-                .AsNoTracking()
-                .Where(s => s.VipZaglavljeId == vikendAkcijaId)
-                .OrderBy(s => s.NazivArtikla)
-                .Select(s => new VikendAkcijaStavkaDto
-                {
-                    Id = s.Id,
-                    Sifra = s.SifraArtikla,
-                    Naziv = s.NazivArtikla,
-                    Kolicina = s.Kolicina,
-                    Prodavnica = s.Prodavnica
-                })
-                .ToListAsync();
+            var r = _context.VikendAkcijaStavkaDto.FromSqlInterpolated($"EXEC GetVIPArtikli {vikendAkcijaId}");
+            return r;
         }
 
         public async Task<IEnumerable<VipArtikalDto>> GetVipArtikliAsync(string akcijaId)

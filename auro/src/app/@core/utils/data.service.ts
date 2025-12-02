@@ -360,7 +360,7 @@ export class DataService {
     return this.sendRequest<VipArtikal[]>("GET", this.baseUrl + `/api/vikend-akcije/${akcijaId}/artikli`);
   }
 
-  public preuzmiStavkeVikendAkcije(vikendAkcijaId: number): Observable<VikendAkcijaStavka[]> {
+  public preuzmiStavkeVikendAkcije(vikendAkcijaId: string): Observable<VikendAkcijaStavka[]> {
     return this.sendRequest<VikendAkcijaStavka[]>("GET", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`);
   }
 

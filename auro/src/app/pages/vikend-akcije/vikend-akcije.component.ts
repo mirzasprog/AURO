@@ -79,7 +79,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   otvoriStavke(akcija: VikendAkcija): void {
     this.dialogService.open(VikendAkcijeStavkeComponent, {
       context: {
-        vikendAkcijaId: akcija.id,
+        vikendAkcijaId: akcija.uniqueId,
         naslov: akcija.opis ?? `Akcija #${akcija.id}`,
         rola: this.rola,
       },
@@ -175,7 +175,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     this.selektovaneStavke = [];
     this.stavkeGreska = '';
     this.stavkeLoading = true;
-    this.dataService.preuzmiStavkeVikendAkcije(akcija.id)
+    this.dataService.preuzmiStavkeVikendAkcije(akcija.uniqueId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {

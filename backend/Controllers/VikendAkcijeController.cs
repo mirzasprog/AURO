@@ -58,7 +58,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("{vikendAkcijaId}/stavke")]
-        public async Task<ActionResult<IEnumerable<VikendAkcijaStavkaDto>>> GetStavke(int vikendAkcijaId)
+        public async Task<ActionResult<IEnumerable<VikendAkcijaStavkaDto>>> GetStavke(string vikendAkcijaId)
         {
             var stavke = await _repository.GetStavkeAsync(vikendAkcijaId);
             return Ok(stavke);

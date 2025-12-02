@@ -9,7 +9,7 @@ import { DataService } from '../../../@core/utils/data.service';
   styleUrls: ['./vikend-akcije-stavke.component.scss']
 })
 export class VikendAkcijeStavkeComponent implements OnInit {
-  @Input() vikendAkcijaId!: number;
+  @Input() vikendAkcijaId!: string;
   @Input() naslov = '';
   @Input() rola = '';
 
@@ -71,16 +71,6 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     }
     this.saving = true;
     this.greska = '';
-    this.dataService.azurirajStavkeVikendAkcije(this.vikendAkcijaId, izmjene)
-      .subscribe({
-        next: () => {
-          this.saving = false;
-          this.zatvori(true);
-        },
-        error: (err) => {
-          this.greska = err.error?.poruka ?? 'Greška prilikom čuvanja izmjena.';
-          this.saving = false;
-        }
-      });
+
   }
 }

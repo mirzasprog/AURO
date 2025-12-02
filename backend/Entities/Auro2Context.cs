@@ -84,6 +84,7 @@ namespace backend.Entities
         public virtual DbSet<ResponseZaposleniciParcijalneInventure> ResponseZaposleniciParcijalneInventure { get; set; } = null!;
         public virtual DbSet<ParcijalnaInventura> ParcijalnaInventura { get; set; } = null!;
         public virtual DbSet<GetPodaciReklamacije> GetPodaciReklamacije { get; set; } = null!;
+        public virtual DbSet<VikendAkcijaStavkaDto> VikendAkcijaStavkaDto { get; set; } = null!;
         public virtual DbSet<ResponseParcijalneInventurePodrucni> ResponseParcijalneInventurePodrucni { get; set; } = null!;
         public virtual DbSet<ResponseParcijalneInventurePodrucniZaglavlje> ResponseParcijalneInventurePodrucniZaglavlje { get; set; } = null!;
         public virtual DbSet<ResponseParcijalneInventurePodrucniZaglavlje> ResponseParcijalneInventureInternaZaglavlje { get; set; } = null!;
@@ -829,6 +830,10 @@ namespace backend.Entities
             );            
             
             modelBuilder.Entity<DetaljiArtiklaReklamacija>(entity =>
+                entity.HasNoKey()
+            );            
+            
+            modelBuilder.Entity<VikendAkcijaStavkaDto>(entity =>
                 entity.HasNoKey()
             );
 
