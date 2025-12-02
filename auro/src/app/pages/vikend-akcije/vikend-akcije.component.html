@@ -24,13 +24,13 @@
         <form (ngSubmit)="kreirajAkciju()" class="row g-3">
           <div class="col-md-4">
             <label class="form-label">Opis</label>
-            <input nbInput fullWidth placeholder="Opis akcije" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
+            <input nbInput fullWidth placeholder="Naziv ili opis" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
           </div>
-          <div class="col-md-4">
+          <div class="form-field">
             <label class="form-label">Početak</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.pocetak" name="pocetakAkcije" required>
           </div>
-          <div class="col-md-4">
+          <div class="form-field">
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
@@ -69,14 +69,14 @@
           <div class="col">
             <label class="form-label">Excel fajl</label>
             <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
-            <small class="text-muted">Kolone: NazivArtk, SifraArtk (bez IDAkcije)</small>
+            <small class="text-muted">Kolone: NazivArtk, SifraArtk</small>
           </div>
           <div class="col">
             <button nbButton status="primary" size="small"
              [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length"
               type="submit" size="small" style="float: inline-end; margin-top:28px;">
               <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
-              <span *ngIf="!importLoading">Importuj artikle</span>
+              <span *ngIf="!importLoading">Importuj</span>
             </button>
           </div>
         </form>

@@ -180,7 +180,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     this.importPoruka = '';
     this.greska = '';
     if (!this.odabranaAkcijaId) {
-      this.greska = 'Odaberite akciju za koju importujete artikle.';
+      this.greska = 'Kreirajte akciju da dobijete ID za import.';
       return;
     }
     if (!this.odabraniFajl) {
@@ -221,8 +221,13 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     }
 
     const postojeci = akcije.find(a => a.uniqueId === this.odabranaAkcijaId);
-    if (!postojeci) {
-      this.odabranaAkcijaId = akcije[0].uniqueId ?? '';
+    if (postojeci) {
+      return;
     }
+
+    const najnovija = [...akcije]
+      .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))[0];
+
+    this.odabranaAkcijaId = najnovija?.uniqueId ?? '';
   }
 }
