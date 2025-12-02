@@ -6,6 +6,7 @@ import { switchMap, takeUntil } from 'rxjs/operators';
 import { DataService } from '../../@core/utils/data.service';
 import { VikendAkcija } from '../../@core/data/vikend-akcija';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
+import { VikendAkcijeStavkePregledComponent } from './vikend-akcije-stavke-pregled/vikend-akcije-stavke-pregled.component';
 import { VikendAkcijaStavka } from '../../@core/data/vikend-akcija-stavka';
 
 @Component({
@@ -76,7 +77,17 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       });
   }
 
-  otvoriStavke(akcija: VikendAkcija): void {
+  otvoriPregledStavki(akcija: VikendAkcija): void {
+    this.dialogService.open(VikendAkcijeStavkePregledComponent, {
+      context: {
+        vikendAkcijaId: akcija.uniqueId,
+        naslov: akcija.opis ?? `Akcija #${akcija.id}`,
+      },
+      closeOnBackdropClick: false,
+    });
+  }
+
+  otvoriAzuriranjeStavki(akcija: VikendAkcija): void {
     this.dialogService.open(VikendAkcijeStavkeComponent, {
       context: {
         vikendAkcijaId: akcija.uniqueId,
