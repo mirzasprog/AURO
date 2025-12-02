@@ -1,14 +1,9 @@
 <nb-card class="vikend-akcije-card">
-  <nb-card-header class="page-header">
-    <div class="header-text">
-      <p class="eyebrow">Vikend akcije</p>
-      <h5 class="title mb-0">Periodi i artikli na jednom mjestu</h5>
-    </div>
-    <div class="header-actions" *ngIf="prikaziAkcijeKolonu()">
-      <button nbButton status="info" ghost size="small" type="button" (click)="scrollToAdminZone()">
-        <nb-icon icon="plus-circle-outline"></nb-icon>
-        Nova akcija
-      </button>
+  <nb-card-header>
+    <div class="header-content">
+      <div>
+        <div class="eyebrow">Vikend akcije</div>
+      </div>
     </div>
   </nb-card-header>
   <nb-card-body>
@@ -22,13 +17,12 @@
       <div class="admin-card">
         <div class="card-heading">
           <div>
-            <p class="eyebrow">Kreiranje</p>
-            <h6 class="mb-0">Nova vikend akcija</h6>
+            <p class="eyebrow">Zaglavlje akcije</p>
+            <h6 class="mb-1">Novi zapis vikend akcije</h6>
           </div>
-          <div class="status-chip status-info">Period</div>
         </div>
-        <form (ngSubmit)="kreirajAkciju()" class="form-grid">
-          <div class="form-field">
+        <form (ngSubmit)="kreirajAkciju()" class="row g-3">
+          <div class="col-md-4">
             <label class="form-label">Opis</label>
             <input nbInput fullWidth placeholder="Naziv ili opis" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
           </div>
@@ -40,13 +34,16 @@
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
-          <div class="form-actions">
-            <button nbButton status="basic" size="small" type="button" ghost [disabled]="kreiranjeLoading" (click)="novaAkcija = { opis: '', pocetak: '', kraj: '' }">
-              Poništi
+          <div class="col" style="margin-top:10px;">
+            <button nbButton style="float:inline-start" status="danger" type="button" 
+            [disabled]="kreiranjeLoading" size="small"
+            (click)="novaAkcija = { opis: '', pocetak: '', kraj: '' }">
+             <nb-icon icon="close-square"></nb-icon> Resetuj
             </button>
-            <button nbButton status="success" size="small" [disabled]="kreiranjeLoading" type="submit">
+            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit"
+             size="small" style="float:inline-end" >
               <nb-spinner size="tiny" *ngIf="kreiranjeLoading"></nb-spinner>
-              <span *ngIf="!kreiranjeLoading">Sačuvaj</span>
+              <span *ngIf="!kreiranjeLoading"> <nb-icon icon="save"></nb-icon> Sačuvaj zaglavlje</span>
             </button>
           </div>
         </form>
@@ -55,26 +52,29 @@
       <div class="admin-card">
         <div class="card-heading">
           <div>
-            <p class="eyebrow">Import</p>
-            <h6 class="mb-0">Dodavanje artikala</h6>
+            <p class="eyebrow">Import artikala</p>
+            <h6 class="mb-1">Dodavanje artikala (.xlsx)</h6>
           </div>
-          <div class="status-chip status-primary">.xlsx</div>
         </div>
-        <form (ngSubmit)="importujArtikle()" class="form-grid" enctype="multipart/form-data">
-          <div class="form-field">
-            <label class="form-label">ID akcije</label>
-            <div class="readonly-pill" [class.muted-text]="!odabranaAkcijaId">
-              {{ odabranaAkcijaId || 'Kreirajte akciju da dobijete ID' }}
-            </div>
-            <small class="text-muted" *ngIf="odabranaAkcijaId">Automatski dodijeljen ID zadnje kreirane akcije.</small>
+        <form (ngSubmit)="importujArtikle()" class="row g-3" enctype="multipart/form-data">
+          <div class="col">
+            <label class="form-label">Akcija</label>
+            <select class="form-select" [(ngModel)]="odabranaAkcijaId" name="akcijaId" required>
+              <option value="" disabled [selected]="!odabranaAkcijaId">Odaberite akciju</option>
+              <option *ngFor="let akcija of vikendAkcije" [value]="akcija.uniqueId">
+                {{ akcija.opis || akcija.uniqueId }} ({{ akcija.uniqueId }})
+              </option>
+            </select>
           </div>
-          <div class="form-field">
+          <div class="col">
             <label class="form-label">Excel fajl</label>
             <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
             <small class="text-muted">Kolone: NazivArtk, SifraArtk</small>
           </div>
-          <div class="form-actions align-end">
-            <button nbButton status="primary" size="small" [disabled]="importLoading || !odabranaAkcijaId || !odabraniFajl" type="submit">
+          <div class="col">
+            <button nbButton status="primary" size="small"
+             [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length"
+              type="submit" size="small" style="float: inline-end; margin-top:28px;">
               <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
               <span *ngIf="!importLoading">Importuj</span>
             </button>
@@ -82,10 +82,12 @@
         </form>
       </div>
     </div>
-
+<hr>
     <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
       <div class="table-toolbar">
-        <p class="eyebrow mb-0">Pregled akcija</p>
+        <div>
+          <p class="eyebrow mb-1">Lista akcija</p>
+        </div>
         <div class="legend" *ngIf="vikendAkcije.length">
           <span class="legend-dot aktivna"></span> Aktivna
           <span class="legend-dot istaknuta"></span> Istaknuta
@@ -120,8 +122,8 @@
                 <div class="muted">do {{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</div>
               </td>
               <td class="text-center">
-                <button nbButton size="tiny" status="info" ghost (click)="prikaziStavke(akcija)" nbTooltip="Prikaz stavki">
-                  {{ akcija.brojStavki || 0 }}
+                <button nbButton size="tiny" status="info" (click)="otvoriStavke(akcija)" nbTooltip="Prikaz stavki">
+                  {{ akcija.brojStavki }}
                 </button>
               </td>
               <td>
@@ -133,10 +135,15 @@
                   {{ akcija.status || 'N/A' }}
                 </div>
               </td>
-              <td *ngIf="prikaziAkcijeKolonu()" class="text-end table-actions">
-                <button nbButton size="tiny" status="success" appearance="outline" (click)="otvoriStavke(akcija)">
-                  Uredi
-                </button>
+              <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
+                <div class="btn-group">
+                  <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
+                    Uredi stavke
+                  </button>
+                  <button nbButton size="tiny" status="basic" ghost (click)="odabranaAkcijaId = akcija.uniqueId" nbTooltip="Postavi ovu akciju za import">
+                    Označi za import
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -163,8 +170,8 @@
       <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length" class="stavke-grid">
         <div class="stavka" *ngFor="let stavka of selektovaneStavke">
           <div class="stavka-title">{{ stavka.nazivArtk }}</div>
-          <div class="muted">Šifra: {{ stavka.sifraArtk || 'N/A' }}</div>
-          <div class="badge">Akcija: {{ stavka.idAkcije || selektovanaAkcija?.uniqueId }}</div>
+          <div class="muted">Šifra: {{ stavka.sifraArtk }}</div>
+          <div class="badge">Količina: {{ stavka.kolicina }}</div>
         </div>
       </div>
       <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length === 0" class="text-muted text-center py-2">
