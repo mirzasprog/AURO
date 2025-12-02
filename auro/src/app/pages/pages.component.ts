@@ -4,6 +4,7 @@ import { DataService } from "../@core/utils/data.service";
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { MENU_ITEMS } from "./pages-menu";
 import { NbMenuItem } from "@nebular/theme";
+import { VikendAkcija } from "../@core/data/vikend-akcija";
 
 @Component({
   selector: "ngx-pages",
@@ -41,6 +42,45 @@ export class PagesComponent implements OnInit {
     if (item) {
       item.hidden = hidden;
     }
+  }
+
+  private setVikendAkcijeBadge(aktivna: boolean): void {
+    const vikendAkcijeItem = this.findMenuItem(["Vikend akcije"]);
+
+    if (!vikendAkcijeItem) {
+      return;
+    }
+
+    vikendAkcijeItem.badge = aktivna
+      ? { text: '', status: 'danger', dotMode: true }
+      : undefined;
+  }
+
+  private postaviVikendAkcijeNotifikaciju(): void {
+    this.dataService.preuzmiVikendAkcije().subscribe({
+      next: (akcije: VikendAkcija[]) => {
+        const postojiAktivna = akcije?.some(akcija => this.jeVikendAkcijaAktivna(akcija));
+        this.setVikendAkcijeBadge(!!postojiAktivna);
+      },
+      error: () => this.setVikendAkcijeBadge(false),
+    });
+  }
+
+  private jeVikendAkcijaAktivna(akcija: VikendAkcija): boolean {
+    const status = (akcija.status ?? '').toLowerCase();
+    if (status) {
+      return status === 'aktivna';
+    }
+
+    const sada = new Date();
+    const pocetak = new Date(akcija.pocetak);
+    const kraj = new Date(akcija.kraj);
+
+    if (isNaN(pocetak.getTime()) || isNaN(kraj.getTime())) {
+      return false;
+    }
+
+    return sada >= pocetak && sada <= kraj;
   }
 
   //Funkcija za preikaz linkova u side baru u ovisnosti od role
@@ -148,6 +188,7 @@ export class PagesComponent implements OnInit {
 
   ngOnInit(): void {
     this.PregledPoRolama();
+    this.postaviVikendAkcijeNotifikaciju();
     //Servis za provjeru da li je omogućen redovni otpis za rolu : Prodavnica
     this.dataService.provjeriOmogucenOtpis().subscribe(
       (otpis) => {
