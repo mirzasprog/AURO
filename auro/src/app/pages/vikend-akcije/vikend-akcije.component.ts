@@ -2,7 +2,7 @@ import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/co
 import { NbDialogService } from '@nebular/theme';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { switchMap, takeUntil } from 'rxjs/operators';
 import { DataService } from '../../@core/utils/data.service';
 import { VikendAkcija } from '../../@core/data/vikend-akcija';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
@@ -15,12 +15,12 @@ import { VikendAkcijaStavka } from '../../@core/data/vikend-akcija-stavka';
 })
 export class VikendAkcijeComponent implements OnInit, OnDestroy {
   @ViewChild('adminZone') adminZone?: ElementRef<HTMLElement>;
+  @ViewChild('excelInput') excelInput?: ElementRef<HTMLInputElement>;
   vikendAkcije: VikendAkcija[] = [];
   rola = '';
   loading = false;
   greska = '';
   kreiranjeLoading = false;
-  importLoading = false;
   uspjehPoruka = '';
   importPoruka = '';
   odabraniFajl?: File;
@@ -126,6 +126,11 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.odabraniFajl) {
+      this.greska = 'Dodajte Excel fajl (.xlsx) sa artiklima za vikend akciju.';
+      return;
+    }
+
     this.kreiranjeLoading = true;
     const tijelo = {
       opis: this.novaAkcija.opis,
@@ -134,18 +139,24 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     };
 
     this.dataService.kreirajVikendAkciju(tijelo)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (rezultat) => {
-          this.kreiranjeLoading = false;
+      .pipe(
+        switchMap((rezultat) => {
           this.odabranaAkcijaId = rezultat.uniqueId ?? '';
+          return this.dataService.importujVikendArtikle(this.odabranaAkcijaId, this.odabraniFajl!);
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (importRezultat: any) => {
+          this.kreiranjeLoading = false;
+          this.uspjehPoruka = `Akcija je kreirana. ID akcije: ${this.odabranaAkcijaId || 'N/A'}`;
+          this.importPoruka = importRezultat?.poruka ?? 'Import artikala uspješno završen.';
           this.ocistiFormu();
           this.ucitajAkcije();
-          this.uspjehPoruka = `Akcija je kreirana. ID akcije: ${this.odabranaAkcijaId || rezultat.id}`;
         },
         error: (err) => {
           this.kreiranjeLoading = false;
-          this.greska = err.error?.poruka ?? 'Greška pri kreiranju vikend akcije.';
+          this.greska = err.error?.poruka ?? 'Greška pri kreiranju vikend akcije ili importu artikala.';
         }
       });
   }
@@ -154,6 +165,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     const target = event.target as HTMLInputElement;
     if (target?.files && target.files.length) {
       this.odabraniFajl = target.files[0];
+    } else {
+      this.odabraniFajl = undefined;
     }
   }
 
@@ -176,42 +189,18 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       });
   }
 
-  importujArtikle(): void {
-    this.importPoruka = '';
-    this.greska = '';
-    if (!this.odabranaAkcijaId) {
-      this.greska = 'Kreirajte akciju da dobijete ID za import.';
-      return;
-    }
-    if (!this.odabraniFajl) {
-      this.greska = 'Odaberite Excel fajl (.xlsx) sa podacima.';
-      return;
-    }
-
-    this.importLoading = true;
-    this.dataService.importujVikendArtikle(this.odabranaAkcijaId, this.odabraniFajl)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (rezultat: any) => {
-          this.importLoading = false;
-          this.importPoruka = rezultat?.poruka ?? 'Import uspješno završen.';
-          this.ucitajAkcije();
-        },
-        error: (err) => {
-          this.importLoading = false;
-          this.greska = err.error?.poruka ?? 'Greška pri importu artikala.';
-        }
-      });
-  }
-
   private ocistiPoruke(): void {
     this.uspjehPoruka = '';
     this.importPoruka = '';
     this.greska = '';
   }
 
-  private ocistiFormu(): void {
+  ocistiFormu(): void {
     this.novaAkcija = { opis: '', pocetak: '', kraj: '' };
+    this.odabraniFajl = undefined;
+    if (this.excelInput?.nativeElement) {
+      this.excelInput.nativeElement.value = '';
+    }
   }
 
   private postaviOdabranuAkciju(akcije: VikendAkcija[]): void {
