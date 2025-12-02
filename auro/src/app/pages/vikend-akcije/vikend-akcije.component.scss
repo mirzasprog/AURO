@@ -28,6 +28,32 @@
   margin-bottom: 0.5rem;
 }
 
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.form-field input,
+.form-field select,
+.form-field nb-select,
+.form-field textarea {
+  height: 42px;
+}
+
+.form-field input[type="file"] {
+  padding: 8px 12px;
+  height: 42px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .eyebrow {
   font-size: 0.75rem;
   text-transform: uppercase;

@@ -17,12 +17,12 @@
       <div class="admin-card">
         <div class="card-heading">
           <div>
-            <p class="eyebrow">Zaglavlje akcije</p>
-            <h6 class="mb-1">Novi zapis vikend akcije</h6>
+            <p class="eyebrow">Kreiranje vikend akcije</p>
+            <h6 class="mb-1">Zaglavlje i import artikala</h6>
           </div>
         </div>
-        <form (ngSubmit)="kreirajAkciju()" class="row g-3">
-          <div class="col-md-4">
+        <form (ngSubmit)="kreirajAkciju()" class="form-grid" enctype="multipart/form-data">
+          <div class="form-field">
             <label class="form-label">Opis</label>
             <input nbInput fullWidth placeholder="Naziv ili opis" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
           </div>
@@ -34,49 +34,22 @@
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
-          <div class="col" style="margin-top:10px;">
-            <button nbButton style="float:inline-start" status="danger" type="button" 
-            [disabled]="kreiranjeLoading" size="small"
-            (click)="novaAkcija = { opis: '', pocetak: '', kraj: '' }">
-             <nb-icon icon="close-square"></nb-icon> Resetuj
-            </button>
-            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit"
-             size="small" style="float:inline-end" >
-              <nb-spinner size="tiny" *ngIf="kreiranjeLoading"></nb-spinner>
-              <span *ngIf="!kreiranjeLoading"> <nb-icon icon="save"></nb-icon> Sačuvaj zaglavlje</span>
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div class="admin-card">
-        <div class="card-heading">
-          <div>
-            <p class="eyebrow">Import artikala</p>
-            <h6 class="mb-1">Dodavanje artikala (.xlsx)</h6>
-          </div>
-        </div>
-        <form (ngSubmit)="importujArtikle()" class="row g-3" enctype="multipart/form-data">
-          <div class="col">
-            <label class="form-label">Akcija</label>
-            <select class="form-select" [(ngModel)]="odabranaAkcijaId" name="akcijaId" required>
-              <option value="" disabled [selected]="!odabranaAkcijaId">Odaberite akciju</option>
-              <option *ngFor="let akcija of vikendAkcije" [value]="akcija.uniqueId">
-                {{ akcija.opis || akcija.uniqueId }} ({{ akcija.uniqueId }})
-              </option>
-            </select>
-          </div>
-          <div class="col">
+          <div class="form-field">
             <label class="form-label">Excel fajl</label>
-            <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
+            <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)" name="excelFile" required>
             <small class="text-muted">Kolone: NazivArtk, SifraArtk</small>
           </div>
-          <div class="col">
-            <button nbButton status="primary" size="small"
-             [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length"
-              type="submit" size="small" style="float: inline-end; margin-top:28px;">
-              <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
-              <span *ngIf="!importLoading">Importuj</span>
+          <div class="form-actions">
+            <button nbButton status="basic" ghost type="button" [disabled]="kreiranjeLoading" size="tiny"
+              (click)="ocistiFormu()">
+              <nb-icon icon="refresh"></nb-icon>
+              Resetuj
+            </button>
+            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="tiny">
+              <nb-spinner size="tiny" *ngIf="kreiranjeLoading"></nb-spinner>
+              <span *ngIf="!kreiranjeLoading">
+                <nb-icon icon="save"></nb-icon> Sačuvaj i importuj
+              </span>
             </button>
           </div>
         </form>
@@ -136,14 +109,9 @@
                 </div>
               </td>
               <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
-                <div class="btn-group">
-                  <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
-                    Uredi stavke
-                  </button>
-                  <button nbButton size="tiny" status="basic" ghost (click)="odabranaAkcijaId = akcija.uniqueId" nbTooltip="Postavi ovu akciju za import">
-                    Označi za import
-                  </button>
-                </div>
+                <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
+                  Uredi stavke
+                </button>
               </td>
             </tr>
           </tbody>
