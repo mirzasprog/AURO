@@ -20,8 +20,9 @@ namespace backend.Data
         public IEnumerable<PDTdokumenti> PreuzmiPDTdokumente()
         {
 
-            string brojProdavnice = korisnickoIme ?? "";
-           // brojProdavnice = brojProdavnice.Substring(1, brojProdavnice.Length - 1);
+            string brojProdavnice = korisnickoIme?.Length > 1
+                ? korisnickoIme.Substring(1, korisnickoIme.Length - 1)
+                : korisnickoIme ?? "";
 
             var r = _context.PDTdokumenti.FromSqlInterpolated($"EXEC GetPDTsifre {brojProdavnice}");
             return r;
@@ -29,8 +30,9 @@ namespace backend.Data
 
         public IEnumerable<PDTartikliVanrednogOtpisa> PreuzmiPDTartikleVanredniOtpis(UnosPDTvanredni podaci)
         {
-            string brojProdavnice = korisnickoIme ?? "";
-            // brojProdavnice = brojProdavnice.Substring(1, brojProdavnice.Length - 1);
+            string brojProdavnice = korisnickoIme?.Length > 1
+                ? korisnickoIme.Substring(1, korisnickoIme.Length - 1)
+                : korisnickoIme ?? "";
 
             var r = _context.PDTartikliVanrednogOtpisa.FromSqlInterpolated($"EXEC GetArtikliPDTVanredniOtpis {brojProdavnice}, {podaci.BrojDokumenta}, {podaci.Razlog}, {podaci.PotrebanTransport}, {podaci.PotrebnoZbrinjavanje} ");
             return r;
@@ -38,8 +40,9 @@ namespace backend.Data
 
         public IEnumerable<PDTartikliRedovnogOtpisa> PreuzmiPDTartikleRedovniOtpis(UnosPDTredovni podaci)
         {
-            string brojProdavnice = korisnickoIme ?? "";
-          //  brojProdavnice = brojProdavnice.Substring(1, brojProdavnice.Length - 1);
+            string brojProdavnice = korisnickoIme?.Length > 1
+                ? korisnickoIme.Substring(1, korisnickoIme.Length - 1)
+                : korisnickoIme ?? "";
 
             var r = _context.PDTartikliRedovnogOtpisa.FromSqlInterpolated($"EXEC GetArtikliPDTRedovniOtpis {brojProdavnice}, {podaci.BrojDokumenta}, {podaci.Razlog}, {podaci.ProvedenoSnizenje} ");
             return r;
@@ -47,8 +50,9 @@ namespace backend.Data
 
         public IEnumerable<PDTIzdatnicaTroska> PreuzmiPDTartikleIzdatnice(UnosPDTIzdatnice podaci)
         {
-            string brojProdavnice = korisnickoIme ?? "";
-           // brojProdavnice = brojProdavnice.Substring(1, brojProdavnice.Length - 1);
+            string brojProdavnice = korisnickoIme?.Length > 1
+                ? korisnickoIme.Substring(1, korisnickoIme.Length - 1)
+                : korisnickoIme ?? "";
 
             var r = _context.PDTizdatniceTroska.FromSqlInterpolated($"EXEC GetIzdatnicePDT {brojProdavnice}, {podaci.BrojDokumenta}, {podaci.Razlog}, {podaci.DatumIzradeIzdatnice}");
             return r;
@@ -56,8 +60,9 @@ namespace backend.Data
         // EDIT
          public IEnumerable<PDTNeuslovnaRoba> PreuzmiPDTartikleNeuslovneRobe(UnosPDTNeuslovneRobe podaci)
         {
-            string brojProdavnice = korisnickoIme ?? "";
-           // brojProdavnice = brojProdavnice.Substring(1, brojProdavnice.Length - 1);
+            string brojProdavnice = korisnickoIme?.Length > 1
+                ? korisnickoIme.Substring(1, korisnickoIme.Length - 1)
+                : korisnickoIme ?? "";
 
             var r = _context.PDTNeuslovnaRoba.FromSqlInterpolated($"EXEC [GetPDTNeuslovneRobe] {brojProdavnice}, {podaci.BrojDokumenta}, {podaci.OtpisPovrat},{podaci.razlogNeuslovnosti},{podaci.razlogPrisustva}");
             return r;
