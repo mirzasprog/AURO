@@ -6,15 +6,21 @@
             <!--Naslov-->
             <div class="col">
                 <div class=" text-center">
-                    <h6><i class="fas fa-list"></i> Akcije</h6>
+                    <h6><i class="fas fa-list"></i> Stavke akcije</h6>
                 </div>
             </div>
-            <div class="col"></div>
+            <div class="col text-end">
+              <button nbButton status="info" size="tiny" (click)="preuzmiExcel()" [disabled]="ucitavanje || !data.length">
+                <nb-icon icon="download"></nb-icon> Excel izvještaj
+              </button>
+            </div>
         </div>
     </nb-card-header>
     <nb-card-body>
+        <nb-alert *ngIf="greska" status="danger">{{ greska }}</nb-alert>
+        <div *ngIf="ucitavanje" class="text-center text-muted">Učitavanje stavki...</div>
         <!--Tabela sa podacima-->
-        <p-table [value]="data" editable="true" class="p-datatable-responsive-demo" [rows]="rows"
+        <p-table *ngIf="!ucitavanje" [value]="data" editable="true" class="p-datatable-responsive-demo" [rows]="rows"
             styleClass="p-datatable-sm p-datatable-gridlines" [paginator]="true"
             (onPage)="noviPage($event)" [first]="first">
             <!-- Zaglavlje tabele -->
@@ -23,6 +29,7 @@
                     <th>Šifra artikla</th>
                     <th>Naziv</th>
                     <th>Količina</th>
+                    <th>Prodavnica</th>
                 </tr>
             </ng-template>
             <!-- Polja u tabeli -->
@@ -48,20 +55,23 @@
                     <td [ngClass]="{'kolicinaArtikla' : true}" pEditableColumn>
                         <p-cellEditor>
                             <ng-template pTemplate="input">
-                                <input pInputText 
-                                    [(ngModel)]="data.kolicina" 
-                                    [step]="1" 
-                                    name="kolcina" 
-                                    autocomplete="off" 
-                                    [min]="0" 
-                                    type="number" 
-                                    (input)="onKolicinaChange(data)" 
+                                <input pInputText
+                                    [(ngModel)]="data.kolicina"
+                                    [step]="1"
+                                    name="kolcina"
+                                    autocomplete="off"
+                                    [min]="0"
+                                    type="number"
+                                    (input)="onKolicinaChange(data)"
                                     (keypress)="validirajBroj($event)"/>
                             </ng-template>
                             <ng-template pTemplate="output">
                                 {{ data.kolicina }}
                             </ng-template>
                         </p-cellEditor>
+                    </td>
+                    <td>
+                      {{ data.prodavnica }}
                     </td>
                 </tr>
             </ng-template>

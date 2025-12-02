@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { LocalDataSource } from 'ng2-smart-table';
+import { Akcija } from '../../../@core/data/akcija';
+import { DataService } from '../../../@core/utils/data.service';
 import { ButtonPregledAkcijeComponent } from '../button-pregled-akcije/button-pregled-akcije.component';
 
 @Component({
@@ -16,7 +18,7 @@ export class AkcijeUnosComponent implements OnInit {
     },
     //Kolone u tabeli
     columns: {
-      opis: {
+      nazivAkcije: {
         title: "Opis",
         type: "string",
         editable: false,
@@ -25,15 +27,13 @@ export class AkcijeUnosComponent implements OnInit {
         title: "Početak",
         type: "string",
         editable: false,
+        valuePrepareFunction: (value) => new Date(value).toLocaleString('bs-BA')
       },
       kraj: {
         title: "Kraj",
         type: "string",
         editable: false,
-      },
-      stavke: {
-        title: "Stavke",
-        type: "number",
+        valuePrepareFunction: (value) => new Date(value).toLocaleString('bs-BA')
       },
       pregled: {
         title: "Pregled",
@@ -43,42 +43,38 @@ export class AkcijeUnosComponent implements OnInit {
       },
     },
   };
-  data = [];
+  data: Akcija[] = [];
   source: LocalDataSource = new LocalDataSource();
+  loading = false;
+  greska?: string;
 
-  constructor() {
+  constructor(private dataService: DataService) {
 
    }
 
   ngOnInit(): void {
-    //TODO: izbrisati temp podatke
-    this.data = [
-      {
-        opis: 'Aktivna prodaja Pakirana 29.01.-31.01.; N1 01.02.-04.02.2024.',
-        pocetak: '23.09.2024',
-        kraj: '30.09.2024',
-        stavke: 30
-      },     
-      {
-        opis: 'Vikend akcija Konzum-Mercator 01.02-04.02.2024',
-        pocetak: '23.09.2024',
-        kraj: '30.09.2024',
-        stavke: 22
-      },     
-      {
-        opis: 'VA 08.02.-11.02.2024.',
-        pocetak: '23.09.2024',
-        kraj: '30.09.2024',
-        stavke: 15
-      },     
-      {
-        opis: 'Aktivna prodaja N1 14.03.-17.03.; Pakirana 11.03.-13.03.2024.',
-        pocetak: '23.09.2024',
-        kraj: '30.09.2024',
-        stavke: 49
+    this.ucitajAkcije();
+  }
+
+  private ucitajAkcije(): void {
+    this.loading = true;
+    this.greska = undefined;
+    this.dataService.preuzmiAkcije().subscribe({
+      next: (akcije) => {
+        const mapped = akcije.map(a => ({
+          id: a.id ?? a.Id ?? 0,
+          nazivAkcije: a.nazivAkcije ?? a.NazivAkcije ?? '',
+          pocetak: a.pocetak ?? a.Pocetak ?? '',
+          kraj: a.kraj ?? a.Kraj ?? ''
+        } as Akcija));
+
+        this.data = mapped;
+        this.source.load(mapped);
       },
-    ];
-    this.source.load(this.data);
+      error: (err) => {
+        this.greska = err?.error?.poruka ?? 'Greška pri preuzimanju akcija.';
+      }
+    }).add(() => this.loading = false);
   }
 
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Models;
 using backend.Entities;
 using Microsoft.AspNetCore.Authorization;
+using System.Linq;
+using System.Text;
 
 namespace backend.Controllers
 {
@@ -35,6 +37,31 @@ namespace backend.Controllers
         {
             var r = _repo.PreuzmiAkcijeStavke(akcijaID);
             return Ok(r);
+        }
+
+        [HttpGet("{akcijaID}/excel")]
+        public IActionResult GetAkcijaStavkeExcel(int akcijaID)
+        {
+            var stavke = _repo.PreuzmiAkcijeStavke(akcijaID).ToList();
+
+            if (!stavke.Any())
+            {
+                return NotFound(new { poruka = "Nema stavki za odabranu akciju." });
+            }
+
+            var csv = new StringBuilder();
+            csv.AppendLine("Sifra;Naziv;Kolicina;Prodavnica");
+
+            foreach (var stavka in stavke)
+            {
+                var naziv = stavka.Naziv?.Replace("\"", "\"\"") ?? string.Empty;
+                var prodavnica = stavka.Prodavnica?.Replace("\"", "\"\"") ?? string.Empty;
+                csv.AppendLine($"{stavka.Sifra};\"{naziv}\";{stavka.Kolicina};\"{prodavnica}\"");
+            }
+
+            var fileName = $"akcija_{akcijaID}_stavke.csv";
+            var content = Encoding.UTF8.GetBytes(csv.ToString());
+            return File(content, "text/csv", fileName);
         }
 
     }
