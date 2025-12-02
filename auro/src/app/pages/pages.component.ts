@@ -69,7 +69,7 @@ export class PagesComponent implements OnInit {
   private jeVikendAkcijaAktivna(akcija: VikendAkcija): boolean {
     const status = (akcija.status ?? '').toLowerCase();
     if (status) {
-      return status === 'aktivna';
+      return status === 'aktivna' || status === 'aktivno';
     }
 
     const sada = new Date();
