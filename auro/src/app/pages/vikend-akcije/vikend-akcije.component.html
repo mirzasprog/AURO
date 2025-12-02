@@ -28,7 +28,8 @@
           </div>
           <div class="form-field">
             <label class="form-label">Početak</label>
-            <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.pocetak" name="pocetakAkcije" required>
+            <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.pocetak" name="pocetakAkcije"
+              required>
           </div>
           <div class="form-field">
             <label class="form-label">Kraj</label>
@@ -36,8 +37,8 @@
           </div>
           <div class="form-field">
             <label class="form-label">Excel fajl</label>
-            <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)" name="excelFile" required>
-            <small class="text-muted">Kolone: NazivArtk, SifraArtk</small>
+            <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
+              name="excelFile" required>
           </div>
           <div class="form-actions">
             <button nbButton status="basic" ghost type="button" [disabled]="kreiranjeLoading" size="tiny"
@@ -55,7 +56,7 @@
         </form>
       </div>
     </div>
-<hr>
+    <hr>
     <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
       <div class="table-toolbar">
         <div>
@@ -125,11 +126,12 @@
       <div class="panel-header">
         <div>
           <p class="eyebrow mb-1">Stavke akcije</p>
-          <h6 class="mb-0" *ngIf="selektovanaAkcija">{{ selektovanaAkcija.opis || ('Akcija #' + selektovanaAkcija.id) }}</h6>
+          <h6 class="mb-0" *ngIf="selektovanaAkcija">{{ selektovanaAkcija.opis || ('Akcija #' + selektovanaAkcija.id) }}
+          </h6>
           <small class="text-muted" *ngIf="selektovanaAkcija">ID: {{ selektovanaAkcija.uniqueId }}</small>
         </div>
-        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija" (click)="otvoriStavke(selektovanaAkcija)"
-          [disabled]="!jeAkcijaAktivna(selektovanaAkcija)">
+        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija"
+          (click)="otvoriStavke(selektovanaAkcija)" [disabled]="!jeAkcijaAktivna(selektovanaAkcija)">
           Uredi
         </button>
       </div>
@@ -144,7 +146,8 @@
           <div class="badge">Količina: {{ stavka.kolicina }}</div>
         </div>
       </div>
-      <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length === 0" class="text-muted text-center py-2">
+      <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length === 0"
+        class="text-muted text-center py-2">
         Odaberite akciju za pregled stavki.
       </div>
     </div>
