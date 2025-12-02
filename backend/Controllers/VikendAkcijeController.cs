@@ -45,6 +45,18 @@ namespace backend.Controllers
             return Ok(rezultat);
         }
 
+        [HttpGet("{akcijaId}/artikli")]
+        public async Task<ActionResult<IEnumerable<VipArtikalDto>>> GetVipArtikli(string akcijaId)
+        {
+            if (string.IsNullOrWhiteSpace(akcijaId))
+            {
+                return BadRequest(new { poruka = "Nedostaje ID akcije." });
+            }
+
+            var artikli = await _repository.GetVipArtikliAsync(akcijaId);
+            return Ok(artikli);
+        }
+
         [HttpGet("{vikendAkcijaId}/stavke")]
         public async Task<ActionResult<IEnumerable<VikendAkcijaStavkaDto>>> GetStavke(int vikendAkcijaId)
         {
