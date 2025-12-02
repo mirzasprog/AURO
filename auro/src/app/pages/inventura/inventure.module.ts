@@ -31,6 +31,8 @@ import { AkcijeUnosComponent } from '../Akcije/akcije-unos/akcije-unos.component
 import { ButtonPregledAkcijeComponent } from '../Akcije/button-pregled-akcije/button-pregled-akcije.component';
 import { ButtonAkcijaComponent } from '../Akcije/button-akcija/button-akcija.component';
 import { AkcijeStavkeComponent } from '../Akcije/akcije-stavke/akcije-stavke.component';
+import { AkcijeStavkePregledComponent } from '../Akcije/akcije-stavke-pregled/akcije-stavke-pregled.component';
+import { ButtonAzurirajAkcijuComponent } from '../Akcije/button-azuriraj-akciju/button-azuriraj-akciju.component';
 
 @NgModule({
   declarations: [
@@ -44,7 +46,9 @@ import { AkcijeStavkeComponent } from '../Akcije/akcije-stavke/akcije-stavke.com
     AkcijeUnosComponent,
     AkcijePregledComponent,
     ButtonPregledAkcijeComponent,
+    ButtonAzurirajAkcijuComponent,
     AkcijeStavkeComponent,
+    AkcijeStavkePregledComponent,
     ButtonAkcijaComponent
   ],
 

@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { AkcijeStavkeComponent } from '../akcije-stavke/akcije-stavke.component';
+import { AkcijeStavkePregledComponent } from '../akcije-stavke-pregled/akcije-stavke-pregled.component';
 import { NbDialogService } from '@nebular/theme';
 
 @Component({
@@ -36,7 +36,7 @@ export class ButtonPregledAkcijeComponent implements OnInit {
 
 
   onClick() {
-    this.dialogService.open(AkcijeStavkeComponent, { closeOnBackdropClick:false, hasScroll:true, closeOnEsc: true,
+    this.dialogService.open(AkcijeStavkePregledComponent, { closeOnBackdropClick:false, hasScroll:true, closeOnEsc: true,
       context: { odabraniRed: this.value }}).onClose.subscribe(
         (podaci) => {
         //  this.save.emit(podaci);
