@@ -26,15 +26,18 @@
             <!-- Zaglavlje tabele -->
             <ng-template pTemplate="header">
                 <tr class="zaglavlje">
+                    <th>ID akcije</th>
                     <th>Šifra artikla</th>
                     <th>Naziv</th>
                     <th>Količina</th>
-                    <th>Prodavnica</th>
                 </tr>
             </ng-template>
             <!-- Polja u tabeli -->
             <ng-template pTemplate="body" let-data>
                 <tr>
+                    <td>
+                        {{ data.akcijaId }}
+                    </td>
                     <!-- Šifra artikla -->
                     <td>
                         <p-cellEditor>
@@ -69,9 +72,6 @@
                                 {{ data.kolicina }}
                             </ng-template>
                         </p-cellEditor>
-                    </td>
-                    <td>
-                      {{ data.prodavnica }}
                     </td>
                 </tr>
             </ng-template>

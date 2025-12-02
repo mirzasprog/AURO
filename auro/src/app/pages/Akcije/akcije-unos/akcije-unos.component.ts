@@ -3,6 +3,7 @@ import { LocalDataSource } from 'ng2-smart-table';
 import { Akcija } from '../../../@core/data/akcija';
 import { DataService } from '../../../@core/utils/data.service';
 import { ButtonPregledAkcijeComponent } from '../button-pregled-akcije/button-pregled-akcije.component';
+import { ButtonAzurirajAkcijuComponent } from '../button-azuriraj-akciju/button-azuriraj-akciju.component';
 
 @Component({
   selector: 'ngx-akcije-unos',
@@ -40,6 +41,12 @@ export class AkcijeUnosComponent implements OnInit {
         type: "custom",
         filter: false,
         renderComponent: ButtonPregledAkcijeComponent
+      },
+      azuriraj: {
+        title: "Ažuriraj",
+        type: "custom",
+        filter: false,
+        renderComponent: ButtonAzurirajAkcijuComponent
       },
     },
   };

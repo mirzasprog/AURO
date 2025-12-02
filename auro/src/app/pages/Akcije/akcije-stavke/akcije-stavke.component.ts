@@ -102,10 +102,10 @@ export class AkcijeStavkeComponent implements OnInit {
       next: (stavke) => {
         this.data = stavke.map(s => ({
           id: s.id ?? s.Id ?? 0,
+          akcijaId,
           sifra: s.sifra ?? s.Sifra ?? '',
           naziv: s.naziv ?? s.Naziv ?? '',
           kolicina: s.kolicina ?? s.Kolicina ?? 0,
-          prodavnica: s.prodavnica ?? s.Prodavnica ?? ''
         } as AkcijaStavka));
       },
       error: (err) => {

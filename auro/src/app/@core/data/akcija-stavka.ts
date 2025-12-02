@@ -1,6 +1,8 @@
 export interface AkcijaStavka {
   id?: number;
   Id?: number;
+  akcijaId?: number;
+  AkcijaId?: number;
   sifra?: string;
   Sifra?: string;
   naziv?: string;
