@@ -55,6 +55,8 @@ import { Prometi } from '../data/prometi';
 import { VikendAkcija } from '../data/vikend-akcija';
 import { VikendAkcijaStavka, VikendAkcijaStavkaUpdate } from '../data/vikend-akcija-stavka';
 import { VipArtikal } from '../data/vip-artikal';
+import { Akcija } from '../data/akcija';
+import { AkcijaStavka } from '../data/akcija-stavka';
 @Injectable({
   providedIn: 'root'
 })
@@ -371,5 +373,17 @@ export class DataService {
     formData.append('akcijaId', akcijaId);
     formData.append('file', fajl, fajl.name);
     return this.posaljiRequest("POST", this.baseUrl + '/api/vikend-akcije/artikli-import', formData);
+  }
+
+  public preuzmiAkcije(): Observable<Akcija[]> {
+    return this.sendRequest<Akcija[]>("GET", this.baseUrl + '/api/akcije');
+  }
+
+  public preuzmiStavkeAkcije(akcijaId: number): Observable<AkcijaStavka[]> {
+    return this.sendRequest<AkcijaStavka[]>("GET", this.baseUrl + `/api/akcije/${akcijaId}`);
+  }
+
+  public preuzmiExcelStavkeAkcije(akcijaId: number): Observable<Blob> {
+    return this.http.get(this.baseUrl + `/api/akcije/${akcijaId}/excel`, { responseType: 'blob' });
   }
 }
