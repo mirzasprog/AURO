@@ -6,9 +6,10 @@ import { ThemeModule } from '../../@theme/theme.module';
 import { VikendAkcijeRoutingModule } from './vikend-akcije-routing.module';
 import { VikendAkcijeComponent } from './vikend-akcije.component';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
+import { VikendAkcijeStavkePregledComponent } from './vikend-akcije-stavke-pregled/vikend-akcije-stavke-pregled.component';
 
 @NgModule({
-  declarations: [VikendAkcijeComponent, VikendAkcijeStavkeComponent],
+  declarations: [VikendAkcijeComponent, VikendAkcijeStavkeComponent, VikendAkcijeStavkePregledComponent],
   imports: [
     CommonModule,
     FormsModule,

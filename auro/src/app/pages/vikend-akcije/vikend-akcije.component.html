@@ -95,7 +95,7 @@
                 <div class="muted">do {{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</div>
               </td>
               <td class="text-center">
-                <button nbButton size="tiny" status="info" (click)="otvoriStavke(akcija)" nbTooltip="Prikaz stavki">
+                <button nbButton size="tiny" status="info" (click)="otvoriPregledStavki(akcija)" nbTooltip="Prikaz stavki">
                   {{ akcija.brojStavki }}
                 </button>
               </td>
@@ -109,7 +109,7 @@
                 </div>
               </td>
               <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
-                <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)"
+                <button nbButton size="tiny" status="success" (click)="otvoriAzuriranjeStavki(akcija)"
                   [disabled]="!jeAkcijaAktivna(akcija)">
                   Uredi stavke
                 </button>
@@ -128,8 +128,8 @@
           <h6 class="mb-0" *ngIf="selektovanaAkcija">{{ selektovanaAkcija.opis || ('Akcija #' + selektovanaAkcija.id) }}</h6>
           <small class="text-muted" *ngIf="selektovanaAkcija">ID: {{ selektovanaAkcija.uniqueId }}</small>
         </div>
-        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija" (click)="otvoriStavke(selektovanaAkcija)"
-          [disabled]="!jeAkcijaAktivna(selektovanaAkcija)">
+        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija"
+          (click)="otvoriAzuriranjeStavki(selektovanaAkcija)" [disabled]="!jeAkcijaAktivna(selektovanaAkcija)">
           Uredi
         </button>
       </div>

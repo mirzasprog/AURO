@@ -1,0 +1,9 @@
+.stavke-pregled-modal {
+  min-width: 520px;
+}
+
+@media (max-width: 576px) {
+  .stavke-pregled-modal {
+    min-width: auto;
+  }
+}
