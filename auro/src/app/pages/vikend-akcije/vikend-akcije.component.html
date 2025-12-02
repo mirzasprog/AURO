@@ -1,103 +1,175 @@
-<nb-card>
-  <nb-card-header>
-    Vikend akcije
+<nb-card class="vikend-akcije-card">
+  <nb-card-header class="page-header">
+    <div class="header-text">
+      <p class="eyebrow">Vikend akcije</p>
+      <h5 class="title mb-0">Periodi i artikli na jednom mjestu</h5>
+    </div>
+    <div class="header-actions" *ngIf="prikaziAkcijeKolonu()">
+      <button nbButton status="info" ghost size="small" type="button" (click)="scrollToAdminZone()">
+        <nb-icon icon="plus-circle-outline"></nb-icon>
+        Nova akcija
+      </button>
+    </div>
   </nb-card-header>
   <nb-card-body>
-    <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
-    <div class="alert alert-success" *ngIf="uspjehPoruka">{{ uspjehPoruka }}</div>
-    <div class="alert alert-info" *ngIf="importPoruka">{{ importPoruka }}</div>
+    <div class="stacked-alert" *ngIf="greska || uspjehPoruka || importPoruka">
+      <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
+      <div class="alert alert-success" *ngIf="uspjehPoruka">{{ uspjehPoruka }}</div>
+      <div class="alert alert-info" *ngIf="importPoruka">{{ importPoruka }}</div>
+    </div>
 
-    <div class="admin-zone" *ngIf="prikaziAkcijeKolonu()">
+    <div class="admin-zone" *ngIf="prikaziAkcijeKolonu()" #adminZone>
       <div class="admin-card">
-        <h6 class="mb-3">Novi zapis vikend akcije</h6>
-        <form (ngSubmit)="kreirajAkciju()" class="row g-3">
-          <div class="col-md-4">
-            <label class="form-label">Opis</label>
-            <input nbInput fullWidth placeholder="Opis akcije" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">Kreiranje</p>
+            <h6 class="mb-0">Nova vikend akcija</h6>
           </div>
-          <div class="col-md-4">
+          <div class="status-chip status-info">Period</div>
+        </div>
+        <form (ngSubmit)="kreirajAkciju()" class="form-grid">
+          <div class="form-field">
+            <label class="form-label">Opis</label>
+            <input nbInput fullWidth placeholder="Naziv ili opis" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
+          </div>
+          <div class="form-field">
             <label class="form-label">Početak</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.pocetak" name="pocetakAkcije" required>
           </div>
-          <div class="col-md-4">
+          <div class="form-field">
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
-          <div class="col-12 d-flex justify-content-end">
-            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit">
+          <div class="form-actions">
+            <button nbButton status="basic" size="small" type="button" ghost [disabled]="kreiranjeLoading" (click)="novaAkcija = { opis: '', pocetak: '', kraj: '' }">
+              Poništi
+            </button>
+            <button nbButton status="success" size="small" [disabled]="kreiranjeLoading" type="submit">
               <nb-spinner size="tiny" *ngIf="kreiranjeLoading"></nb-spinner>
-              <span *ngIf="!kreiranjeLoading">Sačuvaj zaglavlje</span>
+              <span *ngIf="!kreiranjeLoading">Sačuvaj</span>
             </button>
           </div>
         </form>
       </div>
 
       <div class="admin-card">
-        <h6 class="mb-3">Import artikala (.xlsx)</h6>
-        <form (ngSubmit)="importujArtikle()" class="row g-3" enctype="multipart/form-data">
-          <div class="col-md-4">
-            <label class="form-label">Akcija</label>
-            <select class="form-select" [(ngModel)]="odabranaAkcijaId" name="akcijaId" required>
-              <option value="" disabled [selected]="!odabranaAkcijaId">Odaberite akciju</option>
-              <option *ngFor="let akcija of vikendAkcije" [value]="akcija.uniqueId">
-                {{ akcija.opis || akcija.uniqueId }} ({{ akcija.uniqueId }})
-              </option>
-            </select>
-            <small class="text-muted">ID akcije se generiše automatski prilikom kreiranja.</small>
+        <div class="card-heading">
+          <div>
+            <p class="eyebrow">Import</p>
+            <h6 class="mb-0">Dodavanje artikala</h6>
           </div>
-          <div class="col-md-4">
+          <div class="status-chip status-primary">.xlsx</div>
+        </div>
+        <form (ngSubmit)="importujArtikle()" class="form-grid" enctype="multipart/form-data">
+          <div class="form-field">
+            <label class="form-label">ID akcije</label>
+            <div class="readonly-pill" [class.muted-text]="!odabranaAkcijaId">
+              {{ odabranaAkcijaId || 'Kreirajte akciju da dobijete ID' }}
+            </div>
+            <small class="text-muted" *ngIf="odabranaAkcijaId">Automatski dodijeljen ID zadnje kreirane akcije.</small>
+          </div>
+          <div class="form-field">
             <label class="form-label">Excel fajl</label>
             <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
-            <small class="text-muted">Kolone: NazivArtk, SifraArtk (bez IDAkcije)</small>
+            <small class="text-muted">Kolone: NazivArtk, SifraArtk</small>
           </div>
-          <div class="col-md-4 d-flex align-items-end justify-content-end">
-            <button nbButton status="primary" [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length" type="submit">
+          <div class="form-actions align-end">
+            <button nbButton status="primary" size="small" [disabled]="importLoading || !odabranaAkcijaId || !odabraniFajl" type="submit">
               <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
-              <span *ngIf="!importLoading">Importuj artikle</span>
+              <span *ngIf="!importLoading">Importuj</span>
             </button>
           </div>
         </form>
       </div>
     </div>
 
-    <div class="table-responsive" *ngIf="!loading; else loadingTemplate">
-      <table class="table table-hover vikend-akcije-table">
-        <thead>
-          <tr>
-            <th>Id</th>
-            <th>ID akcije</th>
-            <th>Opis</th>
-            <th>Pocetak</th>
-            <th>Kraj</th>
-            <th>Stavke</th>
-            <th>Status</th>
-            <th *ngIf="prikaziAkcijeKolonu()">Akcija</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let akcija of vikendAkcije" [ngClass]="redKlasa(akcija)">
-            <td>{{ akcija.id }}</td>
-            <td>{{ akcija.uniqueId }}</td>
-            <td>{{ akcija.opis }}</td>
-            <td>{{ akcija.pocetak | date:'dd.MM.yyyy HH:mm' }}</td>
-            <td>{{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</td>
-            <td>
-              <button nbButton size="tiny" status="info" (click)="otvoriStavke(akcija)" nbTooltip="Prikaz stavki">
-                {{ akcija.brojStavki }}
-              </button>
-            </td>
-            <td>
-              <nb-badge [text]="akcija.status || 'N/A'" status="basic" size="large"></nb-badge>
-            </td>
-            <td *ngIf="prikaziAkcijeKolonu()">
-              <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
-                Uredi stavke
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
+      <div class="table-toolbar">
+        <p class="eyebrow mb-0">Pregled akcija</p>
+        <div class="legend" *ngIf="vikendAkcije.length">
+          <span class="legend-dot aktivna"></span> Aktivna
+          <span class="legend-dot istaknuta"></span> Istaknuta
+          <span class="legend-dot najava"></span> Najava
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover vikend-akcije-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ID akcije</th>
+              <th>Opis</th>
+              <th>Period</th>
+              <th class="text-center">Stavke</th>
+              <th>Status</th>
+              <th *ngIf="prikaziAkcijeKolonu()" class="text-end">Akcija</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let akcija of vikendAkcije" [ngClass]="redKlasa(akcija)">
+              <td>{{ akcija.id }}</td>
+              <td>
+                <div class="id-pill">{{ akcija.uniqueId }}</div>
+              </td>
+              <td>
+                <div class="opis">{{ akcija.opis }}</div>
+                <div class="muted">{{ akcija.brojStavki }} artikala</div>
+              </td>
+              <td>
+                <div>{{ akcija.pocetak | date:'dd.MM.yyyy HH:mm' }}</div>
+                <div class="muted">do {{ akcija.kraj | date:'dd.MM.yyyy HH:mm' }}</div>
+              </td>
+              <td class="text-center">
+                <button nbButton size="tiny" status="info" ghost (click)="prikaziStavke(akcija)" nbTooltip="Prikaz stavki">
+                  {{ akcija.brojStavki || 0 }}
+                </button>
+              </td>
+              <td>
+                <div class="status-chip" [ngClass]="{
+                    'status-success': redKlasa(akcija) === 'row-aktivna',
+                    'status-warning': redKlasa(akcija) === 'row-istaknuta',
+                    'status-basic': redKlasa(akcija) === 'row-najava'
+                  }">
+                  {{ akcija.status || 'N/A' }}
+                </div>
+              </td>
+              <td *ngIf="prikaziAkcijeKolonu()" class="text-end table-actions">
+                <button nbButton size="tiny" status="success" appearance="outline" (click)="otvoriStavke(akcija)">
+                  Uredi
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
       <div *ngIf="!vikendAkcije.length" class="text-center text-muted">Nema definisanih vikend akcija.</div>
+    </div>
+
+    <div class="stavke-panel" *ngIf="selektovanaAkcija || stavkeLoading || stavkeGreska">
+      <div class="panel-header">
+        <div>
+          <p class="eyebrow mb-1">Stavke akcije</p>
+          <h6 class="mb-0" *ngIf="selektovanaAkcija">{{ selektovanaAkcija.opis || ('Akcija #' + selektovanaAkcija.id) }}</h6>
+          <small class="text-muted" *ngIf="selektovanaAkcija">ID: {{ selektovanaAkcija.uniqueId }}</small>
+        </div>
+        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija" (click)="otvoriStavke(selektovanaAkcija)">
+          Uredi
+        </button>
+      </div>
+      <div *ngIf="stavkeLoading" class="d-flex justify-content-center py-3">
+        <nb-spinner size="small"></nb-spinner>
+      </div>
+      <div *ngIf="stavkeGreska" class="alert alert-danger mb-3">{{ stavkeGreska }}</div>
+      <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length" class="stavke-grid">
+        <div class="stavka" *ngFor="let stavka of selektovaneStavke">
+          <div class="stavka-title">{{ stavka.nazivArtk }}</div>
+          <div class="muted">Šifra: {{ stavka.sifraArtk || 'N/A' }}</div>
+          <div class="badge">Akcija: {{ stavka.idAkcije || selektovanaAkcija?.uniqueId }}</div>
+        </div>
+      </div>
+      <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length === 0" class="text-muted text-center py-2">
+        Odaberite akciju za pregled stavki.
+      </div>
     </div>
     <ng-template #loadingTemplate>
       <div class="d-flex justify-content-center">

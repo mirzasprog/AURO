@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { NbDialogService } from '@nebular/theme';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { Subject } from 'rxjs';
@@ -6,6 +6,7 @@ import { takeUntil } from 'rxjs/operators';
 import { DataService } from '../../@core/utils/data.service';
 import { VikendAkcija } from '../../@core/data/vikend-akcija';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
+import { VipArtikal } from '../../@core/data/vip-artikal';
 
 @Component({
   selector: 'ngx-vikend-akcije',
@@ -13,6 +14,7 @@ import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcij
   styleUrls: ['./vikend-akcije.component.scss']
 })
 export class VikendAkcijeComponent implements OnInit, OnDestroy {
+  @ViewChild('adminZone') adminZone?: ElementRef<HTMLElement>;
   vikendAkcije: VikendAkcija[] = [];
   rola = '';
   loading = false;
@@ -23,6 +25,10 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   importPoruka = '';
   odabraniFajl?: File;
   odabranaAkcijaId = '';
+  selektovanaAkcija?: VikendAkcija;
+  selektovaneStavke: VipArtikal[] = [];
+  stavkeLoading = false;
+  stavkeGreska = '';
   novaAkcija = {
     opis: '',
     pocetak: '',
@@ -106,6 +112,13 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     return 'row-najava';
   }
 
+  scrollToAdminZone(): void {
+    const element = this.adminZone?.nativeElement;
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
   kreirajAkciju(): void {
     this.ocistiPoruke();
     if (!this.novaAkcija.pocetak || !this.novaAkcija.kraj) {
@@ -144,11 +157,36 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     }
   }
 
+  prikaziStavke(akcija: VikendAkcija): void {
+    this.selektovanaAkcija = akcija;
+    this.selektovaneStavke = [];
+    this.stavkeGreska = '';
+
+    if (!akcija.uniqueId) {
+      this.stavkeGreska = 'ID akcije nije definisan.';
+      return;
+    }
+
+    this.stavkeLoading = true;
+    this.dataService.preuzmiVipArtikle(akcija.uniqueId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stavke) => {
+          this.selektovaneStavke = stavke;
+          this.stavkeLoading = false;
+        },
+        error: (err) => {
+          this.stavkeLoading = false;
+          this.stavkeGreska = err.error?.poruka ?? 'Greška prilikom učitavanja stavki.';
+        }
+      });
+  }
+
   importujArtikle(): void {
     this.importPoruka = '';
     this.greska = '';
     if (!this.odabranaAkcijaId) {
-      this.greska = 'Odaberite akciju za koju importujete artikle.';
+      this.greska = 'Kreirajte akciju da dobijete ID za import.';
       return;
     }
     if (!this.odabraniFajl) {
@@ -189,8 +227,13 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     }
 
     const postojeci = akcije.find(a => a.uniqueId === this.odabranaAkcijaId);
-    if (!postojeci) {
-      this.odabranaAkcijaId = akcije[0].uniqueId ?? '';
+    if (postojeci) {
+      return;
     }
+
+    const najnovija = [...akcije]
+      .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))[0];
+
+    this.odabranaAkcijaId = najnovija?.uniqueId ?? '';
   }
 }
