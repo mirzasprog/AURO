@@ -62,8 +62,8 @@
           <p class="eyebrow mb-1">Lista akcija</p>
         </div>
         <div class="legend" *ngIf="vikendAkcije.length">
-          <span class="legend-dot aktivna"></span> Aktivna
-          <span class="legend-dot istaknuta"></span> Istaknuta
+          <span class="legend-dot aktivno"></span> Aktivno
+          <span class="legend-dot isteklo"></span> Isteklo
           <span class="legend-dot najava"></span> Najava
         </div>
       </div>
@@ -101,15 +101,16 @@
               </td>
               <td>
                 <div class="status-chip" [ngClass]="{
-                    'status-success': redKlasa(akcija) === 'row-aktivna',
-                    'status-warning': redKlasa(akcija) === 'row-istaknuta',
-                    'status-basic': redKlasa(akcija) === 'row-najava'
+                    'status-success': izracunajStatus(akcija) === 'aktivno',
+                    'status-danger': izracunajStatus(akcija) === 'isteklo',
+                    'status-warning': izracunajStatus(akcija) === 'najava'
                   }">
-                  {{ akcija.status || 'N/A' }}
+                  {{ statusPrikaz(akcija) }}
                 </div>
               </td>
               <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
-                <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)">
+                <button nbButton size="tiny" status="success" (click)="otvoriStavke(akcija)"
+                  [disabled]="!jeAkcijaAktivna(akcija)">
                   Uredi stavke
                 </button>
               </td>
@@ -127,7 +128,8 @@
           <h6 class="mb-0" *ngIf="selektovanaAkcija">{{ selektovanaAkcija.opis || ('Akcija #' + selektovanaAkcija.id) }}</h6>
           <small class="text-muted" *ngIf="selektovanaAkcija">ID: {{ selektovanaAkcija.uniqueId }}</small>
         </div>
-        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija" (click)="otvoriStavke(selektovanaAkcija)">
+        <button nbButton size="tiny" status="basic" ghost *ngIf="selektovanaAkcija" (click)="otvoriStavke(selektovanaAkcija)"
+          [disabled]="!jeAkcijaAktivna(selektovanaAkcija)">
           Uredi
         </button>
       </div>

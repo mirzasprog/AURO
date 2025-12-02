@@ -200,6 +200,12 @@
   color: #1f8b4d;
 }
 
+.status-danger {
+  background: #fde8e8;
+  border-color: #f5b0b0;
+  color: #c0392b;
+}
+
 .status-warning {
   background: #fff4e5;
   border-color: #ffd7a0;
@@ -249,16 +255,16 @@
   margin-right: 0.35rem;
 }
 
-.legend-dot.aktivna {
-  background: #e74c3c;
+.legend-dot.aktivno {
+  background: #8ee6a8;
 }
 
-.legend-dot.istaknuta {
-  background: #f7c36e;
+.legend-dot.isteklo {
+  background: #f5a3a5;
 }
 
 .legend-dot.najava {
-  background: #f5a623;
+  background: #ffe08a;
 }
 
 .vikend-akcije-table th,
@@ -266,16 +272,16 @@
   vertical-align: middle;
 }
 
-.vikend-akcije-table tr.row-aktivna {
-  background: #fdecea;
+.vikend-akcije-table tr.row-aktivno {
+  background: #e7f6ed;
 }
 
-.vikend-akcije-table tr.row-istaknuta {
-  background: #fff6e5;
+.vikend-akcije-table tr.row-isteklo {
+  background: #fde8e8;
 }
 
 .vikend-akcije-table tr.row-najava {
-  background: #f7f9fc;
+  background: #fff8d9;
 }
 
 .vikend-akcije-table tr:hover {

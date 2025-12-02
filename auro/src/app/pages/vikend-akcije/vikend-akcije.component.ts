@@ -98,18 +98,18 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   }
 
   redKlasa(akcija: VikendAkcija): string {
-    if (!akcija) {
-      return '';
+    const status = this.izracunajStatus(akcija);
+
+    switch (status) {
+      case 'aktivno':
+        return 'row-aktivno';
+      case 'isteklo':
+        return 'row-isteklo';
+      case 'najava':
+        return 'row-najava';
+      default:
+        return '';
     }
-    const sada = new Date();
-    const kraj = new Date(akcija.kraj);
-    if ((akcija.status ?? '').toLowerCase().includes('aktivna')) {
-      return 'row-aktivna';
-    }
-    if (kraj < sada) {
-      return 'row-istaknuta';
-    }
-    return 'row-najava';
   }
 
   scrollToAdminZone(): void {
@@ -187,6 +187,43 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
           this.stavkeGreska = err.error?.poruka ?? 'Greška prilikom učitavanja stavki.';
         }
       });
+  }
+
+  izracunajStatus(akcija?: VikendAkcija): string {
+    if (!akcija) {
+      return '';
+    }
+
+    const sada = new Date();
+    const pocetak = new Date(akcija.pocetak);
+    const kraj = new Date(akcija.kraj);
+
+    if (isNaN(pocetak.getTime()) || isNaN(kraj.getTime())) {
+      return (akcija.status ?? '').toLowerCase();
+    }
+
+    if (sada < pocetak) {
+      return 'najava';
+    }
+
+    if (sada > kraj) {
+      return 'isteklo';
+    }
+
+    return 'aktivno';
+  }
+
+  statusPrikaz(akcija: VikendAkcija): string {
+    const status = this.izracunajStatus(akcija);
+    if (!status) {
+      return 'N/A';
+    }
+
+    return status.charAt(0).toUpperCase() + status.slice(1);
+  }
+
+  jeAkcijaAktivna(akcija?: VikendAkcija): boolean {
+    return this.izracunajStatus(akcija) === 'aktivno';
   }
 
   private ocistiPoruke(): void {
