@@ -2,15 +2,7 @@
   <nb-card-header>
     <div class="header-content">
       <div>
-        <div class="eyebrow">Promocije • Vikend akcije</div>
-        <h4 class="title">Pregled i uređivanje vikend akcija</h4>
-        <p class="subtitle">Pripremite artikle, kreirajte nove periode i brzo importujte Excel fajl sa ponudom.</p>
-      </div>
-      <div class="header-actions" *ngIf="prikaziAkcijeKolonu()">
-        <button nbButton status="info" ghost size="small" type="button" (click)="adminZone.scrollIntoView({ behavior: 'smooth', block: 'start' })">
-          <nb-icon icon="plus-circle-outline"></nb-icon>
-          <span>Novi period</span>
-        </button>
+        <div class="eyebrow">Vikend akcije</div>
       </div>
     </div>
   </nb-card-header>
@@ -27,9 +19,7 @@
           <div>
             <p class="eyebrow">Zaglavlje akcije</p>
             <h6 class="mb-1">Novi zapis vikend akcije</h6>
-            <small class="text-muted">Popunite osnovne informacije i sačuvajte novi period.</small>
           </div>
-          <div class="status-chip status-info">Novi period</div>
         </div>
         <form (ngSubmit)="kreirajAkciju()" class="row g-3">
           <div class="col-md-4">
@@ -44,13 +34,16 @@
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
-          <div class="col-12 d-flex justify-content-end gap-2">
-            <button nbButton status="basic" type="button" outline [disabled]="kreiranjeLoading" (click)="novaAkcija = { opis: '', pocetak: '', kraj: '' }">
-              Resetuj
+          <div class="col" style="margin-top:10px;">
+            <button nbButton style="float:inline-start" status="danger" type="button" 
+            [disabled]="kreiranjeLoading" size="small"
+            (click)="novaAkcija = { opis: '', pocetak: '', kraj: '' }">
+             <nb-icon icon="close-square"></nb-icon> Resetuj
             </button>
-            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit">
+            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit"
+             size="small" style="float:inline-end" >
               <nb-spinner size="tiny" *ngIf="kreiranjeLoading"></nb-spinner>
-              <span *ngIf="!kreiranjeLoading">Sačuvaj zaglavlje</span>
+              <span *ngIf="!kreiranjeLoading"> <nb-icon icon="save"></nb-icon> Sačuvaj zaglavlje</span>
             </button>
           </div>
         </form>
@@ -61,12 +54,10 @@
           <div>
             <p class="eyebrow">Import artikala</p>
             <h6 class="mb-1">Dodavanje artikala (.xlsx)</h6>
-            <small class="text-muted">Uvezite Excel sa artiklima i povežite ga sa željenom akcijom.</small>
           </div>
-          <div class="status-chip status-primary">Import</div>
         </div>
         <form (ngSubmit)="importujArtikle()" class="row g-3" enctype="multipart/form-data">
-          <div class="col-md-4">
+          <div class="col">
             <label class="form-label">Akcija</label>
             <select class="form-select" [(ngModel)]="odabranaAkcijaId" name="akcijaId" required>
               <option value="" disabled [selected]="!odabranaAkcijaId">Odaberite akciju</option>
@@ -74,15 +65,16 @@
                 {{ akcija.opis || akcija.uniqueId }} ({{ akcija.uniqueId }})
               </option>
             </select>
-            <small class="text-muted">ID akcije se generiše automatski prilikom kreiranja.</small>
           </div>
-          <div class="col-md-4">
+          <div class="col">
             <label class="form-label">Excel fajl</label>
             <input nbInput fullWidth type="file" accept=".xlsx" (change)="zapamtiFajl($event)" name="excelFile" required>
             <small class="text-muted">Kolone: NazivArtk, SifraArtk (bez IDAkcije)</small>
           </div>
-          <div class="col-md-4 d-flex align-items-end justify-content-end">
-            <button nbButton status="primary" size="small" [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length" type="submit">
+          <div class="col">
+            <button nbButton status="primary" size="small"
+             [disabled]="importLoading || !odabranaAkcijaId || !vikendAkcije.length"
+              type="submit" size="small" style="float: inline-end; margin-top:28px;">
               <nb-spinner size="tiny" *ngIf="importLoading"></nb-spinner>
               <span *ngIf="!importLoading">Importuj artikle</span>
             </button>
@@ -90,12 +82,11 @@
         </form>
       </div>
     </div>
-
+<hr>
     <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
       <div class="table-toolbar">
         <div>
           <p class="eyebrow mb-1">Lista akcija</p>
-          <h6 class="mb-0">Aktivne, istaknute i najavljene akcije</h6>
         </div>
         <div class="legend" *ngIf="vikendAkcije.length">
           <span class="legend-dot aktivna"></span> Aktivna
