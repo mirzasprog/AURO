@@ -18,7 +18,8 @@
         <form (ngSubmit)="kreirajAkciju()" class="form-grid" enctype="multipart/form-data">
           <div class="form-field">
             <label class="form-label">Opis</label>
-            <input nbInput fullWidth placeholder="Naziv ili opis" [(ngModel)]="novaAkcija.opis" name="opisAkcije">
+            <input nbInput fullWidth placeholder="Naziv ili opis" autocomplete="off"
+             [(ngModel)]="novaAkcija.opis" name="opisAkcije">
           </div>
           <div class="form-field">
             <label class="form-label">Početak</label>
@@ -104,7 +105,7 @@
               <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
                 <button nbButton size="small" status="success" (click)="otvoriAzuriranjeStavki(akcija)"
                   [disabled]="!jeAkcijaAktivna(akcija)">
-                  Uredi stavke
+                  <nb-icon icon="edit-2"></nb-icon> Otvori
                 </button>
               </td>
             </tr>
