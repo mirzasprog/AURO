@@ -1,0 +1,38 @@
+<nb-card class="stavke-pregled-modal">
+  <nb-card-header>
+    {{ naslov }} - stavke
+  </nb-card-header>
+  <nb-card-body>
+    <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
+    <div class="table-responsive" *ngIf="!loading; else loadingStavke">
+      <table class="table table-sm table-hover">
+        <thead>
+          <tr>
+            <th>ID akcije</th>
+            <th>Šifra artikla</th>
+            <th>Naziv artikla</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stavka of stavke">
+            <td>{{ vikendAkcijaId }}</td>
+            <td>{{ stavka.sifra }}</td>
+            <td>{{ stavka.naziv }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #loadingStavke>
+      <div class="d-flex justify-content-center">
+        <nb-spinner></nb-spinner>
+      </div>
+    </ng-template>
+  </nb-card-body>
+  <nb-card-footer class="d-flex justify-content-end gap-2">
+    <button nbButton status="basic" size="small" (click)="zatvori()">Zatvori</button>
+    <button nbButton status="primary" size="small" (click)="ucitajStavke()" [disabled]="loading">Osvježi</button>
+    <button nbButton status="success" size="small" (click)="exportujStavke()" [disabled]="!stavke.length">
+      Export u Excel
+    </button>
+  </nb-card-footer>
+</nb-card>

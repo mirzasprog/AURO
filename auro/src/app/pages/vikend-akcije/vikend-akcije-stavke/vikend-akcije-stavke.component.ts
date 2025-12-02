@@ -71,6 +71,18 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     }
     this.saving = true;
     this.greska = '';
-
+    const akcijaIdBroj = Number(this.vikendAkcijaId);
+    this.dataService.azurirajStavkeVikendAkcije(akcijaIdBroj, izmjene)
+      .subscribe({
+        next: () => {
+          izmjene.forEach(izmjena => this.privatneKolicine.set(izmjena.id, izmjena.kolicina));
+          this.saving = false;
+          this.zatvori(true);
+        },
+        error: (err) => {
+          this.greska = err.error?.poruka ?? 'Greška prilikom snimanja stavki.';
+          this.saving = false;
+        }
+      });
   }
 }
