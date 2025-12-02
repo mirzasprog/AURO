@@ -39,9 +39,9 @@
       </div>
     </ng-template>
   </nb-card-body>
-  <nb-card-footer class="d-flex justify-content-end gap-2">
-    <button nbButton status="basic" size="small" (click)="zatvori(false)" [disabled]="saving">Zatvori</button>
-    <button nbButton status="primary" size="small" (click)="ucitajStavke()" [disabled]="saving">Osvježi</button>
-    <button nbButton status="success" size="small" (click)="sacuvaj()" [disabled]="!mozeSpasiti()">Sačuvaj</button>
+  <nb-card-footer class="col">
+    <button nbButton style="float:inline-start;" status="danger" size="small" (click)="zatvori(false)" [disabled]="saving">Zatvori</button>
+    <button nbButton status="primary" size="small" style="margin-left:25px;" (click)="ucitajStavke()" [disabled]="saving">Osvježi</button>
+    <button nbButton status="success" style="float:inline-end;" size="small" (click)="sacuvaj()" [disabled]="!mozeSpasiti()">Sačuvaj</button>
   </nb-card-footer>
 </nb-card>
