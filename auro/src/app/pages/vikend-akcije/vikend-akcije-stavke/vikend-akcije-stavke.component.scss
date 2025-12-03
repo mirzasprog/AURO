@@ -1,3 +1,18 @@
+.stavke-modal {
+  background: var(--card-background);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.stavke-modal nb-card-header,
+.stavke-modal nb-card-body,
+.stavke-modal nb-card-footer {
+  background: var(--card-background);
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
 .stavke-modal nb-card-body {
   max-height: 65vh;
   overflow: auto;
@@ -11,4 +26,12 @@
 .table td,
 .table th {
   vertical-align: middle;
+}
+
+.table th {
+  color: var(--text-secondary);
+}
+
+.table tbody tr:hover {
+  background: var(--table-row-hover);
 }

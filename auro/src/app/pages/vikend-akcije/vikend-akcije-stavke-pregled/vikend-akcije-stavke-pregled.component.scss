@@ -1,5 +1,21 @@
 .stavke-pregled-modal {
   min-width: 520px;
+  background: var(--card-background);
+  color: var(--text-primary);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.stavke-pregled-modal nb-card-header,
+.stavke-pregled-modal nb-card-body,
+.stavke-pregled-modal nb-card-footer {
+  background: var(--card-background);
+  color: var(--text-primary);
+  border-color: var(--card-border);
+}
+
+.table tbody tr:hover {
+  background: var(--table-row-hover);
 }
 
 @media (max-width: 576px) {
