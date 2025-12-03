@@ -8,17 +8,21 @@ import { Spinkit } from 'ng-http-loader';
 
 @Component({
   selector: 'ngx-app',
-  template: `<router-outlet></router-outlet>
-  <ng-http-loader
-  [backdrop]="true"
-  [backgroundColor]="'#ff0000'"
-  [debounceDelay]="100"
-  [extraDuration]="300"
-  [minDuration]="300"
-  [opacity]=".6"
-  [backdropBackgroundColor]="'#777777'"
-  [spinner]="spinkit.skCubeGrid">
-  </ng-http-loader>`,
+  template: `
+    <router-outlet></router-outlet>
+    <ngx-chatbot-widget></ngx-chatbot-widget>
+    <ng-http-loader
+      [backdrop]="true"
+      [backgroundColor]="'#ff0000'"
+      [debounceDelay]="100"
+      [extraDuration]="300"
+      [minDuration]="300"
+      [opacity]=".6"
+      [backdropBackgroundColor]="'#777777'"
+      [spinner]="spinkit.skCubeGrid"
+    >
+    </ng-http-loader>
+  `,
 })
 export class AppComponent implements OnInit {
   trenutnaVerzija: string;
