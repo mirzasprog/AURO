@@ -280,7 +280,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     return Array.from(mapa.values()).map(zapis => ({
       'Šifra artikla': zapis.sifra,
       'Naziv artikla': zapis.naziv,
-      'Broj prodavnica': zapis.prodavnice.size,
+      'Broj prodavnice': zapis.prodavnice.size,
       'Ukupna količina': zapis.ukupnaKolicina,
     }));
   }
@@ -291,7 +291,10 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
 
     return stavke.map(stavka => ({
       'ID akcije': akcijaId,
-      Prodavnica: stavka.prodavnica ?? 'Nepoznata prodavnica',
+      'Broj prodavnice':
+        stavka.prodavnica === undefined || stavka.prodavnica === null
+          ? 'Nepoznata prodavnica'
+          : String(stavka.prodavnica),
       'Šifra artikla': stavka.sifra ?? 'N/A',
       'Naziv artikla': stavka.naziv ?? 'Nepoznat artikal',
       'Količina': Number(stavka.kolicina) || 0,
