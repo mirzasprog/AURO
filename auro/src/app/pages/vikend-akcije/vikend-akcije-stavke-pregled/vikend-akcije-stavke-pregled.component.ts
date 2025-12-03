@@ -13,6 +13,8 @@ import { DataService } from '../../../@core/utils/data.service';
 export class VikendAkcijeStavkePregledComponent implements OnInit {
   @Input() vikendAkcijaId!: string;
   @Input() naslov = '';
+  @Input() rola = '';
+  @Input() brojProdavnice = '';
 
   stavke: VikendAkcijaStavka[] = [];
   loading = false;
@@ -33,7 +35,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
     this.dataService.preuzmiStavkeVikendAkcije(this.vikendAkcijaId)
       .subscribe({
         next: (stavke) => {
-          this.stavke = stavke;
+          this.stavke = this.filtrirajStavkePoProdavnici(stavke);
           this.loading = false;
         },
         error: (err) => {
@@ -64,6 +66,14 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
     FileSaver.saveAs(data, `vikend-akcija-${this.vikendAkcijaId}.xlsx`);
+  }
+
+  private filtrirajStavkePoProdavnici(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+    if (this.rola !== 'prodavnica' || !this.brojProdavnice) {
+      return stavke;
+    }
+
+    return stavke.filter(stavka => (stavka.prodavnica ?? '').toString() === this.brojProdavnice);
   }
 }
 
