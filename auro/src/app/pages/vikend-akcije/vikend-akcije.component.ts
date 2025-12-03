@@ -8,6 +8,8 @@ import { VikendAkcija } from '../../@core/data/vikend-akcija';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
 import { VikendAkcijeStavkePregledComponent } from './vikend-akcije-stavke-pregled/vikend-akcije-stavke-pregled.component';
 import { VikendAkcijaStavka } from '../../@core/data/vikend-akcija-stavka';
+import * as FileSaver from 'file-saver';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'ngx-vikend-akcije',
@@ -31,6 +33,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   selektovaneStavke: VikendAkcijaStavka[] = [];
   stavkeLoading = false;
   stavkeGreska = '';
+  preuzimanjeAkcijaId = '';
   novaAkcija = {
     opis: '',
     pocetak: '',
@@ -211,6 +214,91 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       });
   }
 
+  preuzmiIzvjestaj(akcija: VikendAkcija): void {
+    if (!akcija?.uniqueId) {
+      this.greska = 'ID akcije nije dostupan.';
+      return;
+    }
+
+    this.greska = '';
+    this.preuzimanjeAkcijaId = akcija.uniqueId;
+
+    this.dataService.preuzmiStavkeVikendAkcije(akcija.uniqueId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stavke) => {
+          if (!stavke.length) {
+            this.greska = 'Nema dostupnih stavki za odabranu akciju.';
+            this.preuzimanjeAkcijaId = '';
+            return;
+          }
+
+          const analitika = this.kreirajAnalitiku(stavke);
+          const sintetika = this.kreirajSintetiku(stavke, akcija);
+
+          const workbook: XLSX.WorkBook = {
+            Sheets: {
+              Analitika: XLSX.utils.json_to_sheet(analitika),
+              Sintetika: XLSX.utils.json_to_sheet(sintetika),
+            },
+            SheetNames: ['Analitika', 'Sintetika']
+          };
+
+          const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+          const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
+          FileSaver.saveAs(data, `vikend-akcija-${akcija.uniqueId}-izvjestaj.xlsx`);
+          this.preuzimanjeAkcijaId = '';
+        },
+        error: (err) => {
+          this.preuzimanjeAkcijaId = '';
+          this.greska = err.error?.poruka ?? 'Greška prilikom preuzimanja stavki za izvještaj.';
+        }
+      });
+  }
+
+  private kreirajAnalitiku(stavke: VikendAkcijaStavka[]): any[] {
+    const mapa = new Map<string, { sifra: string; naziv: string; ukupnaKolicina: number; prodavnice: Set<string> }>();
+
+    stavke.forEach(stavka => {
+      const kljuc = `${stavka.sifra ?? stavka.naziv ?? stavka.id}`;
+      const postojeci = mapa.get(kljuc);
+      const prodavnica = stavka.prodavnica ?? 'Nepoznata prodavnica';
+
+      if (postojeci) {
+        postojeci.ukupnaKolicina += Number(stavka.kolicina) || 0;
+        postojeci.prodavnice.add(prodavnica);
+      } else {
+        mapa.set(kljuc, {
+          sifra: stavka.sifra ?? 'N/A',
+          naziv: stavka.naziv ?? 'Nepoznat artikal',
+          ukupnaKolicina: Number(stavka.kolicina) || 0,
+          prodavnice: new Set([prodavnica]),
+        });
+      }
+    });
+
+    return Array.from(mapa.values()).map(zapis => ({
+      'Šifra artikla': zapis.sifra,
+      'Naziv artikla': zapis.naziv,
+      'Broj prodavnica': zapis.prodavnice.size,
+      'Ukupna količina': zapis.ukupnaKolicina,
+    }));
+  }
+
+  private kreirajSintetiku(stavke: VikendAkcijaStavka[], akcija: VikendAkcija): any[] {
+    const period = `${new Date(akcija.pocetak).toLocaleString('sr-RS')} - ${new Date(akcija.kraj).toLocaleString('sr-RS')}`;
+    const akcijaId = akcija.uniqueId ?? akcija.id ?? '';
+
+    return stavke.map(stavka => ({
+      'ID akcije': akcijaId,
+      Prodavnica: stavka.prodavnica ?? 'Nepoznata prodavnica',
+      'Šifra artikla': stavka.sifra ?? 'N/A',
+      'Naziv artikla': stavka.naziv ?? 'Nepoznat artikal',
+      'Količina': Number(stavka.kolicina) || 0,
+      Period: period,
+    }));
+  }
+
   izracunajStatus(akcija?: VikendAkcija): string {
     if (!akcija) {
       return '';
@@ -279,3 +367,5 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     this.odabranaAkcijaId = najnovija?.uniqueId ?? '';
   }
 }
+
+const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
