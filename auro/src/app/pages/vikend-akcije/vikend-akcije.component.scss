@@ -270,9 +270,18 @@
   background: var(--legend-najava);
 }
 
+.vikend-akcije-table {
+  color: var(--text-primary);
+}
+
 .vikend-akcije-table th,
 .vikend-akcije-table td {
   vertical-align: middle;
+}
+
+.vikend-akcije-table thead th {
+  color: var(--text-secondary);
+  border-color: var(--card-border);
 }
 
 .vikend-akcije-table tr.row-aktivno {
