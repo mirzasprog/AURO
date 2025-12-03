@@ -15,7 +15,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   @Input() brojProdavnice = '';
 
   stavke: VikendAkcijaStavka[] = [];
-  privatneKolicine = new Map<number, number>();
+  privatneKolicine = new Map<string, number>();
   loading = false;
   saving = false;
   greska = '';

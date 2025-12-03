@@ -1,5 +1,5 @@
 export interface VikendAkcijaStavka {
-  id: number;
+  id: string;
   sifra?: string;
   naziv?: string;
   kolicina: number;
@@ -7,7 +7,7 @@ export interface VikendAkcijaStavka {
 }
 
 export interface VikendAkcijaStavkaUpdate {
-  id: number;
+  id: string;
   vikendAkcijaId: string;
   sifraArtikla: string;
   nazivArtikla: string;
