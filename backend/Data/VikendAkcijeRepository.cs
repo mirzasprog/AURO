@@ -51,7 +51,7 @@ namespace backend.Data
                 return Enumerable.Empty<VikendAkcijaStavkaDto>();
             }
 
-            return await _context.VipStavkes
+            var stavke = await _context.VipStavkes
                 .AsNoTracking()
                 .Where(s => s.VipZaglavljeId == zaglavljeId)
                 .OrderBy(s => s.SifraArtikla)
@@ -62,6 +62,25 @@ namespace backend.Data
                     Naziv = s.NazivArtikla,
                     Kolicina = s.Kolicina,
                     Prodavnica = s.Prodavnica
+                })
+                .ToListAsync();
+
+            if (stavke.Any())
+            {
+                return stavke;
+            }
+
+            return await _context.VipArtiklis
+                .AsNoTracking()
+                .Where(a => a.Idakcije == vikendAkcijaId)
+                .OrderBy(a => a.NazivArtk)
+                .Select(a => new VikendAkcijaStavkaDto
+                {
+                    Id = a.Id.ToString(),
+                    Sifra = a.SifraArtk,
+                    Naziv = a.NazivArtk,
+                    Kolicina = 0,
+                    Prodavnica = null
                 })
                 .ToListAsync();
         }
