@@ -8,5 +8,9 @@ export interface VikendAkcijaStavka {
 
 export interface VikendAkcijaStavkaUpdate {
   id: number;
+  vikendAkcijaId: string;
+  sifraArtikla: string;
+  nazivArtikla: string;
   kolicina: number;
+  brojProdavnice: string;
 }

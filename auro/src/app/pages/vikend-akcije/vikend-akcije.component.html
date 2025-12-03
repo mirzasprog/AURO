@@ -13,7 +13,7 @@
       <div class="alert alert-info" *ngIf="importPoruka">{{ importPoruka }}</div>
     </div>
 
-    <div class="admin-zone" *ngIf="prikaziAkcijeKolonu()" #adminZone>
+    <div class="admin-zone" *ngIf="prikaziAdminZonu()" #adminZone>
       <div class="admin-card">
         <form (ngSubmit)="kreirajAkciju()" class="form-grid" enctype="multipart/form-data">
           <div class="form-field">
