@@ -52,7 +52,7 @@ export class PagesComponent implements OnInit {
     }
 
     vikendAkcijeItem.badge = aktivna
-      ? { text: '', status: 'danger', dotMode: true }
+      ? { text: '', status: 'success', dotMode: true }
       : undefined;
   }
 
