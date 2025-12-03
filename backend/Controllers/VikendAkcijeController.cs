@@ -65,15 +65,21 @@ namespace backend.Controllers
         }
 
         [HttpPut("{vikendAkcijaId}/stavke")]
-        [Authorize(Roles = "uprava")]
-        public async Task<IActionResult> AzurirajStavke(int vikendAkcijaId, [FromBody] IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
+        [Authorize(Roles = "prodavnica,podrucni,regionalni,uprava")]
+        public async Task<IActionResult> AzurirajStavke(string vikendAkcijaId, [FromBody] IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
         {
             if (izmjene == null)
             {
                 return BadRequest(new { poruka = "Nisu proslijeđene stavke za ažuriranje." });
             }
 
-            await _repository.UpdateStavkeAsync(vikendAkcijaId, izmjene);
+            var azurirano = await _repository.UpdateStavkeAsync(vikendAkcijaId, izmjene);
+
+            if (!azurirano)
+            {
+                return NotFound(new { poruka = "Vikend akcija sa zadanim ID-jem nije pronađena." });
+            }
+
             return NoContent();
         }
 
