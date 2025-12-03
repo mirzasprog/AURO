@@ -20,8 +20,6 @@ import { Component } from '@angular/core';
         <ng-content select="router-outlet"></ng-content>
       </nb-layout-column>
 
-      <ngx-chatbot-widget></ngx-chatbot-widget>
-
       <nb-layout-column class="small">
       </nb-layout-column>
 
