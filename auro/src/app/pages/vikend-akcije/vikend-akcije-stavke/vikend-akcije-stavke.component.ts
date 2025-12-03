@@ -109,6 +109,22 @@ export class VikendAkcijeStavkeComponent implements OnInit {
       return stavke;
     }
 
-    return stavke.filter(stavka => (stavka.prodavnica ?? '').toString() === this.brojProdavnice);
+    const mapaStavki = new Map<string, VikendAkcijaStavka>();
+
+    stavke.forEach(stavka => {
+      const kljuc = stavka.sifra ?? stavka.naziv ?? stavka.id;
+      const postojeca = mapaStavki.get(kljuc);
+
+      if ((stavka.prodavnica ?? '').toString() === this.brojProdavnice) {
+        mapaStavki.set(kljuc, { ...stavka, prodavnica: this.brojProdavnice });
+        return;
+      }
+
+      if (!postojeca) {
+        mapaStavki.set(kljuc, { ...stavka, kolicina: 0, prodavnica: this.brojProdavnice });
+      }
+    });
+
+    return Array.from(mapaStavki.values());
   }
 }
