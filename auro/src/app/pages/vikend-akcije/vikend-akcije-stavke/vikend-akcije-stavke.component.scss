@@ -18,6 +18,10 @@
   overflow: auto;
 }
 
+.table {
+  color: var(--text-primary);
+}
+
 .kolicina-cell input {
   max-width: 120px;
   margin: 0 auto;
