@@ -61,17 +61,27 @@ namespace backend.Data
                 .ToListAsync();
         }
 
-        public async Task UpdateStavkeAsync(int vikendAkcijaId, IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
+        public async Task<bool> UpdateStavkeAsync(string vikendAkcijaId, IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
         {
             var izmjeneLista = izmjene.ToList();
             if (!izmjeneLista.Any())
             {
-                return;
+                return true;
+            }
+
+            var zaglavljeId = await _context.VipZaglavljes
+                .Where(z => z.UniqueId == vikendAkcijaId)
+                .Select(z => z.Id)
+                .FirstOrDefaultAsync();
+
+            if (zaglavljeId == 0)
+            {
+                return false;
             }
 
             var stavkeIds = izmjeneLista.Select(i => i.Id).ToList();
             var stavke = await _context.VipStavkes
-                .Where(s => s.VipZaglavljeId == vikendAkcijaId && stavkeIds.Contains(s.Id))
+                .Where(s => s.VipZaglavljeId == zaglavljeId && stavkeIds.Contains(s.Id))
                 .ToListAsync();
 
             foreach (var stavka in stavke)
@@ -82,6 +92,8 @@ namespace backend.Data
             }
 
             await _context.SaveChangesAsync();
+
+            return true;
         }
 
         public async Task<VikendAkcijaDto> KreirajAkcijuAsync(VikendAkcijaCreateRequest zahtjev)
