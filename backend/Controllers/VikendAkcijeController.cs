@@ -73,14 +73,19 @@ namespace backend.Controllers
                 return BadRequest(new { poruka = "Nisu proslijeđene stavke za ažuriranje." });
             }
 
-            var azurirano = await _repository.UpdateStavkeAsync(vikendAkcijaId, izmjene);
+            var rezultat = await _repository.UpdateStavkeAsync(vikendAkcijaId, izmjene);
 
-            if (!azurirano)
+            if (!rezultat.AkcijaPronadjena)
             {
                 return NotFound(new { poruka = "Vikend akcija sa zadanim ID-jem nije pronađena." });
             }
 
-            return NoContent();
+            var ukupno = rezultat.BrojAzuriranih + rezultat.BrojDodanih;
+            var poruka = ukupno > 0
+                ? $"Stavke su uspješno spremljene ({rezultat.BrojAzuriranih} ažurirano, {rezultat.BrojDodanih} dodano)."
+                : "Nema izmjena za snimanje.";
+
+            return Ok(new { poruka, rezultat.BrojAzuriranih, rezultat.BrojDodanih });
         }
 
         [HttpPost("artikli-import")]

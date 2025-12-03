@@ -365,7 +365,10 @@ export class DataService {
   }
 
   public azurirajStavkeVikendAkcije(vikendAkcijaId: string, stavke: VikendAkcijaStavkaUpdate[]) {
-    return this.posaljiRequest<void>("PUT", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`, stavke);
+    return this.posaljiRequest<{ poruka: string, brojAzuriranih: number, brojDodanih: number }>(
+      "PUT",
+      this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`,
+      stavke);
   }
 
   public importujVikendArtikle(akcijaId: string, fajl: File) {

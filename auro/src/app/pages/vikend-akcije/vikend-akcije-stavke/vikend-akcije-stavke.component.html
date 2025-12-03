@@ -3,6 +3,7 @@
     {{ naslov }} - stavke
   </nb-card-header>
   <nb-card-body>
+    <div class="alert alert-success" *ngIf="uspjeh">{{ uspjeh }}</div>
     <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
     <div class="table-responsive" *ngIf="!loading; else loadingStavke">
       <table class="table table-sm table-hover">

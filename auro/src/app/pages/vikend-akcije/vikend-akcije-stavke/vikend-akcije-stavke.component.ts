@@ -19,6 +19,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   loading = false;
   saving = false;
   greska = '';
+  uspjeh = '';
 
   constructor(
     protected dialogRef: NbDialogRef<VikendAkcijeStavkeComponent>,
@@ -29,9 +30,12 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.ucitajStavke();
   }
 
-  ucitajStavke(): void {
+  ucitajStavke(ocistiPoruke: boolean = true): void {
     this.loading = true;
     this.greska = '';
+    if (ocistiPoruke) {
+      this.uspjeh = '';
+    }
     this.dataService.preuzmiStavkeVikendAkcije(this.vikendAkcijaId)
       .subscribe({
         next: (podaci) => {
@@ -83,12 +87,15 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     }
     this.saving = true;
     this.greska = '';
+    this.uspjeh = '';
     this.dataService.azurirajStavkeVikendAkcije(this.vikendAkcijaId, izmjene)
       .subscribe({
-        next: () => {
+        next: (odgovor) => {
           izmjene.forEach(izmjena => this.privatneKolicine.set(izmjena.id, izmjena.kolicina));
+          this.uspjeh = odgovor?.poruka ?? 'Stavke su uspješno spremljene.';
+          this.greska = '';
           this.saving = false;
-          this.zatvori(true);
+          this.ucitajStavke(false);
         },
         error: (err) => {
           this.greska = err.error?.poruka ?? 'Greška prilikom snimanja stavki.';
