@@ -19,6 +19,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   @ViewChild('excelInput') excelInput?: ElementRef<HTMLInputElement>;
   vikendAkcije: VikendAkcija[] = [];
   rola = '';
+  brojProdavnice = '';
   loading = false;
   greska = '';
   kreiranjeLoading = false;
@@ -44,11 +45,16 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.authService.getToken()
+    this.authService.onTokenChange()
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
         if (token.isValid()) {
-          this.rola = token.getPayload()["role"];
+          const payload = token.getPayload();
+          this.rola = payload["role"];
+          this.brojProdavnice = payload["name"] ?? '';
+        } else {
+          this.rola = '';
+          this.brojProdavnice = '';
         }
         this.ucitajAkcije();
       });
@@ -93,6 +99,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         vikendAkcijaId: akcija.uniqueId,
         naslov: akcija.opis ?? `Akcija #${akcija.id}`,
         rola: this.rola,
+        brojProdavnice: this.brojProdavnice,
       },
       closeOnBackdropClick: false,
     }).onClose
@@ -104,8 +111,12 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       });
   }
 
-  prikaziAkcijeKolonu(): boolean {
+  prikaziAdminZonu(): boolean {
     return this.rola === 'uprava';
+  }
+
+  prikaziAkcijeKolonu(): boolean {
+    return this.rola === 'uprava' || this.rola === 'prodavnica';
   }
 
   redKlasa(akcija: VikendAkcija): string {

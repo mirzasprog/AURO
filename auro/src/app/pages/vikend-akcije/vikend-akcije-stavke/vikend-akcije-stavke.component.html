@@ -22,7 +22,7 @@
             <td>{{ stavka.sifra }}</td>
             <td>{{ stavka.naziv }}</td>
             <td class="kolicina-cell">
-              <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina" [disabled]="rola !== 'uprava'" />
+              <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina" [disabled]="!mozeUrediti()" />
             </td>
             <td>{{ stavka.prodavnica }}</td>
             <td class="text-center">

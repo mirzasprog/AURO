@@ -364,7 +364,7 @@ export class DataService {
     return this.sendRequest<VikendAkcijaStavka[]>("GET", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`);
   }
 
-  public azurirajStavkeVikendAkcije(vikendAkcijaId: number, stavke: VikendAkcijaStavkaUpdate[]) {
+  public azurirajStavkeVikendAkcije(vikendAkcijaId: string, stavke: VikendAkcijaStavkaUpdate[]) {
     return this.posaljiRequest<void>("PUT", this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/stavke`, stavke);
   }
 

@@ -12,6 +12,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   @Input() vikendAkcijaId!: string;
   @Input() naslov = '';
   @Input() rola = '';
+  @Input() brojProdavnice = '';
 
   stavke: VikendAkcijaStavka[] = [];
   privatneKolicine = new Map<number, number>();
@@ -56,11 +57,22 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   pripremiIzmjene(): VikendAkcijaStavkaUpdate[] {
     return this.stavke
       .filter(stavka => this.kolicinaPromijenjena(stavka))
-      .map(stavka => ({ id: stavka.id, kolicina: Number(stavka.kolicina) }));
+      .map(stavka => ({
+        id: stavka.id,
+        vikendAkcijaId: this.vikendAkcijaId,
+        sifraArtikla: stavka.sifra ?? '',
+        nazivArtikla: stavka.naziv ?? '',
+        kolicina: Number(stavka.kolicina),
+        brojProdavnice: this.brojProdavnice,
+      }));
+  }
+
+  mozeUrediti(): boolean {
+    return this.rola === 'uprava' || this.rola === 'prodavnica';
   }
 
   mozeSpasiti(): boolean {
-    return this.rola === 'uprava' && this.pripremiIzmjene().length > 0 && !this.saving;
+    return this.mozeUrediti() && !!this.brojProdavnice && this.pripremiIzmjene().length > 0 && !this.saving;
   }
 
   sacuvaj(): void {
@@ -71,8 +83,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     }
     this.saving = true;
     this.greska = '';
-    const akcijaIdBroj = Number(this.vikendAkcijaId);
-    this.dataService.azurirajStavkeVikendAkcije(akcijaIdBroj, izmjene)
+    this.dataService.azurirajStavkeVikendAkcije(this.vikendAkcijaId, izmjene)
       .subscribe({
         next: () => {
           izmjene.forEach(izmjena => this.privatneKolicine.set(izmjena.id, izmjena.kolicina));
