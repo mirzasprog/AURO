@@ -103,10 +103,19 @@
                 </div>
               </td>
               <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
-                <button nbButton size="small" status="success" (click)="otvoriAzuriranjeStavki(akcija)"
-                  [disabled]="!jeAkcijaAktivna(akcija)">
-                  <nb-icon icon="edit-2"></nb-icon> Otvori
-                </button>
+                <ng-container [ngSwitch]="rola">
+                  <button *ngSwitchCase="'prodavnica'" nbButton size="small" status="success"
+                    (click)="otvoriAzuriranjeStavki(akcija)" [disabled]="!jeAkcijaAktivna(akcija)">
+                    <nb-icon icon="edit-2"></nb-icon> Otvori
+                  </button>
+                  <button *ngSwitchCase="'uprava'" nbButton size="small" status="info"
+                    (click)="preuzmiIzvjestaj(akcija)" [disabled]="preuzimanjeAkcijaId === akcija.uniqueId">
+                    <nb-spinner *ngIf="preuzimanjeAkcijaId === akcija.uniqueId" size="tiny"></nb-spinner>
+                    <span *ngIf="preuzimanjeAkcijaId !== akcija.uniqueId">
+                      <nb-icon icon="download-outline"></nb-icon> Preuzmi izvještaj
+                    </span>
+                  </button>
+                </ng-container>
               </td>
             </tr>
           </tbody>
