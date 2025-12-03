@@ -41,8 +41,29 @@ namespace backend.Data
 
         public async Task<IEnumerable<VikendAkcijaStavkaDto>> GetStavkeAsync(string vikendAkcijaId)
         {
-            var r = _context.VikendAkcijaStavkaDto.FromSqlInterpolated($"EXEC GetVIPArtikli {vikendAkcijaId}");
-            return r;
+            var zaglavljeId = await _context.VipZaglavljes
+                .Where(z => z.UniqueId == vikendAkcijaId)
+                .Select(z => z.Id)
+                .FirstOrDefaultAsync();
+
+            if (zaglavljeId == 0)
+            {
+                return Enumerable.Empty<VikendAkcijaStavkaDto>();
+            }
+
+            return await _context.VipStavkes
+                .AsNoTracking()
+                .Where(s => s.VipZaglavljeId == zaglavljeId)
+                .OrderBy(s => s.SifraArtikla)
+                .Select(s => new VikendAkcijaStavkaDto
+                {
+                    Id = s.Id.ToString(),
+                    Sifra = s.SifraArtikla,
+                    Naziv = s.NazivArtikla,
+                    Kolicina = s.Kolicina,
+                    Prodavnica = s.Prodavnica
+                })
+                .ToListAsync();
         }
 
         public async Task<IEnumerable<VipArtikalDto>> GetVipArtikliAsync(string akcijaId)
