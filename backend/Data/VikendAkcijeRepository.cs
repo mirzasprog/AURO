@@ -61,12 +61,14 @@ namespace backend.Data
                 .ToListAsync();
         }
 
-        public async Task<bool> UpdateStavkeAsync(string vikendAkcijaId, IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
+        public async Task<VikendAkcijaStavkeUpdateResult> UpdateStavkeAsync(string vikendAkcijaId, IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
         {
             var izmjeneLista = izmjene.ToList();
+            var rezultat = new VikendAkcijaStavkeUpdateResult { AkcijaPronadjena = true };
+
             if (!izmjeneLista.Any())
             {
-                return true;
+                return rezultat;
             }
 
             var zaglavljeId = await _context.VipZaglavljes
@@ -76,35 +78,78 @@ namespace backend.Data
 
             if (zaglavljeId == 0)
             {
-                return false;
+                rezultat.AkcijaPronadjena = false;
+                return rezultat;
             }
 
-            var sifreArtikala = izmjeneLista
-                .Select(i => i.SifraArtikla)
-                .Where(sifra => !string.IsNullOrWhiteSpace(sifra))
+            var validneIzmjene = izmjeneLista
+                .Where(i => !string.IsNullOrWhiteSpace(i.SifraArtikla))
+                .Select(i => new
+                {
+                    Sifra = i.SifraArtikla.Trim(),
+                    Kolicina = i.Kolicina,
+                    Naziv = i.NazivArtikla?.Trim(),
+                    Prodavnica = i.BrojProdavnice?.Trim()
+                })
                 .ToList();
 
-            if (!sifreArtikala.Any())
+            if (!validneIzmjene.Any())
             {
-                return true;
+                return rezultat;
             }
+
+            var sifreArtikala = validneIzmjene
+                .Select(i => i.Sifra)
+                .Distinct()
+                .ToList();
 
             var stavke = await _context.VipStavkes
                 .Where(s => s.VipZaglavljeId == zaglavljeId
                     && s.SifraArtikla != null
-                    && sifreArtikala.Contains(s.SifraArtikla))
+                    && sifreArtikala.Contains(s.SifraArtikla.Trim()))
                 .ToListAsync();
 
-            foreach (var stavka in stavke)
+            foreach (var izmjena in validneIzmjene)
             {
-                var novaVrijednost = izmjeneLista.First(i => i.SifraArtikla == stavka.SifraArtikla);
-                stavka.Kolicina = novaVrijednost.Kolicina;
-                stavka.VrijemeUnosaIzProdavnice = DateTime.UtcNow;
+                var postojecaStavka = stavke.FirstOrDefault(s =>
+                    string.Equals(s.SifraArtikla?.Trim(), izmjena.Sifra, StringComparison.OrdinalIgnoreCase)
+                    && (string.IsNullOrEmpty(izmjena.Prodavnica)
+                        || string.Equals(s.Prodavnica, izmjena.Prodavnica, StringComparison.OrdinalIgnoreCase)));
+
+                if (postojecaStavka != null)
+                {
+                    postojecaStavka.Kolicina = izmjena.Kolicina;
+                    postojecaStavka.VrijemeUnosaIzProdavnice = DateTime.UtcNow;
+                    if (!string.IsNullOrWhiteSpace(izmjena.Naziv))
+                    {
+                        postojecaStavka.NazivArtikla = izmjena.Naziv;
+                    }
+                    if (!string.IsNullOrWhiteSpace(izmjena.Prodavnica))
+                    {
+                        postojecaStavka.Prodavnica = izmjena.Prodavnica;
+                    }
+
+                    rezultat.BrojAzuriranih++;
+                }
+                else
+                {
+                    _context.VipStavkes.Add(new VipStavke
+                    {
+                        SifraArtikla = izmjena.Sifra,
+                        NazivArtikla = izmjena.Naziv,
+                        Kolicina = izmjena.Kolicina,
+                        Prodavnica = izmjena.Prodavnica,
+                        VipZaglavljeId = zaglavljeId,
+                        VrijemeUnosaIzProdavnice = DateTime.UtcNow
+                    });
+
+                    rezultat.BrojDodanih++;
+                }
             }
 
             await _context.SaveChangesAsync();
 
-            return true;
+            return rezultat;
         }
 
         public async Task<VikendAkcijaDto> KreirajAkcijuAsync(VikendAkcijaCreateRequest zahtjev)
