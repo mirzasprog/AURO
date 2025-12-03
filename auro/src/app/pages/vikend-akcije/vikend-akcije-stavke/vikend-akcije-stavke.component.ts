@@ -39,8 +39,8 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.dataService.preuzmiStavkeVikendAkcije(this.vikendAkcijaId)
       .subscribe({
         next: (podaci) => {
-          this.stavke = podaci;
-          this.privatneKolicine = new Map(podaci.map(s => [s.id, s.kolicina]));
+          this.stavke = this.filtrirajStavkePoProdavnici(podaci);
+          this.privatneKolicine = new Map(this.stavke.map(s => [s.id, s.kolicina]));
           this.loading = false;
         },
         error: (err) => {
@@ -102,5 +102,13 @@ export class VikendAkcijeStavkeComponent implements OnInit {
           this.saving = false;
         }
       });
+  }
+
+  private filtrirajStavkePoProdavnici(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+    if (this.rola !== 'prodavnica' || !this.brojProdavnice) {
+      return stavke;
+    }
+
+    return stavke.filter(stavka => (stavka.prodavnica ?? '').toString() === this.brojProdavnice);
   }
 }

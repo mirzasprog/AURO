@@ -91,6 +91,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       context: {
         vikendAkcijaId: akcija.uniqueId,
         naslov: akcija.opis ?? `Akcija #${akcija.id}`,
+        rola: this.rola,
+        brojProdavnice: this.brojProdavnice,
       },
       closeOnBackdropClick: false,
     });
@@ -204,7 +206,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {
-          this.selektovaneStavke = stavke;
+          this.selektovaneStavke = this.filtrirajStavkePoProdavnici(stavke);
           this.stavkeLoading = false;
         },
         error: (err) => {
@@ -368,6 +370,14 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .sort((a, b) => (b.id ?? 0) - (a.id ?? 0))[0];
 
     this.odabranaAkcijaId = najnovija?.uniqueId ?? '';
+  }
+
+  private filtrirajStavkePoProdavnici(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+    if (this.rola !== 'prodavnica' || !this.brojProdavnice) {
+      return stavke;
+    }
+
+    return stavke.filter(stavka => (stavka.prodavnica ?? '').toString() === this.brojProdavnice);
   }
 }
 
