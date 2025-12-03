@@ -1,0 +1,50 @@
+<div class="chatbot-wrapper" [class.open]="isOpen">
+  <button nbButton status="info" class="chatbot-toggle" (click)="toggleChat()" aria-label="Otvori chatbot">
+    <nb-icon [icon]="isOpen ? 'close-outline' : 'message-circle-outline'"></nb-icon>
+    <span class="toggle-label">AURO asistent</span>
+  </button>
+
+  <nb-card *ngIf="isOpen" class="chatbot-card" aria-live="polite">
+    <nb-card-header>
+      <div class="header-content">
+        <div>
+          <div class="title">Chatbot asistent</div>
+          <div class="subtitle">Koristi trenutnu bazu podataka aplikacije i uči iz tvojih upita.</div>
+        </div>
+        <nb-badge text="LLM" status="info" position="top right"></nb-badge>
+      </div>
+    </nb-card-header>
+    <nb-card-body>
+      <div class="chat-window">
+        <div *ngFor="let message of conversation" class="message" [class.from-user]="message.from === 'user'" [class.from-bot]="message.from === 'bot'">
+          <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
+          <div class="bubble">{{ message.text }}</div>
+        </div>
+      </div>
+
+      <div class="suggestions" *ngIf="suggestions.length">
+        <div class="suggestion-title">Primjeri pitanja</div>
+        <div class="suggestion-list">
+          <button nbButton size="tiny" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)">
+            {{ suggestion }}
+          </button>
+        </div>
+      </div>
+    </nb-card-body>
+    <nb-card-footer>
+      <div class="input-row">
+        <input
+          nbInput
+          fullWidth
+          placeholder="Postavi pitanje o AURO aplikaciji"
+          [(ngModel)]="currentQuestion"
+          (keyup.enter)="submitQuestion()"
+          name="chatQuestion"
+          autocomplete="off"
+        />
+        <button nbButton status="primary" (click)="submitQuestion()">Pošalji</button>
+      </div>
+      <div class="footer-note">Ako odgovor ne postoji, asistent će te uputiti da kontaktiraš IT službu.</div>
+    </nb-card-footer>
+  </nb-card>
+</div>

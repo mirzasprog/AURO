@@ -1,5 +1,6 @@
 import { ModuleWithProviders, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import {
   NbActionsModule,
   NbLayoutModule,
@@ -23,6 +24,7 @@ import {
   HeaderComponent,
   SearchInputComponent,
   TinyMCEComponent,
+  ChatbotComponent,
 } from './components';
 import {
   CapitalizePipe,
@@ -56,6 +58,7 @@ const COMPONENTS = [
   FooterComponent,
   SearchInputComponent,
   TinyMCEComponent,
+  ChatbotComponent,
   OneColumnLayoutComponent,
   ThreeColumnsLayoutComponent,
   TwoColumnsLayoutComponent,
@@ -69,8 +72,8 @@ const PIPES = [
 ];
 
 @NgModule({
-  imports: [CommonModule, ...NB_MODULES, NbCardModule, NbBadgeModule],
-  exports: [CommonModule, ...PIPES, ...COMPONENTS],
+  imports: [CommonModule, FormsModule, ...NB_MODULES, NbCardModule, NbBadgeModule],
+  exports: [CommonModule, FormsModule, ...PIPES, ...COMPONENTS],
   declarations: [...COMPONENTS, ...PIPES],
 })
 export class ThemeModule {
