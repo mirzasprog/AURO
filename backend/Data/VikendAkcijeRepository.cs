@@ -79,14 +79,25 @@ namespace backend.Data
                 return false;
             }
 
-            var stavkeIds = izmjeneLista.Select(i => i.Id).ToList();
+            var sifreArtikala = izmjeneLista
+                .Select(i => i.SifraArtikla)
+                .Where(sifra => !string.IsNullOrWhiteSpace(sifra))
+                .ToList();
+
+            if (!sifreArtikala.Any())
+            {
+                return true;
+            }
+
             var stavke = await _context.VipStavkes
-                .Where(s => s.VipZaglavljeId == zaglavljeId && stavkeIds.Contains(s.Id))
+                .Where(s => s.VipZaglavljeId == zaglavljeId
+                    && s.SifraArtikla != null
+                    && sifreArtikala.Contains(s.SifraArtikla))
                 .ToListAsync();
 
             foreach (var stavka in stavke)
             {
-                var novaVrijednost = izmjeneLista.First(i => i.Id == stavka.Id);
+                var novaVrijednost = izmjeneLista.First(i => i.SifraArtikla == stavka.SifraArtikla);
                 stavka.Kolicina = novaVrijednost.Kolicina;
                 stavka.VrijemeUnosaIzProdavnice = DateTime.UtcNow;
             }
