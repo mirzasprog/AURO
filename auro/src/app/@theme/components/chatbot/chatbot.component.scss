@@ -16,7 +16,8 @@
   }
 
   .chatbot-card {
-    width: min(420px, 90vw);
+    width: 90vw;
+    max-width: 420px;
     max-height: 70vh;
     display: flex;
     flex-direction: column;

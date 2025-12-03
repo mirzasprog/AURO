@@ -111,7 +111,10 @@ export class ChatbotService {
   }
 
   getSampleQuestions(): string[] {
-    const baseQuestions = this.knowledgeBase.flatMap(item => item.sampleQuestions);
+    const baseQuestions = this.knowledgeBase.reduce((questions: string[], item) => {
+      questions.push(...item.sampleQuestions);
+      return questions;
+    }, []);
     return baseQuestions.slice(0, 12);
   }
 
