@@ -1,5 +1,11 @@
 <div class="chatbot-wrapper" [class.open]="isOpen">
-  <button class="chatbot-toggle" (click)="toggleChat()" aria-label="Otvori K360 chatbot">
+  <button
+    class="chatbot-toggle"
+    cdkDrag
+    cdkDragBoundary="body"
+    (click)="toggleChat()"
+    aria-label="Otvori K360 chatbot"
+  >
     <span class="avatar-ring">
       <img src="assets/images/KONZUM.png" alt="K360 avatar" />
     </span>
@@ -43,7 +49,14 @@
         <div class="suggestions" *ngIf="suggestions.length">
           <div class="suggestion-title">Brzi prijedlog</div>
           <div class="suggestion-list">
-            <button nbButton size="small" appearance="filled" status="info" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)">
+            <button
+              nbButton
+              size="small"
+              appearance="ghost"
+              status="danger"
+              *ngFor="let suggestion of suggestions"
+              (click)="useSuggestion(suggestion)"
+            >
               {{ suggestion }}
             </button>
           </div>
