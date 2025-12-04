@@ -7,10 +7,10 @@ namespace backend.Entities
 {
     public partial class Auro2Context
     {
+        private static float ParseFloatOrDefault(string value) => float.TryParse(value, out var parsed) ? parsed : 0f;
+
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
-            static float ParseFloatOrDefault(string value) => float.TryParse(value, out var parsed) ? parsed : 0f;
-
             var floatArrayConverter = new ValueConverter<float[], string>(
                 v => string.Join(',', v ?? Array.Empty<float>()),
                 v => string.IsNullOrWhiteSpace(v)
