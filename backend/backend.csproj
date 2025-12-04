@@ -19,7 +19,7 @@
                 <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6"/>
                 <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="6.0.6"/>
                 <PackageReference Include="ClosedXML" Version="0.102.3" />
-                <PackageReference Include="UglyToad.PdfPig" Version="0.1.9" />
+                <PackageReference Include="UglyToad.PdfPig" Version="1.7.0-custom-5" />
         </ItemGroup>
 
 	 <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(FrontendRoot)node_modules') ">        <!-- Ensure Node.js is installed -->
