@@ -17,6 +17,7 @@ export interface ChatbotResponse {
 @Injectable({ providedIn: 'root' })
 export class ChatbotService {
   private readonly learningStorageKey = 'auro-chatbot-learning';
+  private readonly suggestionIndexKey = 'auro-chatbot-suggestion-index';
   private learnedAssociations: Record<string, string> = {};
 
   private readonly knowledgeBase: ChatbotKnowledgeEntry[] = [
@@ -106,16 +107,23 @@ export class ChatbotService {
     },
   ];
 
+  private readonly suggestionPool: string[] = this.buildSuggestionPool();
+
   constructor() {
     this.learnedAssociations = this.loadLearnedAssociations();
   }
 
-  getSampleQuestions(): string[] {
-    const baseQuestions = this.knowledgeBase.reduce((questions: string[], item) => {
-      questions.push(...item.sampleQuestions);
-      return questions;
-    }, []);
-    return baseQuestions.slice(0, 12);
+  getNextSuggestion(): string {
+    if (!this.suggestionPool.length) {
+      return '';
+    }
+
+    const currentIndex = this.getStoredSuggestionIndex();
+    const suggestion = this.suggestionPool[currentIndex];
+    const nextIndex = (currentIndex + 1) % this.suggestionPool.length;
+    this.storeSuggestionIndex(nextIndex);
+
+    return suggestion;
   }
 
   askQuestion(question: string): ChatbotResponse {
@@ -224,6 +232,48 @@ export class ChatbotService {
 
     try {
       localStorage.setItem(this.learningStorageKey, JSON.stringify(this.learnedAssociations));
+    } catch {
+      // Ignored: localStorage may be unavailable.
+    }
+  }
+
+  private buildSuggestionPool(): string[] {
+    const baseQuestions = this.knowledgeBase.reduce((questions: string[], item) => {
+      questions.push(...item.sampleQuestions);
+      return questions;
+    }, []);
+
+    const uniqueQuestions = Array.from(new Set(baseQuestions));
+    const pool = uniqueQuestions.slice(0, 10);
+
+    while (pool.length < 10 && uniqueQuestions.length) {
+      pool.push(uniqueQuestions[pool.length % uniqueQuestions.length]);
+    }
+
+    return pool;
+  }
+
+  private getStoredSuggestionIndex(): number {
+    if (typeof localStorage === 'undefined') {
+      return 0;
+    }
+
+    try {
+      const stored = localStorage.getItem(this.suggestionIndexKey);
+      const parsed = stored ? parseInt(stored, 10) : 0;
+      return Number.isFinite(parsed) && parsed >= 0 && parsed < this.suggestionPool.length ? parsed : 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  private storeSuggestionIndex(index: number): void {
+    if (typeof localStorage === 'undefined') {
+      return;
+    }
+
+    try {
+      localStorage.setItem(this.suggestionIndexKey, index.toString());
     } catch {
       // Ignored: localStorage may be unavailable.
     }
