@@ -8,6 +8,6 @@ namespace backend.Services.VectorStore
     {
         Task StoreAsync(IEnumerable<VectorRecord> records, CancellationToken ct = default);
 
-        Task<IReadOnlyList<VectorRecord>> SearchAsync(string query, int topK, IReadOnlyDictionary<string, string>? filters = null, CancellationToken ct = default);
+        Task<IReadOnlyList<VectorRecord>> SearchAsync(IReadOnlyList<float> embedding, int topK, IReadOnlyDictionary<string, string>? filters = null, CancellationToken ct = default);
     }
 }

@@ -25,9 +25,9 @@ namespace backend.Services.VectorStore
             return Task.CompletedTask;
         }
 
-        public Task<IReadOnlyList<VectorRecord>> SearchAsync(string query, int topK, IReadOnlyDictionary<string, string>? filters = null, CancellationToken ct = default)
+        public Task<IReadOnlyList<VectorRecord>> SearchAsync(IReadOnlyList<float> embedding, int topK, IReadOnlyDictionary<string, string>? filters = null, CancellationToken ct = default)
         {
-            _logger.LogInformation("Performing vector search for '{Query}' (top {TopK}) using pgvector at {Host}:{Port}", query, topK, _options.Host, _options.Port);
+            _logger.LogInformation("Performing vector search (top {TopK}) using pgvector at {Host}:{Port}", topK, _options.Host, _options.Port);
             return Task.FromResult<IReadOnlyList<VectorRecord>>(new List<VectorRecord>());
         }
     }
