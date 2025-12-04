@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using backend.Data;
 using backend.Entities;
+using backend.Services.Ai;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
@@ -44,6 +45,9 @@ builder.Services.AddScoped<IPrometiRepository, PrometiRepository>();
 builder.Services.AddScoped<IVikendAkcijeRepository, VikendAkcijeRepository>();
 
 builder.Services.AddHttpContextAccessor();
+
+builder.Services.Configure<AiOptions>(builder.Configuration.GetSection(AiOptions.SectionName));
+builder.Services.AddHttpClient<ILlmClient, HttpLlmClient>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
