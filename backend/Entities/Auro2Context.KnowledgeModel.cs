@@ -9,12 +9,14 @@ namespace backend.Entities
     {
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
         {
+            static float ParseFloatOrDefault(string value) => float.TryParse(value, out var parsed) ? parsed : 0f;
+
             var floatArrayConverter = new ValueConverter<float[], string>(
                 v => string.Join(',', v ?? Array.Empty<float>()),
                 v => string.IsNullOrWhiteSpace(v)
                     ? Array.Empty<float>()
                     : v.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(value => float.TryParse(value, out var parsed) ? parsed : 0f)
+                        .Select(ParseFloatOrDefault)
                         .ToArray());
 
             modelBuilder.Entity<KnowledgeDocument>(entity =>
