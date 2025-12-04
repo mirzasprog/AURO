@@ -15,6 +15,8 @@ namespace backend.Services.Chat
 
         public Guid? ConversationId { get; set; }
 
+        public IReadOnlyList<AdHocFileContext> FileContexts { get; set; } = new List<AdHocFileContext>();
+
         public int TopK { get; set; } = 5;
     }
 }

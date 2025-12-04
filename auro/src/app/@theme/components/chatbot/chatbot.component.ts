@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { finalize } from 'rxjs/operators';
-import { AiChatService, ChatRequest, ChatResponse, ChatSource } from '../../../@core/services/ai-chat.service';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChatbotService } from '../../../@core/utils/chatbot.service';
+import { AiChatService, ChatResponseDto } from '../../../@core/utils/ai-chat.service';
 
 interface ChatMessage {
   from: 'user' | 'bot';
@@ -19,14 +19,13 @@ export class ChatbotComponent implements OnInit {
   conversation: ChatMessage[] = [];
   currentQuestion = '';
   conversationId?: string;
-  isLoading = false;
-  suggestions: string[] = [
-    'Kako prijaviti da nema otpisa?',
-    'Kako da unesem parcijalnu inventuru?',
-    'Kako da vidim dnevne zadatke?',
-  ];
+  selectedFiles: File[] = [];
+  isSending = false;
 
-  constructor(private aiChatService: AiChatService) {}
+  @ViewChild('fileInput')
+  fileInput?: ElementRef<HTMLInputElement>;
+
+  constructor(private chatbotService: ChatbotService, private aiChatService: AiChatService) {}
 
   ngOnInit(): void {
     this.addBotMessage(
@@ -44,31 +43,46 @@ export class ChatbotComponent implements OnInit {
       return;
     }
 
+    this.isSending = true;
     this.addUserMessage(trimmed);
-    this.isLoading = true;
-
-    const request: ChatRequest = {
-      question: trimmed,
-      conversationId: this.conversationId,
-    };
-
     this.aiChatService
-      .sendMessage(request)
-      .pipe(
-        finalize(() => {
-          this.isLoading = false;
-          this.currentQuestion = '';
-        })
-      )
+      .chatWithFiles(trimmed, this.conversationId, this.selectedFiles)
       .subscribe({
-        next: (response: ChatResponse) => {
+        next: (response: ChatResponseDto) => {
           this.conversationId = response.conversationId;
-          this.addBotMessage(response.answer, response.sources);
+          this.addBotMessage(response.answer);
+          this.currentQuestion = '';
+          this.selectedFiles = [];
+          this.resetFileInput();
+          this.refreshSuggestion();
+          this.isSending = false;
         },
         error: () => {
           this.addBotMessage('Došlo je do greške pri obradi pitanja. Pokušaj ponovo.');
+          this.refreshSuggestion();
+          this.isSending = false;
         },
       });
+  }
+
+  onFilesSelected(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+
+    if (!files) {
+      this.selectedFiles = [];
+      return;
+    }
+
+    this.selectedFiles = Array.from(files);
+  }
+
+  removeFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+
+    if (!this.selectedFiles.length) {
+      this.resetFileInput();
+    }
   }
 
   useSuggestion(question: string): void {
@@ -82,5 +96,11 @@ export class ChatbotComponent implements OnInit {
 
   private addBotMessage(text: string, sources?: ChatSource[]): void {
     this.conversation.push({ from: 'bot', text, timestamp: new Date(), sources });
+  }
+
+  private resetFileInput(): void {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 }
