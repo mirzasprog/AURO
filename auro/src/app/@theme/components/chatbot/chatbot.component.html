@@ -34,20 +34,21 @@
     <nb-card-body>
       <!--Prijedlog pitanja-->
       <div class="col" *ngIf="suggestions.length">
-          <div class="suggestion-title">Brzi prijedlog</div>
-          <div class="suggestion-list">
-            <button
-              nbButton
-              size="small"
-              appearance="ghost"
-              status="danger"
-              *ngFor="let suggestion of suggestions"
-              (click)="useSuggestion(suggestion)">
-              {{ suggestion }}
-            </button>
-          </div>
+        <div class="suggestion-title">Brzi prijedlog</div>
+        <div class="suggestion-list">
+          <button
+            nbButton
+            size="small"
+            appearance="ghost"
+            status="danger"
+            *ngFor="let suggestion of suggestions"
+            (click)="useSuggestion(suggestion)"
+          >
+            {{ suggestion }}
+          </button>
         </div>
-        <hr>
+      </div>
+      <hr />
         <!--Chat-->
         <div class="col">
         <div class="chat-window">
@@ -58,6 +59,19 @@
             [class.from-bot]="message.from === 'bot'">
             <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
             <div class="bubble">{{ message.text }}</div>
+            <div class="sources" *ngIf="message.from === 'bot' && message.sources?.length">
+              <div class="sources-title">Izvori</div>
+              <ul>
+                <li *ngFor="let source of message.sources">
+                  <span class="source-name">{{ source.fileName }}</span>
+                  <span class="source-section" *ngIf="source.section"> - {{ source.section }}</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div class="loading" *ngIf="isLoading">
+            <nb-spinner size="tiny"></nb-spinner>
+            <span>Asistent razmišlja...</span>
           </div>
         </div>
         </div>
@@ -73,8 +87,11 @@
           (keyup.enter)="submitQuestion()"
           name="chatQuestion"
           autocomplete="off"
+          [disabled]="isLoading"
         />
-        <button nbButton status="primary" (click)="submitQuestion()">Pošalji</button>
+        <button nbButton status="primary" (click)="submitQuestion()" [disabled]="isLoading">
+          {{ isLoading ? 'Slanje...' : 'Pošalji' }}
+        </button>
       </div>
       <div class="footer-note">Ako odgovor ne postoji, asistent će te uputiti da kontaktiraš IT službu.</div>
     </nb-card-footer>
