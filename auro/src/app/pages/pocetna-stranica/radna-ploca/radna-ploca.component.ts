@@ -361,6 +361,12 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.dataService.getPromet(storeId).pipe(finalize(() => this.isDashboardLoading = false))
       .subscribe({
         next: (r: any) => {
+          const netoKvadratura = Number(r.netoKvadraturaObjekta ?? 0);
+          const prometPoKvadraturi = r.prometPoNetoKvadraturi ?? (netoKvadratura
+            ? Number((Number(r.promet) / netoKvadratura).toFixed(2))
+            : 0);
+          const prometPoUposleniku = r.prometPoUposleniku ?? 0;
+
           this.dashboardSummary = {
             promet: Number(r.promet | 1.2 - 2),
             prometProslaGodina: Number(r.prometProslaGodina),
@@ -369,6 +375,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             currency: 'KM',
             turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
             visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
+            prometPoUposleniku,
+            prometPoNetoKvadraturi: prometPoKvadraturi,
+            netoKvadraturaObjekta: netoKvadratura,
             averageBasket: {
               value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
               previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0
@@ -395,6 +404,12 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.dataService.getPrometCijelaMreza().pipe(finalize(() => this.isDashboardLoading = false))
       .subscribe({
         next: (r: any) => {
+          const netoKvadratura = Number(r.netoKvadraturaObjekta ?? 0);
+          const prometPoKvadraturi = r.prometPoNetoKvadraturi ?? (netoKvadratura
+            ? Number((Number(r.promet) / netoKvadratura).toFixed(2))
+            : 0);
+          const prometPoUposleniku = r.prometPoUposleniku ?? 0;
+
           this.dashboardSummary = {
             promet: Number(r.promet),
             prometProslaGodina: Number(r.prometProslaGodina),
@@ -403,6 +418,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             currency: 'KM',
             turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
             visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
+            prometPoUposleniku,
+            prometPoNetoKvadraturi: prometPoKvadraturi,
+            netoKvadraturaObjekta: netoKvadratura,
             averageBasket: {
               value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
               previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0
@@ -534,12 +552,17 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       trend: trend ?? [],
       icon: key === 'turnover' ? 'trending-up' :
             key === 'visitors' ? 'people' :
-            key === 'averageBasket' ? 'shopping-cart' : undefined
+            key === 'averageBasket' ? 'shopping-cart' :
+            key === 'turnoverPerEmployee' ? 'briefcase' :
+            key === 'turnoverPerArea' ? 'home' : undefined
     };
   };
     cards.push(buildCard('turnover', 'Promet', this.dashboardSummary.promet ?? 0, this.dashboardSummary.prometProslaGodina ?? 0, this.dashboardSummary.currency ?? 'KM', this.dashboardSummary.turnover?.trend));
     cards.push(buildCard('visitors', 'Broj kupaca', this.dashboardSummary.brojKupaca ?? 0, this.dashboardSummary.brojKupacaProslaGodina ?? 0));
     cards.push(buildCard('averageBasket', 'Prosječna korpa', this.dashboardSummary.averageBasket?.value ?? 0, this.dashboardSummary.averageBasket?.previousValue ?? 0, this.dashboardSummary.currency ?? 'KM', this.dashboardSummary.averageBasket?.trend));
+    cards.push(buildCard('turnoverPerEmployee', 'Promet po uposleniku', this.dashboardSummary.prometPoUposleniku ?? 0, 0, this.dashboardSummary.currency ?? 'KM'));
+    const areaUnit = this.dashboardSummary.currency ? `${this.dashboardSummary.currency}/m²` : undefined;
+    cards.push(buildCard('turnoverPerArea', 'Promet po neto kvadraturi', this.dashboardSummary.prometPoNetoKvadraturi ?? 0, 0, areaUnit));
 
     return cards;
   }

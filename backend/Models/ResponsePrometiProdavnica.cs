@@ -8,4 +8,7 @@ public class ResponsePrometiProdavnica
     public decimal? PrometProslaGodina { get; set; }
     public int? BrojKupaca { get; set; }
     public int? BrojKupacaProslaGodina { get; set; }
+    public decimal? NetoKvadraturaObjekta { get; set; }
+    public decimal? PrometPoNetoKvadraturi { get; set; }
+    public decimal? PrometPoUposleniku { get; set; }
 }

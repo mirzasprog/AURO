@@ -6,5 +6,8 @@ export interface Prometi {
     promet: number,
     prometProslaGodina: number,
     brojKupaca: number,
-    brojKupacaProslaGodina: number
+    brojKupacaProslaGodina: number,
+    netoKvadraturaObjekta?: number,
+    prometPoNetoKvadraturi?: number,
+    prometPoUposleniku?: number,
 }
