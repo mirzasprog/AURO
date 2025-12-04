@@ -1,5 +1,6 @@
-import { Component, OnInit } from '@angular/core';
-import { ChatbotResponse, ChatbotService } from '../../../@core/utils/chatbot.service';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { ChatbotService } from '../../../@core/utils/chatbot.service';
+import { AiChatService, ChatResponseDto } from '../../../@core/utils/ai-chat.service';
 
 interface ChatMessage {
   from: 'user' | 'bot';
@@ -17,8 +18,14 @@ export class ChatbotComponent implements OnInit {
   conversation: ChatMessage[] = [];
   suggestions: string[] = [];
   currentQuestion = '';
+  conversationId?: string;
+  selectedFiles: File[] = [];
+  isSending = false;
 
-  constructor(private chatbotService: ChatbotService) {}
+  @ViewChild('fileInput')
+  fileInput?: ElementRef<HTMLInputElement>;
+
+  constructor(private chatbotService: ChatbotService, private aiChatService: AiChatService) {}
 
   ngOnInit(): void {
     this.refreshSuggestion();
@@ -41,18 +48,46 @@ export class ChatbotComponent implements OnInit {
       return;
     }
 
+    this.isSending = true;
     this.addUserMessage(trimmed);
-    this.chatbotService.askQuestion(trimmed).subscribe({
-      next: (response: ChatbotResponse) => {
-        this.addBotMessage(response.answer);
-        this.currentQuestion = '';
-        this.refreshSuggestion();
-      },
-      error: () => {
-        this.addBotMessage('Došlo je do greške pri obradi pitanja. Pokušaj ponovo.');
-        this.refreshSuggestion();
-      },
-    });
+    this.aiChatService
+      .chatWithFiles(trimmed, this.conversationId, this.selectedFiles)
+      .subscribe({
+        next: (response: ChatResponseDto) => {
+          this.conversationId = response.conversationId;
+          this.addBotMessage(response.answer);
+          this.currentQuestion = '';
+          this.selectedFiles = [];
+          this.resetFileInput();
+          this.refreshSuggestion();
+          this.isSending = false;
+        },
+        error: () => {
+          this.addBotMessage('Došlo je do greške pri obradi pitanja. Pokušaj ponovo.');
+          this.refreshSuggestion();
+          this.isSending = false;
+        },
+      });
+  }
+
+  onFilesSelected(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    const files = target.files;
+
+    if (!files) {
+      this.selectedFiles = [];
+      return;
+    }
+
+    this.selectedFiles = Array.from(files);
+  }
+
+  removeFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+
+    if (!this.selectedFiles.length) {
+      this.resetFileInput();
+    }
   }
 
   useSuggestion(question: string): void {
@@ -71,5 +106,11 @@ export class ChatbotComponent implements OnInit {
   private refreshSuggestion(): void {
     const nextSuggestion = this.chatbotService.getNextSuggestion();
     this.suggestions = nextSuggestion ? [nextSuggestion] : [];
+  }
+
+  private resetFileInput(): void {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
   }
 }

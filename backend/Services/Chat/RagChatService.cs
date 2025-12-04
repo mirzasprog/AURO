@@ -47,8 +47,10 @@ namespace backend.Services.Chat
             // TODO: Apply authorization filters based on user permissions.
             var searchResults = await _vectorStore.SearchAsync(embedding, Math.Max(1, request.TopK), filters, ct);
 
-            var contextMessage = BuildContextMessage(searchResults);
-            var llmRequest = BuildLlmRequest(request.Question, contextMessage, searchResults);
+            var fileContexts = request.FileContexts ?? Array.Empty<AdHocFileContext>();
+
+            var contextMessage = BuildContextMessage(searchResults, fileContexts);
+            var llmRequest = BuildLlmRequest(request.Question, contextMessage, searchResults, fileContexts);
 
             var llmResponse = await _llmClient.GetChatCompletionAsync(llmRequest, ct);
 
@@ -103,7 +105,7 @@ namespace backend.Services.Chat
             };
         }
 
-        private static string BuildContextMessage(IReadOnlyList<VectorRecord> records)
+        private static string BuildContextMessage(IReadOnlyList<VectorRecord> records, IReadOnlyList<AdHocFileContext> fileContexts)
         {
             var builder = new StringBuilder();
 
@@ -119,10 +121,26 @@ namespace backend.Services.Chat
                 builder.AppendLine();
             }
 
+            if (fileContexts.Any())
+            {
+                builder.AppendLine("-- Dodatni priloženi fajlovi korisnika --");
+            }
+
+            foreach (var fileContext in fileContexts)
+            {
+                builder.AppendLine($"Prilog: {fileContext.FileName}");
+                builder.AppendLine(fileContext.Content);
+                builder.AppendLine();
+            }
+
             return builder.ToString();
         }
 
-        private static LlmRequest BuildLlmRequest(string question, string contextMessage, IReadOnlyList<VectorRecord> records)
+        private static LlmRequest BuildLlmRequest(
+            string question,
+            string contextMessage,
+            IReadOnlyList<VectorRecord> records,
+            IReadOnlyList<AdHocFileContext> fileContexts)
         {
             var systemPrompt = "Ti si interni Konzum360 asistent. Odgovaraj isključivo na osnovu dostavljenog konteksta bez izmišljanja podataka. Odgovori na jeziku korisnika (bosanski/hrvatski). Ako informacija nije dostupna u kontekstu reci da to nije dostupno.";
 
@@ -144,7 +162,9 @@ namespace backend.Services.Chat
             {
                 SystemPrompt = systemPrompt,
                 Messages = messages,
-                ContextChunks = records.Select(r => r.Content).ToList(),
+                ContextChunks = records.Select(r => r.Content)
+                    .Concat(fileContexts.Select(fc => fc.Content))
+                    .ToList(),
             };
         }
 
