@@ -6,6 +6,7 @@ interface ChatMessage {
   from: 'user' | 'bot';
   text: string;
   timestamp: Date;
+  sources?: ChatSource[];
 }
 
 @Component({
@@ -16,7 +17,6 @@ interface ChatMessage {
 export class ChatbotComponent implements OnInit {
   isOpen = false;
   conversation: ChatMessage[] = [];
-  suggestions: string[] = [];
   currentQuestion = '';
   conversationId?: string;
   selectedFiles: File[] = [];
@@ -28,7 +28,6 @@ export class ChatbotComponent implements OnInit {
   constructor(private chatbotService: ChatbotService, private aiChatService: AiChatService) {}
 
   ngOnInit(): void {
-    this.refreshSuggestion();
     this.addBotMessage(
       'Pozdrav! 👋 Ja sam Konzum360 – digitalni asistent za sve zaposlenike Konzuma i Mercatora BiH. Tu sam da ti olakšam svakodnevni rad u aplikaciji, pomognem pronaći potrebne informacije, pravilnike, procedure i upute za izvršavanje dnevnih zadataka. Možeš izabrati neku od ponuđenih tema ili jednostavno postaviti svoje pitanje – tu sam da pomognem. 🛒✨'
     );
@@ -36,15 +35,11 @@ export class ChatbotComponent implements OnInit {
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
-
-    if (this.isOpen) {
-      this.refreshSuggestion();
-    }
   }
 
   submitQuestion(): void {
     const trimmed = this.currentQuestion.trim();
-    if (!trimmed) {
+    if (!trimmed || this.isLoading) {
       return;
     }
 
@@ -99,13 +94,8 @@ export class ChatbotComponent implements OnInit {
     this.conversation.push({ from: 'user', text, timestamp: new Date() });
   }
 
-  private addBotMessage(text: string): void {
-    this.conversation.push({ from: 'bot', text, timestamp: new Date() });
-  }
-
-  private refreshSuggestion(): void {
-    const nextSuggestion = this.chatbotService.getNextSuggestion();
-    this.suggestions = nextSuggestion ? [nextSuggestion] : [];
+  private addBotMessage(text: string, sources?: ChatSource[]): void {
+    this.conversation.push({ from: 'bot', text, timestamp: new Date(), sources });
   }
 
   private resetFileInput(): void {
