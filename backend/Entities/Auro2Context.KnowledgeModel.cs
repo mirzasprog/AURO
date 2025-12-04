@@ -1,0 +1,74 @@
+using System;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+
+namespace backend.Entities
+{
+    public partial class Auro2Context
+    {
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+        {
+            var floatArrayConverter = new ValueConverter<float[], string>(
+                v => string.Join(',', v ?? Array.Empty<float>()),
+                v => string.IsNullOrWhiteSpace(v)
+                    ? Array.Empty<float>()
+                    : v.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(value => float.TryParse(value, out var parsed) ? parsed : 0f)
+                        .ToArray());
+
+            modelBuilder.Entity<KnowledgeDocument>(entity =>
+            {
+                entity.ToTable("KnowledgeDocuments");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.FileName)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.SourceType)
+                    .IsRequired()
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.Department)
+                    .IsRequired()
+                    .HasMaxLength(128);
+
+                entity.Property(e => e.Tags)
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.CreatedAt);
+
+                entity.Property(e => e.ImportedAt);
+
+                entity.Property(e => e.Version)
+                    .HasMaxLength(64);
+
+                entity.HasMany(e => e.Chunks)
+                    .WithOne(c => c.Document)
+                    .HasForeignKey(c => c.DocumentId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<KnowledgeChunk>(entity =>
+            {
+                entity.ToTable("KnowledgeChunks");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Content)
+                    .IsRequired();
+
+                entity.Property(e => e.Embedding)
+                    .HasConversion(floatArrayConverter)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.Order);
+
+                entity.Property(e => e.SectionTitle)
+                    .HasMaxLength(256);
+            });
+        }
+    }
+}
