@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using backend.Data;
 using backend.Entities;
 using backend.Services.Ai;
+using backend.Services.Chat;
 using backend.Services.Knowledge;
 using backend.Services.VectorStore;
 using Microsoft.Net.Http.Headers;
@@ -58,6 +59,7 @@ builder.Services.AddSingleton<ITextExtractor, PdfTextExtractor>();
 builder.Services.AddSingleton<ITextExtractor, ExcelTextExtractor>();
 builder.Services.AddSingleton<ITextExtractor, ImageTextExtractor>();
 builder.Services.AddScoped<DocumentImportService>();
+builder.Services.AddScoped<RagChatService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {

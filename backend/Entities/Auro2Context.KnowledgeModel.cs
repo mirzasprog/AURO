@@ -69,6 +69,42 @@ namespace backend.Entities
                 entity.Property(e => e.SectionTitle)
                     .HasMaxLength(256);
             });
+
+            modelBuilder.Entity<ChatConversation>(entity =>
+            {
+                entity.ToTable("ChatConversations");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.UserId)
+                    .IsRequired()
+                    .HasMaxLength(128);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+
+                entity.HasMany(e => e.Messages)
+                    .WithOne(m => m.Conversation)
+                    .HasForeignKey(m => m.ConversationId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ChatMessage>(entity =>
+            {
+                entity.ToTable("ChatMessages");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.Content)
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+            });
         }
     }
 }

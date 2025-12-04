@@ -111,6 +111,7 @@ namespace backend.Services.Knowledge
                         ["fileName"] = document.FileName,
                         ["sourceType"] = document.SourceType,
                         ["language"] = request.Language ?? string.Empty,
+                        ["section"] = chunkEntity.SectionTitle ?? string.Empty,
                     }
                 });
             }
