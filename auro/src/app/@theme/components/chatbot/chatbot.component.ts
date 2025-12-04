@@ -23,7 +23,7 @@ export class ChatbotComponent implements OnInit {
   ngOnInit(): void {
     this.refreshSuggestion();
     this.addBotMessage(
-      'Pozdrav! Ja sam K360 chatbot – tvoj digitalni asistent iz Konzuma i Mercatora Plus. Tu sam da ti pomognem uz minimalne smetnje, a uvijek možeš izabrati prijedlog sa strane ili postaviti svoje pitanje.'
+      'Pozdrav! 👋 Ja sam Konzum360 – digitalni asistent za sve zaposlenike Konzuma i Mercatora BiH. Tu sam da ti olakšam svakodnevni rad u aplikaciji, pomognem pronaći potrebne informacije, pravilnike, procedure i upute za izvršavanje dnevnih zadataka. Možeš izabrati neku od ponuđenih tema ili jednostavno postaviti svoje pitanje – tu sam da pomognem. 🛒✨'
     );
   }
 

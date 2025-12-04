@@ -9,7 +9,7 @@
     <span class="avatar-ring">
       <img src="assets/images/KONZUM.png" alt="K360 avatar" />
     </span>
-    <span class="toggle-label">K360 chatbot</span>
+    <span class="toggle-label">Konzum360 AI Chatbot</span>
   </button>
 
   <nb-card *ngIf="isOpen" class="chatbot-card" aria-live="polite" cdkDrag cdkDragBoundary="body">
@@ -20,33 +20,20 @@
             <img src="assets/images/KONZUM.png" alt="K360 avatar" />
           </span>
           <div>
-            <div class="title">K360 chatbot</div>
-            <div class="subtitle">Brze i jasne smjernice za AURO – uvijek pri ruci.</div>
+            <div class="title">Konzum360 AI Chatbot</div>
           </div>
         </div>
         <div class="header-actions">
-          <nb-badge text="LLM" status="primary" position="top right"></nb-badge>
-          <button nbButton ghost size="tiny" status="basic" (click)="toggleChat()" aria-label="Zatvori prozor">
-            ✕
+          <nb-badge text="Demo" status="info" position="top right"></nb-badge>
+          <button nbButton outline size="small" ghost  status="basic" (click)="toggleChat()" aria-label="Zatvori prozor">
+           <nb-icon icon="close-outline"></nb-icon>
           </button>
         </div>
       </div>
     </nb-card-header>
     <nb-card-body>
-      <div class="chat-layout">
-        <div class="chat-window">
-          <div
-            *ngFor="let message of conversation"
-            class="message"
-            [class.from-user]="message.from === 'user'"
-            [class.from-bot]="message.from === 'bot'"
-          >
-            <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
-            <div class="bubble">{{ message.text }}</div>
-          </div>
-        </div>
-
-        <div class="suggestions" *ngIf="suggestions.length">
+      <!--Prijedlog pitanja-->
+      <div class="col" *ngIf="suggestions.length">
           <div class="suggestion-title">Brzi prijedlog</div>
           <div class="suggestion-list">
             <button
@@ -55,21 +42,33 @@
               appearance="ghost"
               status="danger"
               *ngFor="let suggestion of suggestions"
-              (click)="useSuggestion(suggestion)"
-            >
+              (click)="useSuggestion(suggestion)">
               {{ suggestion }}
             </button>
           </div>
-          <div class="suggestion-hint">Svakim otvaranjem se prikazuje novi prijedlog.</div>
         </div>
-      </div>
+        <hr>
+        <!--Chat-->
+        <div class="col">
+        <div class="chat-window">
+          <div
+            *ngFor="let message of conversation"
+            class="message"
+            [class.from-user]="message.from === 'user'"
+            [class.from-bot]="message.from === 'bot'">
+            <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
+            <div class="bubble">{{ message.text }}</div>
+          </div>
+        </div>
+        </div>
+
     </nb-card-body>
     <nb-card-footer>
       <div class="input-row">
         <input
           nbInput
           fullWidth
-          placeholder="Postavi pitanje o AURO aplikaciji"
+          placeholder="Postavi pitanje o Konzum 360 aplikaciji"
           [(ngModel)]="currentQuestion"
           (keyup.enter)="submitQuestion()"
           name="chatQuestion"
