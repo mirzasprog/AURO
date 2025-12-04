@@ -18,6 +18,7 @@ import {
 } from '@nebular/theme';
 import { NbEvaIconsModule } from '@nebular/eva-icons';
 import { NbSecurityModule } from '@nebular/security';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 
 import {
   FooterComponent,
@@ -72,7 +73,7 @@ const PIPES = [
 ];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, ...NB_MODULES, NbCardModule, NbBadgeModule],
+  imports: [CommonModule, FormsModule, ...NB_MODULES, NbCardModule, NbBadgeModule, DragDropModule],
   exports: [CommonModule, FormsModule, ...PIPES, ...COMPONENTS],
   declarations: [...COMPONENTS, ...PIPES],
 })

@@ -21,7 +21,7 @@ export class ChatbotComponent implements OnInit {
   constructor(private chatbotService: ChatbotService) {}
 
   ngOnInit(): void {
-    this.suggestions = this.chatbotService.getSampleQuestions();
+    this.refreshSuggestion();
     this.addBotMessage(
       'Pozdrav! Ja sam K360 chatbot – tvoj digitalni asistent iz Konzuma i Mercatora Plus. Tu sam da ti pomognem uz minimalne smetnje, a uvijek možeš izabrati prijedlog sa strane ili postaviti svoje pitanje.'
     );
@@ -29,6 +29,10 @@ export class ChatbotComponent implements OnInit {
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
+
+    if (this.isOpen) {
+      this.refreshSuggestion();
+    }
   }
 
   submitQuestion(): void {
@@ -41,6 +45,7 @@ export class ChatbotComponent implements OnInit {
     const response: ChatbotResponse = this.chatbotService.askQuestion(trimmed);
     this.addBotMessage(response.answer);
     this.currentQuestion = '';
+    this.refreshSuggestion();
   }
 
   useSuggestion(question: string): void {
@@ -54,5 +59,10 @@ export class ChatbotComponent implements OnInit {
 
   private addBotMessage(text: string): void {
     this.conversation.push({ from: 'bot', text, timestamp: new Date() });
+  }
+
+  private refreshSuggestion(): void {
+    const nextSuggestion = this.chatbotService.getNextSuggestion();
+    this.suggestions = nextSuggestion ? [nextSuggestion] : [];
   }
 }

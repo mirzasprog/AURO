@@ -1,24 +1,29 @@
 <div class="chatbot-wrapper" [class.open]="isOpen">
   <button class="chatbot-toggle" (click)="toggleChat()" aria-label="Otvori K360 chatbot">
     <span class="avatar-ring">
-      <img src="assets/images/Konzum360.png" alt="K360 avatar" />
+      <img src="assets/images/KONZUM.png" alt="K360 avatar" />
     </span>
     <span class="toggle-label">K360 chatbot</span>
   </button>
 
-  <nb-card *ngIf="isOpen" class="chatbot-card" aria-live="polite">
-    <nb-card-header>
+  <nb-card *ngIf="isOpen" class="chatbot-card" aria-live="polite" cdkDrag cdkDragBoundary="body">
+    <nb-card-header cdkDragHandle>
       <div class="header-content">
         <div class="brand">
           <span class="brand-avatar">
-            <img src="assets/images/Konzum360.png" alt="K360 avatar" />
+            <img src="assets/images/KONZUM.png" alt="K360 avatar" />
           </span>
           <div>
             <div class="title">K360 chatbot</div>
-            <div class="subtitle">Tvoj diskretni AI partner za brze odgovore i prijedloge.</div>
+            <div class="subtitle">Brze i jasne smjernice za AURO – uvijek pri ruci.</div>
           </div>
         </div>
-        <nb-badge text="LLM" status="info" position="top right"></nb-badge>
+        <div class="header-actions">
+          <nb-badge text="LLM" status="primary" position="top right"></nb-badge>
+          <button nbButton ghost size="tiny" status="basic" (click)="toggleChat()" aria-label="Zatvori prozor">
+            ✕
+          </button>
+        </div>
       </div>
     </nb-card-header>
     <nb-card-body>
@@ -36,12 +41,13 @@
         </div>
 
         <div class="suggestions" *ngIf="suggestions.length">
-          <div class="suggestion-title">Prijedlozi</div>
+          <div class="suggestion-title">Brzi prijedlog</div>
           <div class="suggestion-list">
-            <button nbButton size="tiny" appearance="ghost" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)">
+            <button nbButton size="small" appearance="filled" status="info" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)">
               {{ suggestion }}
             </button>
           </div>
+          <div class="suggestion-hint">Svakim otvaranjem se prikazuje novi prijedlog.</div>
         </div>
       </div>
     </nb-card-body>
