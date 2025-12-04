@@ -74,7 +74,27 @@
           name="chatQuestion"
           autocomplete="off"
         />
-        <button nbButton status="primary" (click)="submitQuestion()">Pošalji</button>
+        <div class="file-input">
+          <input
+            type="file"
+            #fileInput
+            (change)="onFilesSelected($event)"
+            accept=".pdf,.xlsx,.xls,.csv,.png,.jpg,.jpeg"
+            multiple
+            aria-label="Dodaj dokument za pitanje"
+          />
+          <nb-icon icon="attach-outline"></nb-icon>
+        </div>
+        <button nbButton status="primary" (click)="submitQuestion()" [disabled]="isSending">{{ isSending ? 'Slanje...' : 'Pošalji' }}</button>
+      </div>
+      <div *ngIf="selectedFiles.length" class="attachment-list">
+        <div *ngFor="let file of selectedFiles; let i = index" class="attachment-item">
+          <nb-icon icon="file-text-outline"></nb-icon>
+          <span class="attachment-name">{{ file.name }}</span>
+          <button nbButton ghost size="tiny" status="basic" (click)="removeFile(i)" aria-label="Ukloni fajl">
+            <nb-icon icon="close-outline"></nb-icon>
+          </button>
+        </div>
       </div>
       <div class="footer-note">Ako odgovor ne postoji, asistent će te uputiti da kontaktiraš IT službu.</div>
     </nb-card-footer>
