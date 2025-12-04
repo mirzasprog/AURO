@@ -1,4 +1,9 @@
 import { Injectable } from '@angular/core';
+import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
+import { Observable, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
+import { Role } from '../data/role';
+import { DataService } from './data.service';
 
 export interface ChatbotKnowledgeEntry {
   id: string;
@@ -32,7 +37,7 @@ export class ChatbotService {
       id: 'dnevni-zadaci',
       title: 'Dnevni zadaci',
       keywords: ['dnevni', 'zadaci', 'plan', 'obaveze'],
-      answer: 'Modul "Dnevni zadaci" služi za praćenje i razradu svakodnevnih obaveza prodavnica. Otvara se kroz meni Dnevni zadaci.',
+      answer: 'Modul "Dnevni zadaci" služi za praćenje i razradu svakodnevnih obaveza prodavnica. Iz glavnog menija odaberi Dnevni zadaci > Pregled da vidiš obaveze za današnji dan ili Dnevni zadaci > Planiranje za buduće zadatke.',
       sampleQuestions: ['Kako da vidim dnevne zadatke?'],
     },
     {
@@ -53,7 +58,7 @@ export class ChatbotService {
       id: 'inventure',
       title: 'Inventure',
       keywords: ['inventura', 'parcijalna', 'pregled', 'odobrenje', 'unos'],
-      answer: 'Inventure imaju dva dijela: unos parcijalnih inventura i pregled/odobrenje. U meniju Inventure pronađi "Unos" za nove zapise ili "Pregled" za nadzor postojećih.',
+      answer: 'Za parcijalnu inventuru otvori meni Inventure i klikni na tab "Unos". Odaberi datum inventure, prodavnicu i dodaj popis artikala. Kada završiš, sačuvaj zapis pa prati odobrenje kroz tab "Pregled".',
       sampleQuestions: ['Kako da unesem parcijalnu inventuru?'],
     },
     {
@@ -102,15 +107,18 @@ export class ChatbotService {
       id: 'vip-kvaliteta',
       title: 'Kvaliteta VIP-a',
       keywords: ['vip', 'kvaliteta', 'reklamacija', 'voće povrće'],
-      answer: 'Modul "Kvaliteta VIP-a" služi za prijave i praćenje reklamacija voća i povrća. Otvara se kroz istoimenu stavku u meniju.',
+      answer: 'Modul "Kvaliteta VIP-a" služi za prijave i praćenje reklamacija voća i povrća. Otvori stavku "Kvaliteta VIP-a" u meniju, unesi prodavnicu i artikal te priloži fotografije/napomene. Tamo pratiš i status prethodnih prijava.',
       sampleQuestions: ['Kako prijaviti reklamaciju VIP?'],
     },
   ];
 
   private readonly suggestionPool: string[] = this.buildSuggestionPool();
 
-  constructor() {
+  private currentRole: Role | null = null;
+
+  constructor(private dataService: DataService, private authService: NbAuthService) {
     this.learnedAssociations = this.loadLearnedAssociations();
+    this.trackRoleChanges();
   }
 
   getNextSuggestion(): string {
@@ -126,10 +134,15 @@ export class ChatbotService {
     return suggestion;
   }
 
-  askQuestion(question: string): ChatbotResponse {
+  askQuestion(question: string): Observable<ChatbotResponse> {
     const normalized = question.trim().toLowerCase();
     if (!normalized) {
-      return { answer: 'Molim te unesi pitanje.', fallback: true };
+      return of({ answer: 'Molim te unesi pitanje.', fallback: true });
+    }
+
+    const dynamicResponse = this.handleDynamicQuestion(normalized);
+    if (dynamicResponse) {
+      return dynamicResponse;
     }
 
     const learnedMatch = this.findLearnedMatch(normalized);
@@ -137,13 +150,54 @@ export class ChatbotService {
 
     if (bestMatch) {
       this.reinforceLearning(normalized, bestMatch.id);
-      return { answer: bestMatch.answer, matchedEntry: bestMatch, fallback: false };
+      return of({ answer: bestMatch.answer, matchedEntry: bestMatch, fallback: false });
     }
 
-    return {
+    return of({
       answer: 'Za ovo trenutno nemam odgovor u bazi. Molimo te obrati se IT službi.',
       fallback: true,
-    };
+    });
+  }
+
+  private handleDynamicQuestion(question: string): Observable<ChatbotResponse> | null {
+    if (question.includes('promet')) {
+      return this.answerPrometQuestion(question);
+    }
+
+    return null;
+  }
+
+  private answerPrometQuestion(question: string): Observable<ChatbotResponse> {
+    if (this.currentRole !== Role.uprava) {
+      return of({
+        answer: 'Podaci o prometu dostupni su samo korisnicima sa rolom UPRAVA. Prijavi se s odgovarajućim ovlaštenjima.',
+        fallback: false,
+      });
+    }
+
+    return this.dataService.getSviPrometi().pipe(
+      map(prometi => {
+        if (!prometi || !prometi.length) {
+          return { answer: 'Trenutno nema dostupnih podataka o prometu.', fallback: true };
+        }
+
+        const sorted = [...prometi].sort((a, b) => b.promet - a.promet);
+        const wantsLowest = question.includes('najmanj');
+        const target = wantsLowest ? sorted[sorted.length - 1] : sorted[0];
+        const adjective = wantsLowest ? 'najmanji' : 'najveći';
+
+        return {
+          answer: `Prema zadnjim podacima, prodavnica ${target.brojProdavnice} (${target.adresa}) ima ${adjective} promet: ${this.formatCurrency(target.promet)}.`,
+          fallback: false,
+        };
+      }),
+      catchError(() =>
+        of({
+          answer: 'Nisam uspio dohvatiti promet. Pokušaj ponovo ili kontaktiraj IT tim.',
+          fallback: true,
+        }),
+      ),
+    );
   }
 
   private findBestMatch(question: string): ChatbotKnowledgeEntry | undefined {
@@ -210,6 +264,24 @@ export class ChatbotService {
     if (updated) {
       this.persistLearning();
     }
+  }
+
+  private trackRoleChanges(): void {
+    this.authService
+      .onTokenChange()
+      .subscribe((token: NbAuthJWTToken) => {
+        if (token && token.isValid()) {
+          const payloadRole = token.getPayload()['role'] as Role | undefined;
+          this.currentRole = payloadRole ?? null;
+        } else {
+          this.currentRole = null;
+        }
+      });
+  }
+
+  private formatCurrency(value: number | undefined): string {
+    const amount = Number.isFinite(value) ? Number(value) : 0;
+    return amount.toLocaleString('bs-BA', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' KM';
   }
 
   private loadLearnedAssociations(): Record<string, string> {

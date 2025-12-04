@@ -42,10 +42,17 @@ export class ChatbotComponent implements OnInit {
     }
 
     this.addUserMessage(trimmed);
-    const response: ChatbotResponse = this.chatbotService.askQuestion(trimmed);
-    this.addBotMessage(response.answer);
-    this.currentQuestion = '';
-    this.refreshSuggestion();
+    this.chatbotService.askQuestion(trimmed).subscribe({
+      next: (response: ChatbotResponse) => {
+        this.addBotMessage(response.answer);
+        this.currentQuestion = '';
+        this.refreshSuggestion();
+      },
+      error: () => {
+        this.addBotMessage('Došlo je do greške pri obradi pitanja. Pokušaj ponovo.');
+        this.refreshSuggestion();
+      },
+    });
   }
 
   useSuggestion(question: string): void {
