@@ -1,33 +1,47 @@
 <div class="chatbot-wrapper" [class.open]="isOpen">
-  <button nbButton status="info" class="chatbot-toggle" (click)="toggleChat()" aria-label="Otvori chatbot">
-    <nb-icon [icon]="isOpen ? 'close-outline' : 'message-circle-outline'"></nb-icon>
-    <span class="toggle-label">AURO asistent</span>
+  <button class="chatbot-toggle" (click)="toggleChat()" aria-label="Otvori K360 chatbot">
+    <span class="avatar-ring">
+      <img src="assets/images/Konzum360.png" alt="K360 avatar" />
+    </span>
+    <span class="toggle-label">K360 chatbot</span>
   </button>
 
   <nb-card *ngIf="isOpen" class="chatbot-card" aria-live="polite">
     <nb-card-header>
       <div class="header-content">
-        <div>
-          <div class="title">Chatbot asistent</div>
-          <div class="subtitle">Koristi trenutnu bazu podataka aplikacije i uči iz tvojih upita.</div>
+        <div class="brand">
+          <span class="brand-avatar">
+            <img src="assets/images/Konzum360.png" alt="K360 avatar" />
+          </span>
+          <div>
+            <div class="title">K360 chatbot</div>
+            <div class="subtitle">Tvoj diskretni AI partner za brze odgovore i prijedloge.</div>
+          </div>
         </div>
         <nb-badge text="LLM" status="info" position="top right"></nb-badge>
       </div>
     </nb-card-header>
     <nb-card-body>
-      <div class="chat-window">
-        <div *ngFor="let message of conversation" class="message" [class.from-user]="message.from === 'user'" [class.from-bot]="message.from === 'bot'">
-          <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
-          <div class="bubble">{{ message.text }}</div>
+      <div class="chat-layout">
+        <div class="chat-window">
+          <div
+            *ngFor="let message of conversation"
+            class="message"
+            [class.from-user]="message.from === 'user'"
+            [class.from-bot]="message.from === 'bot'"
+          >
+            <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
+            <div class="bubble">{{ message.text }}</div>
+          </div>
         </div>
-      </div>
 
-      <div class="suggestions" *ngIf="suggestions.length">
-        <div class="suggestion-title">Primjeri pitanja</div>
-        <div class="suggestion-list">
-          <button nbButton size="tiny" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)">
-            {{ suggestion }}
-          </button>
+        <div class="suggestions" *ngIf="suggestions.length">
+          <div class="suggestion-title">Prijedlozi</div>
+          <div class="suggestion-list">
+            <button nbButton size="tiny" appearance="ghost" *ngFor="let suggestion of suggestions" (click)="useSuggestion(suggestion)">
+              {{ suggestion }}
+            </button>
+          </div>
         </div>
       </div>
     </nb-card-body>

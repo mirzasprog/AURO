@@ -23,7 +23,7 @@ export class ChatbotComponent implements OnInit {
   ngOnInit(): void {
     this.suggestions = this.chatbotService.getSampleQuestions();
     this.addBotMessage(
-      'Pozdrav! Ja sam AURO asistent. Koristim trenutnu bazu aplikacije i ne šaljem podatke izvan sistema. Postavi pitanje ili odaberi neko od prijedloga ispod.'
+      'Pozdrav! Ja sam K360 chatbot – tvoj digitalni asistent iz Konzuma i Mercatora Plus. Tu sam da ti pomognem uz minimalne smetnje, a uvijek možeš izabrati prijedlog sa strane ili postaviti svoje pitanje.'
     );
   }
 
