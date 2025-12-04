@@ -1,6 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ChatbotService } from '../../../@core/utils/chatbot.service';
-import { AiChatService, ChatResponseDto } from '../../../@core/utils/ai-chat.service';
+import { AiChatService, ChatResponseDto, ChatSource } from '../../../@core/utils/ai-chat.service';
 
 interface ChatMessage {
   from: 'user' | 'bot';
@@ -20,7 +20,9 @@ export class ChatbotComponent implements OnInit {
   currentQuestion = '';
   conversationId?: string;
   selectedFiles: File[] = [];
+  suggestions: string[] = [];
   isSending = false;
+  isLoading = false;
 
   @ViewChild('fileInput')
   fileInput?: ElementRef<HTMLInputElement>;
@@ -31,6 +33,7 @@ export class ChatbotComponent implements OnInit {
     this.addBotMessage(
       'Pozdrav! 👋 Ja sam Konzum360 – digitalni asistent za sve zaposlenike Konzuma i Mercatora BiH. Tu sam da ti olakšam svakodnevni rad u aplikaciji, pomognem pronaći potrebne informacije, pravilnike, procedure i upute za izvršavanje dnevnih zadataka. Možeš izabrati neku od ponuđenih tema ili jednostavno postaviti svoje pitanje – tu sam da pomognem. 🛒✨'
     );
+    this.refreshSuggestion();
   }
 
   toggleChat(): void {
@@ -44,23 +47,26 @@ export class ChatbotComponent implements OnInit {
     }
 
     this.isSending = true;
+    this.isLoading = true;
     this.addUserMessage(trimmed);
     this.aiChatService
       .chatWithFiles(trimmed, this.conversationId, this.selectedFiles)
       .subscribe({
         next: (response: ChatResponseDto) => {
           this.conversationId = response.conversationId;
-          this.addBotMessage(response.answer);
+          this.addBotMessage(response.answer, response.sources);
           this.currentQuestion = '';
           this.selectedFiles = [];
           this.resetFileInput();
           this.refreshSuggestion();
           this.isSending = false;
+          this.isLoading = false;
         },
         error: () => {
           this.addBotMessage('Došlo je do greške pri obradi pitanja. Pokušaj ponovo.');
           this.refreshSuggestion();
           this.isSending = false;
+          this.isLoading = false;
         },
       });
   }
@@ -102,5 +108,21 @@ export class ChatbotComponent implements OnInit {
     if (this.fileInput) {
       this.fileInput.nativeElement.value = '';
     }
+  }
+
+  private refreshSuggestion(): void {
+    const collected: string[] = [];
+
+    while (collected.length < 3) {
+      const suggestion = this.chatbotService.getNextSuggestion();
+
+      if (!suggestion || collected.includes(suggestion)) {
+        break;
+      }
+
+      collected.push(suggestion);
+    }
+
+    this.suggestions = collected;
   }
 }
