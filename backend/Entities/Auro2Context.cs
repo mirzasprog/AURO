@@ -43,6 +43,8 @@ namespace backend.Entities
         public virtual DbSet<TipOtpisa> TipOtpisa { get; set; } = null!;
         public virtual DbSet<Tkuanalitika> Tkuanalitika { get; set; } = null!;
         public virtual DbSet<Tkusintetika> Tkusintetika { get; set; } = null!;
+        public virtual DbSet<KnowledgeDocument> KnowledgeDocuments { get; set; } = null!;
+        public virtual DbSet<KnowledgeChunk> KnowledgeChunks { get; set; } = null!;
         public virtual DbSet<UcesniciInventure> UcesniciInventure { get; set; } = null!;
         public virtual DbSet<IzvjestajTrgovackaKnjigaSintetika> IzvjestajTrgovackaKnjigaSintetika { get; set; } = null!;
         public virtual DbSet<IzvjestajTrgovackaKnjigaAnalitika> IzvjestajTrgovackaKnjigaAnalitika { get; set; } = null!;
