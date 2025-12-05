@@ -6,7 +6,7 @@ namespace backend.Entities
     public class PrometHistorija
     {
         [Key]
-        public int PrometId { get; set; }
+        public long PrometId { get; set; }
         public string? BrojProdavnice { get; set; }
         public DateTime Datum { get; set; }
         public int Godina { get; set; }
