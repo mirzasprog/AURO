@@ -98,6 +98,7 @@ namespace backend.Entities
         public virtual DbSet<ResponsePrometProdavnice> PrometProdavnice { get; set; } = null!;
         public virtual DbSet<ResponsePrometiProdavnica> PrometiProdavnica { get; set; } = null!;
         public virtual DbSet<ResponsePrometiProdavnica> ResponsePrometiProdavnica { get; set; } = null!;
+        public virtual DbSet<NetoPovrsinaProdavnica> NetoPovrsinaProdavnica { get; set; } = null!;
         public virtual DbSet<VipZaglavlje> VipZaglavljes { get; set; } = null!;
         public virtual DbSet<VipStavke> VipStavkes { get; set; } = null!;
         public virtual DbSet<VipArtikli> VipArtiklis { get; set; } = null!;
@@ -1124,6 +1125,18 @@ namespace backend.Entities
             modelBuilder.Entity<ResponsePrometiProdavnica>(entity =>
                 entity.HasNoKey()
             );
+
+            modelBuilder.Entity<NetoPovrsinaProdavnica>(entity =>
+            {
+                entity.HasNoKey();
+                entity.ToTable("NetoPovrsinaProdavnica");
+
+                entity.Property(e => e.OrgJed)
+                    .HasMaxLength(4)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NetoPovrsina).HasColumnType("float");
+            });
 
             modelBuilder.Entity<VipZaglavlje>(entity =>
             {
