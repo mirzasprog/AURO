@@ -945,3 +945,178 @@ body[data-theme='dark'] .charts-loading {
 body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
   background: rgba(200, 200, 200, 0.4);
 }
+
+.turnover-modal {
+  width: 100%;
+  max-width: 980px;          // širi modal
+  max-height: 90vh;          // niži, da stane u ekran
+  display: flex;
+  flex-direction: column;
+}
+
+.turnover-modal__header {
+  font-size: 0.85rem;        // manji naslov
+  padding: 0.5rem 0.9rem;
+}
+
+.turnover-modal__body {
+  font-size: 0.70rem;        // generalno manji font
+  padding: 0.6rem 0.9rem;
+  overflow: auto;            // scroll ako baš pređe 90vh
+}
+
+/* Gornje vrijednosti */
+.modal-values {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 0.4rem;
+
+  p {
+    margin: 0;
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+}
+
+/* Header iznad tablice */
+.modal-table__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 0.4rem;
+
+  .eyebrow {
+    margin: 0;
+    font-size: 0.68rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .muted {
+    display: block;
+    font-size: 0.65rem;
+    opacity: 0.75;
+  }
+}
+
+/* Page size picker */
+.page-size-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.65rem;
+
+  label {
+    margin: 0;
+  }
+
+  select {
+    font-size: 0.65rem;
+    padding: 0.1rem 0.25rem;
+  }
+}
+
+/* Tablica – borderi, kompaktnije */
+.turnover-modal__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.68rem;
+  table-layout: fixed; // da ne pobjegne širina
+
+  th,
+  td {
+    padding: 0.25rem 0.35rem;
+    border: 1px solid var(--border-basic-color-3);  // zadržava Nebular boje
+    vertical-align: middle;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  th {
+    text-align: center;
+    font-weight: 600;
+    background-color: var(--background-basic-color-2);
+  }
+
+  td:first-child,
+  th:first-child {
+    text-align: center;
+    width: 70px;
+  }
+}
+
+/* Datum bedž – smanjen */
+.date-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.15rem 0.3rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  line-height: 1.1;
+}
+
+.date-day {
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.date-month {
+  text-transform: uppercase;
+  font-size: 0.62rem;
+}
+
+/* Chip za razliku – manji ali iste boje (klasa dolazi iz getPrometRowClass) */
+.delta-cell {
+  text-align: center;
+}
+
+.delta-chip {
+  display: inline-block;
+  padding: 0.12rem 0.35rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 500;
+}
+
+/* Paginacija – kompaktno */
+.modal-pagination {
+  margin-top: 0.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+
+  .pagination-meta {
+    opacity: 0.8;
+  }
+
+  .pagination-actions {
+    display: flex;
+    gap: 0.3rem;
+  }
+
+  button[nbButton] {
+    font-size: 0.65rem !important;
+    padding: 0.1rem 0.45rem !important;
+  }
+}
+
+/* Placeholder i empty state */
+.modal-table.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 1rem 0;
+
+  p {
+    margin: 0;
+    font-size: 0.7rem;
+  }
+}
+
+.muted {
+  font-size: 0.68rem;
+}
