@@ -69,15 +69,10 @@ namespace backend.Data
 
         private decimal DohvatiNetoKvadraturu(string? brojProdavnice)
         {
-            if (string.IsNullOrWhiteSpace(brojProdavnice))
-            {
-                return 0;
-            }
-
-            var netoPovrsina = _context.NetoPovrsinaProdavnica
+            var netoPovrsina = _context.NetoPovrsinaProd
                 .AsNoTracking()
                 .AsEnumerable()
-                .FirstOrDefault(x => AreSameStore(x.OrgJed, brojProdavnice))?.NetoPovrsina;
+                .FirstOrDefault(x => AreSameStore(x.BrojProdavnice, brojProdavnice))?.NetoPovrsina;
 
             return netoPovrsina.HasValue ? (decimal)netoPovrsina.Value : 0;
         }
