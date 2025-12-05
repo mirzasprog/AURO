@@ -21,25 +21,73 @@ namespace backend.Data
         {
            // string brojProdavnice = korisnickoIme ?? "";
 
-            var r = _context.PrometProdavnice?.FromSqlInterpolated($"EXEC GetPrometi {prodavnica}") .AsEnumerable() 
+            var r = _context.PrometProdavnice?.FromSqlInterpolated($"EXEC GetPrometi {prodavnica}") .AsEnumerable()
         .FirstOrDefault();
+
+            if (r != null)
+            {
+                r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
+                r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
+            }
+
             return r;
         }
 
         public ResponsePrometiProdavnica? PreuzmiPrometeSvihProdavnica()
         {
             var r = _context.PrometiProdavnica?.FromSqlInterpolated($"EXEC GetPrometiSvihProdavnica") .AsEnumerable().FirstOrDefault();
+
+            if (r != null)
+            {
+                r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
+                r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
+            }
+
             return r;
         }
 
-            public List<ResponsePrometiProdavnica>? PreuzmiSvePromete()
-            {
-                var r = _context.ResponsePrometiProdavnica?
-                    .FromSqlInterpolated($"EXEC GetPrometSvihProdavnica")
-                    .ToList();
+        public List<ResponsePrometiProdavnica>? PreuzmiSvePromete()
+        {
+            var r = _context.ResponsePrometiProdavnica?
+                .FromSqlInterpolated($"EXEC GetPrometSvihProdavnica")
+                .ToList();
 
-                return r;
+            if (r != null)
+            {
+                foreach (var prodavnica in r)
+                {
+                    prodavnica.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(prodavnica.BrojProdavnice);
+                    prodavnica.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(prodavnica.Promet, prodavnica.NetoKvadraturaObjekta);
+                }
             }
+
+            return r;
+        }
+
+        private decimal DohvatiNetoKvadraturu(string? brojProdavnice)
+        {
+            if (string.IsNullOrWhiteSpace(brojProdavnice))
+            {
+                return 0;
+            }
+
+            var netoPovrsina = _context.NetoPovrsinaProdavnica
+                .AsNoTracking()
+                .FirstOrDefault(x => x.OrgJed == brojProdavnice)?.NetoPovrsina;
+
+            return netoPovrsina.HasValue ? (decimal)netoPovrsina.Value : 0;
+        }
+
+        private decimal IzracunajPrometPoKvadraturi(decimal? promet, decimal? netoKvadratura)
+        {
+            if (!promet.HasValue)
+            {
+                return 0;
+            }
+
+            var kvadratura = netoKvadratura ?? 0;
+            return kvadratura > 0 ? Math.Round(promet.Value / kvadratura, 2) : 0;
+        }
 
     }
 }
