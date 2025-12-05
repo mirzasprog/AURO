@@ -120,5 +120,12 @@ namespace backend.Controllers
             return Ok(response);
         }
 
+        [HttpGet("promet-detalji")]
+        public IActionResult PreuzmiPrometDetaljeZaMjesec()
+        {
+            var prometDetalji = _repo.PreuzmiPrometDetaljeZaMjesec();
+            return Ok(prometDetalji);
+        }
+
     }
 }

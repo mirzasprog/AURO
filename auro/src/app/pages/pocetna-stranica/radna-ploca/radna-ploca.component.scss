@@ -407,6 +407,100 @@ body[data-theme='dark'] .charts-loading {
   min-height: 260px;
 }
 
+.modal-table {
+  margin: 1rem 0;
+  border: 1px solid var(--dashboard-card-border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--dashboard-shell-bg);
+}
+
+.modal-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modal-table th,
+.modal-table td {
+  padding: 0.65rem 0.9rem;
+  text-align: left;
+}
+
+.modal-table thead {
+  background: rgba(0, 0, 0, 0.04);
+  font-weight: 700;
+}
+
+.modal-table tbody tr:nth-child(even) {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.modal-table tbody tr.delta-positive {
+  background: rgba(0, 214, 143, 0.08);
+}
+
+.modal-table tbody tr.delta-negative {
+  background: rgba(255, 61, 113, 0.08);
+}
+
+.delta-cell {
+  text-align: right;
+}
+
+.delta-chip {
+  display: inline-block;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.delta-positive .delta-chip {
+  color: #0f9b6c;
+  background: rgba(15, 155, 108, 0.12);
+}
+
+.delta-negative .delta-chip {
+  color: #d9144e;
+  background: rgba(217, 20, 78, 0.12);
+}
+
+.delta-neutral .delta-chip {
+  color: #8f9bb3;
+  background: rgba(143, 155, 179, 0.14);
+}
+
+.date-badge {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.6rem;
+  border: 1px solid var(--dashboard-card-border);
+  background: var(--dashboard-card-background);
+  font-weight: 700;
+  width: 64px;
+}
+
+.date-day {
+  font-size: 1rem;
+}
+
+.date-month {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8f9bb3;
+}
+
+.modal-table.placeholder {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: center;
+  padding: 1rem;
+}
+
 :host ::ng-deep canvas {
   width: 100% !important;
   height: 100% !important;

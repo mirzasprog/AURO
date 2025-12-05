@@ -7,6 +7,7 @@ import { NbDialogService, NbIconLibraries } from '@nebular/theme';
 import Chart from 'chart.js';
 import { finalize, takeUntil } from 'rxjs/operators';
 import { DashboardTrendPoint } from '../../../@core/data/dashboard/dashboard-summary';
+import { PrometHistoryRow } from '../../../@core/data/promet-history';
 import { DailyTaskService } from '../../../@core/utils/daily-task.service';
 import { Subject } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
@@ -84,6 +85,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   columnRows: string[][] = [];
   columnKeys: string[] = [];
   columnStates: any = {};
+  prometHistoryRows: PrometHistoryRow[] = [];
+  isPrometHistoryLoading = false;
   settings: any = {
     actions: false,
     pager: { display: true, perPage: 20 },
@@ -223,6 +226,13 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     const color = value > 0 ? 'green' : value < 0 ? 'red' : 'orange';
     return `<span style="color:${color}; font-weight:600">${value.toFixed(1)}%</span>`;
   };
+
+  getPrometRowClass(row: PrometHistoryRow): string {
+    if (!row) return '';
+    if (row.difference > 0) return 'delta-positive';
+    if (row.difference < 0) return 'delta-negative';
+    return 'delta-neutral';
+  }
 
   private loadSviPrometi(): void {
     this.isDashboardLoading = true;
@@ -477,6 +487,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           // render grafova vezanih za promet
           this.renderDayComparisonChart?.();
           this.renderMonthComparisonChart?.();
+
+          this.loadPrometDetalji();
         },
         error: (err) => {
           const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
@@ -521,10 +533,27 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           // render grafova vezanih za promet
           this.renderDayComparisonChart?.();
           this.renderMonthComparisonChart?.();
+
+          this.loadPrometDetalji();
         },
         error: (err) => {
           const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
           Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
+        }
+      });
+  }
+
+  private loadPrometDetalji(): void {
+    this.isPrometHistoryLoading = true;
+    this.dataService.getPrometDetalji()
+      .pipe(takeUntil(this.destroy$), finalize(() => this.isPrometHistoryLoading = false))
+      .subscribe({
+        next: (detalji: PrometHistoryRow[]) => {
+          this.prometHistoryRows = detalji ?? [];
+        },
+        error: (err) => {
+          const poruka = err?.error?.poruka ?? err?.statusText ?? err?.message;
+          Swal.fire('Greška', 'Greška prilikom učitavanja historije prometa: ' + poruka, 'error');
         }
       });
   }

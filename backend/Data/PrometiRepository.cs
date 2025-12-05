@@ -67,6 +67,52 @@ namespace backend.Data
             return r;
         }
 
+        public List<PrometHistoryComparison> PreuzmiPrometDetaljeZaMjesec()
+        {
+            var today = DateTime.Today;
+            var currentYear = today.Year;
+            var currentMonth = today.Month;
+            var previousYear = currentYear - 1;
+            var previousMonth = currentMonth;
+
+            var lastAvailableCurrentDay = Math.Min(today.AddDays(-1).Day, DateTime.DaysInMonth(currentYear, currentMonth));
+            var daysInPreviousMonth = DateTime.DaysInMonth(previousYear, previousMonth);
+
+            var currentYearLookup = _context.PrometiHistorija
+                .Where(p => p.Godina == currentYear && p.Mjesec == currentMonth && p.Dan <= lastAvailableCurrentDay)
+                .GroupBy(p => p.Dan)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.UkupniPromet));
+
+            var previousYearLookup = _context.PrometiHistorija
+                .Where(p => p.Godina == previousYear && p.Mjesec == previousMonth)
+                .GroupBy(p => p.Dan)
+                .ToDictionary(g => g.Key, g => g.Sum(x => x.UkupniPromet));
+
+            var daysInCurrentMonth = DateTime.DaysInMonth(currentYear, currentMonth);
+            var results = new List<PrometHistoryComparison>();
+
+            for (var day = 1; day <= daysInPreviousMonth; day++)
+            {
+                currentYearLookup.TryGetValue(day, out var currentTurnover);
+                previousYearLookup.TryGetValue(day, out var previousTurnover);
+
+                var safeCurrentDay = Math.Min(day, daysInCurrentMonth);
+
+                results.Add(new PrometHistoryComparison
+                {
+                    Day = day,
+                    CurrentYear = currentYear,
+                    PreviousYear = previousYear,
+                    CurrentYearDate = new DateTime(currentYear, currentMonth, safeCurrentDay),
+                    PreviousYearDate = new DateTime(previousYear, previousMonth, day),
+                    CurrentYearTurnover = Math.Round(currentTurnover, 2),
+                    PreviousYearTurnover = Math.Round(previousTurnover, 2)
+                });
+            }
+
+            return results;
+        }
+
         private decimal DohvatiNetoKvadraturu(string? brojProdavnice)
         {
             var netoPovrsina = _context.NetoPovrsinaProd
