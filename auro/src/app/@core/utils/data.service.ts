@@ -57,6 +57,7 @@ import { VikendAkcijaStavka, VikendAkcijaStavkaUpdate } from '../data/vikend-akc
 import { VipArtikal } from '../data/vip-artikal';
 import { Akcija } from '../data/akcija';
 import { AkcijaStavka } from '../data/akcija-stavka';
+import { PrometHistoryRow } from '../data/promet-history';
 @Injectable({
   providedIn: 'root'
 })
@@ -229,11 +230,15 @@ export class DataService {
 
   public getPromet(brojProd: string): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/${brojProd}`)
-  }    
-  
+  }
+
+  public getPrometDetalji(): Observable<PrometHistoryRow[]> {
+    return this.posaljiRequest<PrometHistoryRow[]>("GET", this.baseUrl + '/api/prometi/promet-detalji');
+  }
+
   public getSviPrometi(): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/sviPrometi`)
-  }  
+  }
   
   public getPrometCijelaMreza(): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/`)

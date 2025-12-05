@@ -98,6 +98,7 @@ namespace backend.Entities
         public virtual DbSet<ResponsePrometProdavnice> PrometProdavnice { get; set; } = null!;
         public virtual DbSet<ResponsePrometiProdavnica> PrometiProdavnica { get; set; } = null!;
         public virtual DbSet<ResponsePrometiProdavnica> ResponsePrometiProdavnica { get; set; } = null!;
+        public virtual DbSet<PrometHistorija> PrometiHistorija { get; set; } = null!;
         public virtual DbSet<NetoPovrsinaProd> NetoPovrsinaProd { get; set; } = null!;
         public virtual DbSet<VipZaglavlje> VipZaglavljes { get; set; } = null!;
         public virtual DbSet<VipStavke> VipStavkes { get; set; } = null!;
@@ -1208,6 +1209,28 @@ namespace backend.Entities
 
                 entity.Property(e => e.SifraArtk)
                     .HasColumnType("nvarchar(max)");
+            });
+
+            modelBuilder.Entity<PrometHistorija>(entity =>
+            {
+                entity.ToTable("PrometiHistorija");
+
+                entity.HasKey(e => e.PrometId);
+
+                entity.Property(e => e.PrometId)
+                    .HasColumnName("PrometID");
+
+                entity.Property(e => e.BrojProdavnice)
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Datum)
+                    .HasColumnType("date");
+
+                entity.Property(e => e.DatumUnosa)
+                    .HasColumnType("datetime");
+
+                entity.Property(e => e.UkupniPromet)
+                    .HasColumnType("decimal(18, 2)");
             });
 
             OnModelCreatingPartial(modelBuilder);

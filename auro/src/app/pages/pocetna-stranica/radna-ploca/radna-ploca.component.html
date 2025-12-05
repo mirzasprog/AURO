@@ -177,6 +177,44 @@
         <p>Prošle godine: {{ (dashboardSummary.prometProslaGodina ?? dashboardSummary.turnover?.previousValue) |
           number:'1.2-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
       </div>
+      <div class="modal-table" *ngIf="prometHistoryRows?.length; else prometHistoryState">
+        <table>
+          <thead>
+            <tr>
+              <th>Dan</th>
+              <th>Trenutna godina ({{ prometHistoryRows[0]?.currentYear }})</th>
+              <th>Prethodna godina ({{ prometHistoryRows[0]?.previousYear }})</th>
+              <th>Razlika</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of prometHistoryRows" [ngClass]="getPrometRowClass(row)">
+              <td>
+                <div class="date-badge">
+                  <span class="date-day">{{ row.currentYearDate | date:'dd' }}</span>
+                  <span class="date-month">{{ row.currentYearDate | date:'MMM' }}</span>
+                </div>
+              </td>
+              <td>{{ row.currentYearTurnover | number:'1.0-0' }} {{ dashboardSummary?.currency ?? 'KM' }}</td>
+              <td>{{ row.previousYearTurnover | number:'1.0-0' }} {{ dashboardSummary?.currency ?? 'KM' }}</td>
+              <td class="delta-cell">
+                <span class="delta-chip" [ngClass]="getPrometRowClass(row)">
+                  {{ row.difference | number:'1.0-0' }} {{ dashboardSummary?.currency ?? 'KM' }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <ng-template #prometHistoryState>
+        <div class="modal-table placeholder" *ngIf="isPrometHistoryLoading; else prometHistoryEmpty">
+          <nb-spinner size="medium"></nb-spinner>
+          <p>Učitavanje historije prometa...</p>
+        </div>
+        <ng-template #prometHistoryEmpty>
+          <p class="muted">Nema podataka za odabrani period.</p>
+        </ng-template>
+      </ng-template>
       <div class="modal-chart">
         <canvas id="turnoverTrendChart"></canvas>
       </div>
