@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 public class ResponsePrometProdavnice
 {
     public string BrojProdavnice { get; set; } = null!;
@@ -8,7 +10,10 @@ public class ResponsePrometProdavnice
     public decimal PrometProslaGodina { get; set; }
     public int BrojKupaca { get; set; }
     public int BrojKupacaProslaGodina { get; set; }
+
+    [NotMapped]
     public decimal? NetoKvadraturaObjekta { get; set; }
+
     public decimal? PrometPoNetoKvadraturi { get; set; }
     public decimal? PrometPoUposleniku { get; set; }
 }
