@@ -80,11 +80,13 @@ namespace backend.Data
 
             var currentYearLookup = _context.PrometiHistorija
                 .Where(p => p.Godina == currentYear && p.Mjesec == currentMonth && p.Dan <= lastAvailableCurrentDay)
+                .AsEnumerable()
                 .GroupBy(p => p.Dan)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.UkupniPromet));
 
             var previousYearLookup = _context.PrometiHistorija
                 .Where(p => p.Godina == previousYear && p.Mjesec == previousMonth)
+                .AsEnumerable()
                 .GroupBy(p => p.Dan)
                 .ToDictionary(g => g.Key, g => g.Sum(x => x.UkupniPromet));
 
