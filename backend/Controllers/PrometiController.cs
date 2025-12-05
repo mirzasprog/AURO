@@ -47,6 +47,7 @@ namespace backend.Controllers
                 BrojKupacaProslaGodina = r.BrojKupacaProslaGodina,
                 NetoKvadraturaObjekta = netoKvadratura,
                 PrometPoNetoKvadraturi = prometPoKvadraturi,
+                PrometProslaGodinaPoNetoKvadraturi = r.PrometProslaGodinaPoNetoKvadraturi,
                 PrometPoUposleniku = 0
             });
         }
@@ -78,6 +79,7 @@ namespace backend.Controllers
                 BrojKupacaProslaGodina = r.BrojKupacaProslaGodina,
                 NetoKvadraturaObjekta = netoKvadratura,
                 PrometPoNetoKvadraturi = prometPoKvadraturi,
+                PrometProslaGodinaPoNetoKvadraturi = r.PrometProslaGodinaPoNetoKvadraturi,
                 PrometPoUposleniku = 0
             });
         }
@@ -110,6 +112,7 @@ namespace backend.Controllers
                     BrojKupacaProslaGodina = item.BrojKupacaProslaGodina,
                     NetoKvadraturaObjekta = netoKvadratura,
                     PrometPoNetoKvadraturi = prometPoKvadraturi,
+                    PrometProslaGodinaPoNetoKvadraturi = item.PrometProslaGodinaPoNetoKvadraturi,
                     PrometPoUposleniku = 0
                 };
             }).ToList();

@@ -28,6 +28,7 @@ namespace backend.Data
             {
                 r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
                 r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
+                r.PrometProslaGodinaPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.PrometProslaGodina, r.NetoKvadraturaObjekta);
             }
 
             return r;
@@ -41,6 +42,7 @@ namespace backend.Data
             {
                 r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
                 r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
+                r.PrometProslaGodinaPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.PrometProslaGodina, r.NetoKvadraturaObjekta);
             }
 
             return r;
@@ -58,6 +60,7 @@ namespace backend.Data
                 {
                     prodavnica.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(prodavnica.BrojProdavnice);
                     prodavnica.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(prodavnica.Promet, prodavnica.NetoKvadraturaObjekta);
+                    prodavnica.PrometProslaGodinaPoNetoKvadraturi = IzracunajPrometPoKvadraturi(prodavnica.PrometProslaGodina, prodavnica.NetoKvadraturaObjekta);
                 }
             }
 
@@ -73,7 +76,8 @@ namespace backend.Data
 
             var netoPovrsina = _context.NetoPovrsinaProdavnica
                 .AsNoTracking()
-                .FirstOrDefault(x => x.OrgJed == brojProdavnice)?.NetoPovrsina;
+                .AsEnumerable()
+                .FirstOrDefault(x => AreSameStore(x.OrgJed, brojProdavnice))?.NetoPovrsina;
 
             return netoPovrsina.HasValue ? (decimal)netoPovrsina.Value : 0;
         }
@@ -87,6 +91,19 @@ namespace backend.Data
 
             var kvadratura = netoKvadratura ?? 0;
             return kvadratura > 0 ? Math.Round(promet.Value / kvadratura, 2) : 0;
+        }
+
+        private static bool AreSameStore(string? left, string? right)
+        {
+            var normalizedLeft = NormalizeStoreId(left);
+            var normalizedRight = NormalizeStoreId(right);
+
+            return !string.IsNullOrEmpty(normalizedLeft) && normalizedLeft == normalizedRight;
+        }
+
+        private static string NormalizeStoreId(string? value)
+        {
+            return value?.Trim()?.TrimStart('0') ?? string.Empty;
         }
 
     }

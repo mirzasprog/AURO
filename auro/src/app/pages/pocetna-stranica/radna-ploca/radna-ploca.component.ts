@@ -36,6 +36,7 @@ interface AggregatedPrometMetrics {
   brojKupacaProslaGodina: number;
   netoKvadratura: number;
   prometPoNetoKvadraturi: number;
+  prometProslaGodinaPoNetoKvadraturi: number;
 }
 type KpiCard = {
   key: string;
@@ -292,6 +293,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       brojKupacaProslaGodina: 0,
       netoKvadratura: 0,
       prometPoNetoKvadraturi: 0,
+      prometProslaGodinaPoNetoKvadraturi: 0,
     };
 
     const totals = stores.reduce((acc: AggregatedPrometMetrics, item: any) => {
@@ -312,6 +314,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     totals.prometPoNetoKvadraturi = totals.netoKvadratura
       ? Number((totals.promet / totals.netoKvadratura).toFixed(2))
+      : 0;
+
+    totals.prometProslaGodinaPoNetoKvadraturi = totals.netoKvadratura
+      ? Number((totals.prometProslaGodina / totals.netoKvadratura).toFixed(2))
       : 0;
 
     return totals;
@@ -343,6 +349,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       visitors: { value: brojKupaca, previousValue: brojKupacaProslaGodina },
       netoKvadraturaObjekta: Number(metrics.netoKvadratura.toFixed(2)),
       prometPoNetoKvadraturi: metrics.prometPoNetoKvadraturi,
+      prometProslaGodinaPoNetoKvadraturi: metrics.prometProslaGodinaPoNetoKvadraturi,
       averageBasket: {
         value: averageBasketValue,
         previousValue: averageBasketPrevious,
