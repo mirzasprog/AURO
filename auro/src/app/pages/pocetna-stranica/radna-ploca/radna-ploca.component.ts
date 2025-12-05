@@ -88,7 +88,6 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   prometHistoryRows: PrometHistoryRow[] = [];
   prometHistoryPage = 1;
   prometHistoryPageSize = 10;
-  prometHistoryPageSizeOptions = [5, 10];
   isPrometHistoryLoading = false;
   settings: any = {
     actions: false,
@@ -572,11 +571,6 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       });
   }
 
-  changePrometHistoryPageSize(size: number): void {
-    this.prometHistoryPageSize = size;
-    this.prometHistoryPage = 1;
-  }
-
   goToPrometHistoryPage(direction: 'prev' | 'next'): void {
     if (direction === 'prev' && this.prometHistoryPage > 1) {
       this.prometHistoryPage--;
@@ -585,6 +579,35 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     if (direction === 'next' && this.prometHistoryPage < this.totalPrometHistoryPages) {
       this.prometHistoryPage++;
     }
+  }
+
+  exportPrometHistory(): void {
+    if (!this.prometHistoryRows?.length) {
+      Swal.fire('Obavijest', 'Nema dostupnih podataka za preuzimanje.', 'info');
+      return;
+    }
+
+    const currency = this.dashboardSummary?.currency ?? 'KM';
+
+    const exportRows = this.prometHistoryRows.map(row => ({
+      Dan: row.day,
+      [`Promet ${row.currentYear}`]: row.currentYearTurnover,
+      [`Promet ${row.previousYear}`]: row.previousYearTurnover,
+      Razlika: row.difference,
+      'Datum (trenutna godina)': this.formatDate(row.currentYearDate),
+      'Datum (prošla godina)': this.formatDate(row.previousYearDate),
+      Valuta: currency
+    }));
+
+    this.excel.exportAsExcelFile(exportRows, 'historija_prometa');
+  }
+
+  private formatDate(value: string): string {
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString('bs-BA');
   }
 
   clearSearchAndSelect(value: string, dropdown: any) {
