@@ -206,7 +206,7 @@
           </div>
         </div>
 
-        <table class="turnover-modal__table">
+        <table class="turnover-table">
           <thead>
             <tr>
               <th>Dan</th>
@@ -253,7 +253,6 @@
               <nb-icon icon="arrow-back-outline"></nb-icon>
               Prethodna
             </button>
-
             <button nbButton size="tiny" status="primary"
                     (click)="goToPrometHistoryPage('next')"
                     [disabled]="prometHistoryPage === totalPrometHistoryPages">
@@ -276,6 +275,7 @@
     </nb-card-body>
   </nb-card>
 </ng-template>
+
 
 
 <ng-template #shrinkageDetail>
