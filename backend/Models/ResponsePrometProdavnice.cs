@@ -18,5 +18,8 @@ public class ResponsePrometProdavnice
     public decimal? PrometPoNetoKvadraturi { get; set; }
 
     [NotMapped]
+    public decimal? PrometProslaGodinaPoNetoKvadraturi { get; set; }
+
+    [NotMapped]
     public decimal? PrometPoUposleniku { get; set; }
 }

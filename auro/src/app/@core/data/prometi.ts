@@ -9,5 +9,6 @@ export interface Prometi {
     brojKupacaProslaGodina: number,
     netoKvadraturaObjekta?: number,
     prometPoNetoKvadraturi?: number,
+    prometProslaGodinaPoNetoKvadraturi?: number,
     prometPoUposleniku?: number,
 }
