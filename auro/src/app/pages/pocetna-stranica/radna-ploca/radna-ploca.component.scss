@@ -407,6 +407,13 @@ body[data-theme='dark'] .charts-loading {
   min-height: 260px;
 }
 
+.modal-body {
+  display: grid;
+  gap: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
 .modal-table {
   margin: 1rem 0;
   border: 1px solid var(--dashboard-card-border);
@@ -415,9 +422,35 @@ body[data-theme='dark'] .charts-loading {
   background: var(--dashboard-shell-bg);
 }
 
+.modal-table__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--dashboard-card-border);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.page-size-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.page-size-picker select {
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--dashboard-card-border);
+  background: var(--dashboard-card-background);
+  font-size: 0.85rem;
+}
+
 .modal-table table {
   width: 100%;
   border-collapse: collapse;
+  font-size: 0.85rem;
 }
 
 .modal-table th,
@@ -469,6 +502,26 @@ body[data-theme='dark'] .charts-loading {
   background: rgba(143, 155, 179, 0.14);
 }
 
+.modal-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--dashboard-card-border);
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.pagination-meta {
+  font-weight: 700;
+  color: var(--dashboard-title-color);
+}
+
+.pagination-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .date-badge {
   display: inline-flex;
   flex-direction: column;
@@ -479,11 +532,11 @@ body[data-theme='dark'] .charts-loading {
   border: 1px solid var(--dashboard-card-border);
   background: var(--dashboard-card-background);
   font-weight: 700;
-  width: 64px;
+  width: 60px;
 }
 
 .date-day {
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .date-month {

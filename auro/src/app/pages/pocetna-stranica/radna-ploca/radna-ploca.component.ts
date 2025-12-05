@@ -86,6 +86,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   columnKeys: string[] = [];
   columnStates: any = {};
   prometHistoryRows: PrometHistoryRow[] = [];
+  prometHistoryPage = 1;
+  prometHistoryPageSize = 10;
+  prometHistoryPageSizeOptions = [5, 10];
   isPrometHistoryLoading = false;
   settings: any = {
     actions: false,
@@ -232,6 +235,16 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     if (row.difference > 0) return 'delta-positive';
     if (row.difference < 0) return 'delta-negative';
     return 'delta-neutral';
+  }
+
+  get totalPrometHistoryPages(): number {
+    if (!this.prometHistoryRows?.length) return 1;
+    return Math.ceil(this.prometHistoryRows.length / this.prometHistoryPageSize);
+  }
+
+  get paginatedPrometHistoryRows(): PrometHistoryRow[] {
+    const start = (this.prometHistoryPage - 1) * this.prometHistoryPageSize;
+    return this.prometHistoryRows.slice(start, start + this.prometHistoryPageSize);
   }
 
   private loadSviPrometi(): void {
@@ -550,12 +563,28 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (detalji: PrometHistoryRow[]) => {
           this.prometHistoryRows = detalji ?? [];
+          this.prometHistoryPage = 1;
         },
         error: (err) => {
           const poruka = err?.error?.poruka ?? err?.statusText ?? err?.message;
           Swal.fire('Greška', 'Greška prilikom učitavanja historije prometa: ' + poruka, 'error');
         }
       });
+  }
+
+  changePrometHistoryPageSize(size: number): void {
+    this.prometHistoryPageSize = size;
+    this.prometHistoryPage = 1;
+  }
+
+  goToPrometHistoryPage(direction: 'prev' | 'next'): void {
+    if (direction === 'prev' && this.prometHistoryPage > 1) {
+      this.prometHistoryPage--;
+    }
+
+    if (direction === 'next' && this.prometHistoryPage < this.totalPrometHistoryPages) {
+      this.prometHistoryPage++;
+    }
   }
 
   clearSearchAndSelect(value: string, dropdown: any) {

@@ -170,14 +170,30 @@
 <ng-template #turnoverDetail>
   <nb-card>
     <nb-card-header>Trend prometa</nb-card-header>
-    <nb-card-body>
+    <nb-card-body class="modal-body">
       <div class="modal-values" *ngIf="dashboardSummary">
         <p>Ove godine: {{ (dashboardSummary.promet ?? dashboardSummary.turnover?.value) | number:'1.2-2' }} {{
           dashboardSummary.currency ?? 'KM' }}</p>
         <p>Prošle godine: {{ (dashboardSummary.prometProslaGodina ?? dashboardSummary.turnover?.previousValue) |
           number:'1.2-2' }} {{ dashboardSummary.currency ?? 'KM' }}</p>
       </div>
+
       <div class="modal-table" *ngIf="prometHistoryRows?.length; else prometHistoryState">
+        <div class="modal-table__header">
+          <div>
+            <p class="eyebrow">Historijski pregled</p>
+            <span class="muted">Po danima za tekuću i prošlu godinu</span>
+          </div>
+
+          <div class="page-size-picker" *ngIf="prometHistoryRows.length > 5">
+            <label for="prometPageSize">Redova po stranici</label>
+            <select id="prometPageSize" [(ngModel)]="prometHistoryPageSize"
+              (ngModelChange)="changePrometHistoryPageSize($event)">
+              <option *ngFor="let size of prometHistoryPageSizeOptions" [value]="size">{{ size }}</option>
+            </select>
+          </div>
+        </div>
+
         <table>
           <thead>
             <tr>
@@ -188,7 +204,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let row of prometHistoryRows" [ngClass]="getPrometRowClass(row)">
+            <tr *ngFor="let row of paginatedPrometHistoryRows" [ngClass]="getPrometRowClass(row)">
               <td>
                 <div class="date-badge">
                   <span class="date-day">{{ row.currentYearDate | date:'dd' }}</span>
@@ -205,6 +221,25 @@
             </tr>
           </tbody>
         </table>
+
+        <div class="modal-pagination" *ngIf="prometHistoryRows.length > prometHistoryPageSize">
+          <div class="pagination-meta">
+            Stranica {{ prometHistoryPage }} od {{ totalPrometHistoryPages }}
+          </div>
+
+          <div class="pagination-actions">
+            <button nbButton size="tiny" status="basic" (click)="goToPrometHistoryPage('prev')"
+              [disabled]="prometHistoryPage === 1">
+              <nb-icon icon="arrow-back-outline"></nb-icon>
+              Prethodna
+            </button>
+            <button nbButton size="tiny" status="primary" (click)="goToPrometHistoryPage('next')"
+              [disabled]="prometHistoryPage === totalPrometHistoryPages">
+              Sljedeća
+              <nb-icon icon="arrow-forward-outline"></nb-icon>
+            </button>
+          </div>
+        </div>
       </div>
       <ng-template #prometHistoryState>
         <div class="modal-table placeholder" *ngIf="isPrometHistoryLoading; else prometHistoryEmpty">
