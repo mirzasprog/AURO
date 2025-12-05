@@ -92,6 +92,10 @@
           <span class="kpi-title">{{ card.label }}
             <nb-icon *ngIf="card.icon" [icon]="card.icon" status="primary" class="kpi-icon" size="large"></nb-icon>
           </span>
+          <div class="kpi-support"
+            *ngIf="card.key === 'turnoverPerArea' && dashboardSummary?.netoKvadraturaObjekta !== undefined">
+            Neto površina: {{ dashboardSummary.netoKvadraturaObjekta | number:'1.0-2' }} m²
+          </div>
           <div class="kpi-value">
             {{ card.formattedValue }}
             <small *ngIf="card.unit">{{ card.unit }}</small>

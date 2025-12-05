@@ -28,6 +28,15 @@ interface DashboardChartDescriptor {
   title: string;
   description: string;
 }
+
+interface AggregatedPrometMetrics {
+  promet: number;
+  prometProslaGodina: number;
+  brojKupaca: number;
+  brojKupacaProslaGodina: number;
+  netoKvadratura: number;
+  prometPoNetoKvadraturi: number;
+}
 type KpiCard = {
   key: string;
   label: string;
@@ -225,6 +234,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             this.dataTable = this.getEmptyRows(this.PAGE_SIZE);
             return;
           }
+          const aggregatedMetrics = response.length ? this.calculateAggregatedMetrics(response) : null;
           // mapiramo backend rezultate u tabelu
           let mappedData = response.map(item => {
             const razlikaPromet = item.promet - item.prometProslaGodina;
@@ -263,11 +273,81 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
           this.dataTable = mappedData;
           this.source.load(this.dataTable);
+
+          if (!this.selectedStoreId && aggregatedMetrics) {
+            this.applyAggregatedMetrics(aggregatedMetrics);
+          }
         },
         error: () => {
           this.dataTable = this.getEmptyRows(this.PAGE_SIZE);
         }
       });
+  }
+
+  private calculateAggregatedMetrics(stores: any[]): AggregatedPrometMetrics {
+    const initial: AggregatedPrometMetrics = {
+      promet: 0,
+      prometProslaGodina: 0,
+      brojKupaca: 0,
+      brojKupacaProslaGodina: 0,
+      netoKvadratura: 0,
+      prometPoNetoKvadraturi: 0,
+    };
+
+    const totals = stores.reduce((acc: AggregatedPrometMetrics, item: any) => {
+      const promet = Number(item.promet ?? 0);
+      const prometProsla = Number(item.prometProslaGodina ?? 0);
+      const kupaca = Number(item.brojKupaca ?? 0);
+      const kupacaProsla = Number(item.brojKupacaProslaGodina ?? 0);
+      const neto = Number(item.netoKvadraturaObjekta ?? 0);
+
+      acc.promet += promet;
+      acc.prometProslaGodina += prometProsla;
+      acc.brojKupaca += kupaca;
+      acc.brojKupacaProslaGodina += kupacaProsla;
+      acc.netoKvadratura += neto;
+
+      return acc;
+    }, initial);
+
+    totals.prometPoNetoKvadraturi = totals.netoKvadratura
+      ? Number((totals.promet / totals.netoKvadratura).toFixed(2))
+      : 0;
+
+    return totals;
+  }
+
+  private applyAggregatedMetrics(metrics: AggregatedPrometMetrics): void {
+    if (!this.dashboardSummary) {
+      this.dashboardSummary = {};
+    }
+
+    const currency = this.dashboardSummary.currency ?? 'KM';
+    const promet = Number(metrics.promet.toFixed(2));
+    const prometProslaGodina = Number(metrics.prometProslaGodina.toFixed(2));
+    const brojKupaca = metrics.brojKupaca;
+    const brojKupacaProslaGodina = metrics.brojKupacaProslaGodina;
+    const averageBasketValue = brojKupaca ? Number((promet / brojKupaca).toFixed(2)) : 0;
+    const averageBasketPrevious = brojKupacaProslaGodina
+      ? Number((prometProslaGodina / brojKupacaProslaGodina).toFixed(2))
+      : 0;
+
+    this.dashboardSummary = {
+      ...this.dashboardSummary,
+      promet,
+      prometProslaGodina,
+      brojKupaca,
+      brojKupacaProslaGodina,
+      currency,
+      turnover: { value: promet, previousValue: prometProslaGodina },
+      visitors: { value: brojKupaca, previousValue: brojKupacaProslaGodina },
+      netoKvadraturaObjekta: Number(metrics.netoKvadratura.toFixed(2)),
+      prometPoNetoKvadraturi: metrics.prometPoNetoKvadraturi,
+      averageBasket: {
+        value: averageBasketValue,
+        previousValue: averageBasketPrevious,
+      },
+    };
   }
 
   preuzmiExcel() {
@@ -368,7 +448,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           const prometPoUposleniku = r.prometPoUposleniku ?? 0;
 
           this.dashboardSummary = {
-            promet: Number(r.promet | 1.2 - 2),
+            promet: Number(r.promet ?? 0),
             prometProslaGodina: Number(r.prometProslaGodina),
             brojKupaca: Number(r.brojKupaca),
             brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
@@ -527,8 +607,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   formatNumber(value: number, currency?: string): string {
-  if (value === null || value === undefined) return '';
-  return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) + (currency ? ' ' + currency : '');
+    if (value === null || value === undefined) return '';
+    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) + (currency ? ' ' + currency : '');
   }
 
   getKpiCards(): KpiCard[] {
