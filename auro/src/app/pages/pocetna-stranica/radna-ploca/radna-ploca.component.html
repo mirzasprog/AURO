@@ -189,20 +189,23 @@
 
       <div class="modal-table" *ngIf="prometHistoryRows?.length; else prometHistoryState">
         <div class="modal-table__header">
-          <div>
+          <div class="modal-table__copy">
             <p class="eyebrow">Historijski pregled</p>
             <span class="muted">Po danima za tekuću i prošlu godinu</span>
           </div>
 
-          <div class="page-size-picker" *ngIf="prometHistoryRows.length > 5">
-            <label for="prometPageSize">Redova po stranici</label>
-            <select id="prometPageSize"
-                    [(ngModel)]="prometHistoryPageSize"
-                    (ngModelChange)="changePrometHistoryPageSize($event)">
-              <option *ngFor="let size of prometHistoryPageSizeOptions" [value]="size">
-                {{ size }}
-              </option>
-            </select>
+          <div class="modal-table__actions">
+            <div class="page-size-indicator">
+              <nb-icon icon="layers-outline"></nb-icon>
+              <span>10 redova po stranici</span>
+            </div>
+
+            <button nbButton size="tiny" status="primary" appearance="outline"
+                    (click)="exportPrometHistory()"
+                    [disabled]="!prometHistoryRows?.length">
+              <nb-icon icon="download-outline"></nb-icon>
+              Preuzmi Excel
+            </button>
           </div>
         </div>
 
