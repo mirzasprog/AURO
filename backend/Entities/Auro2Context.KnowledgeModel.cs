@@ -76,10 +76,10 @@ namespace backend.Entities
             modelBuilder.Entity<KnowledgeBaseDocument>(entity =>
             {
                 var jsonConverter = new ValueConverter<float[], string>(
-                    v => JsonSerializer.Serialize(v ?? Array.Empty<float>()),
+                    v => JsonSerializer.Serialize(v ?? Array.Empty<float>(), (JsonSerializerOptions?)null),
                     v => string.IsNullOrWhiteSpace(v)
                         ? Array.Empty<float>()
-                        : JsonSerializer.Deserialize<float[]>(v) ?? Array.Empty<float>());
+                        : JsonSerializer.Deserialize<float[]>(v, (JsonSerializerOptions?)null) ?? Array.Empty<float>());
 
                 entity.ToTable("KnowledgeDocumentsRag");
 
