@@ -34,6 +34,16 @@ namespace backend.Services.Chatbot
                 };
             }
 
+            var generalAnswer = TryAnswerGeneralQuestion(normalizedQuestion);
+            if (generalAnswer != null)
+            {
+                return new ChatbotResponse
+                {
+                    Answer = generalAnswer,
+                    Fallback = false,
+                };
+            }
+
             var topics = await _dbContext.KnowledgeTopics.AsNoTracking().ToListAsync(ct);
             if (topics.Count == 0)
             {
@@ -105,7 +115,21 @@ namespace backend.Services.Chatbot
             var coverage = overlap / (double)questionTokens.Count;
             var density = overlap / (double)topicTokenSet.Count;
 
-            return overlap + coverage + density;
+            var fuzzyMatches = questionTokens
+                .Select(questionToken => topicTokens
+                    .Select(topicToken => TokenSimilarity(questionToken, topicToken))
+                    .DefaultIfEmpty(0)
+                    .Max())
+                .Where(score => score >= 0.65)
+                .ToList();
+
+            var averageFuzzy = fuzzyMatches.Count > 0
+                ? fuzzyMatches.Average()
+                : 0;
+
+            var phraseBonus = ContainsPhrase(topic, questionTokens) ? 0.5 : 0;
+
+            return overlap + coverage + density + averageFuzzy * 2 + phraseBonus;
         }
 
         private static List<string> Tokenize(string text)
@@ -113,6 +137,110 @@ namespace backend.Services.Chatbot
             return Regex.Split(text.ToLowerInvariant(), "[^a-zčćžšđ0-9]+")
                 .Where(token => token.Length > 2)
                 .ToList();
+        }
+
+        private static string? TryAnswerGeneralQuestion(string normalizedQuestion)
+        {
+            var tokens = Tokenize(normalizedQuestion);
+            if (tokens.Count == 0)
+            {
+                return null;
+            }
+
+            if (tokens.Any(t => t == "pozdrav" || t == "zdravo" || t == "cao"))
+            {
+                return "Zdravo! Kako ti mogu pomoći danas? Možeš me pitati za upute ili procese koje koristiš svakodnevno.";
+            }
+
+            if (tokens.Any(t => t == "hvala" || t == "hvala!"))
+            {
+                return "Drago mi je da sam pomogao. Tu sam ako bude trebalo još nešto.";
+            }
+
+            if (tokens.Contains("ko") && tokens.Contains("si") || tokens.Contains("sta") && tokens.Contains("si"))
+            {
+                return "Ja sam AURO asistent za internu bazu znanja. Postavi pitanje o procedurama, aplikacijama ili procesima i pronaći ću uputu.";
+            }
+
+            return null;
+        }
+
+        private static bool ContainsPhrase(KnowledgeTopic topic, IReadOnlyCollection<string> questionTokens)
+        {
+            if (questionTokens.Count < 2)
+            {
+                return false;
+            }
+
+            var phrases = BuildPhrases(questionTokens, 2, 3);
+            var tema = NormalizeForSearch(topic.Tema);
+            var upute = NormalizeForSearch(topic.Upute);
+
+            return phrases.Any(phrase => tema.Contains(phrase) || upute.Contains(phrase));
+        }
+
+        private static IEnumerable<string> BuildPhrases(IReadOnlyCollection<string> tokens, int minSize, int maxSize)
+        {
+            var tokenList = tokens.ToList();
+            for (var size = minSize; size <= maxSize; size++)
+            {
+                for (var i = 0; i <= tokenList.Count - size; i++)
+                {
+                    yield return string.Join(' ', tokenList.Skip(i).Take(size));
+                }
+            }
+        }
+
+        private static double TokenSimilarity(string left, string right)
+        {
+            if (left.Equals(right, StringComparison.Ordinal))
+            {
+                return 1;
+            }
+
+            var maxLength = Math.Max(left.Length, right.Length);
+            if (maxLength == 0)
+            {
+                return 1;
+            }
+
+            var distance = LevenshteinDistance(left, right);
+            return 1 - distance / (double)maxLength;
+        }
+
+        private static int LevenshteinDistance(string left, string right)
+        {
+            var n = left.Length;
+            var m = right.Length;
+            var matrix = new int[n + 1, m + 1];
+
+            for (var i = 0; i <= n; i++)
+            {
+                matrix[i, 0] = i;
+            }
+
+            for (var j = 0; j <= m; j++)
+            {
+                matrix[0, j] = j;
+            }
+
+            for (var i = 1; i <= n; i++)
+            {
+                for (var j = 1; j <= m; j++)
+                {
+                    var cost = left[i - 1] == right[j - 1] ? 0 : 1;
+                    matrix[i, j] = Math.Min(
+                        Math.Min(matrix[i - 1, j] + 1, matrix[i, j - 1] + 1),
+                        matrix[i - 1, j - 1] + cost);
+                }
+            }
+
+            return matrix[n, m];
+        }
+
+        private static string NormalizeForSearch(string text)
+        {
+            return string.Join(' ', Tokenize(text));
         }
     }
 }
