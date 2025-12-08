@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using backend.Models;
-using backend.Services.KnowledgeBase;
-using backend.Services.OpenAi;
+using backend.Services.Chatbot;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,13 +12,11 @@ namespace backend.Controllers
     [Authorize]
     public class ChatbotController : ControllerBase
     {
-        private readonly KnowledgeBaseService _knowledgeBaseService;
-        private readonly OpenAiChatService _chatService;
+        private readonly LocalChatbotService _localChatbotService;
 
-        public ChatbotController(KnowledgeBaseService knowledgeBaseService, OpenAiChatService chatService)
+        public ChatbotController(LocalChatbotService localChatbotService)
         {
-            _knowledgeBaseService = knowledgeBaseService;
-            _chatService = chatService;
+            _localChatbotService = localChatbotService;
         }
 
         [HttpPost]
@@ -30,17 +27,8 @@ namespace backend.Controllers
                 return BadRequest(ModelState);
             }
 
-            var documents = await _knowledgeBaseService.SearchAsync(request.Message, topN: 5, ct);
-            var contextBlock = KnowledgeBaseService.BuildContextBlock(documents);
-
-            var systemPrompt = "Ti si interni Konzum360 asistent. Odgovaraj prvenstveno koristeći dio 'Kontekst'. Ako u kontekstu nema tačnog odgovora, jasno reci da na osnovu dostupnog konteksta nemaš podatke i nemoj izmišljati.";
-
-            var answer = await _chatService.AskAsync(systemPrompt, request.Message, string.IsNullOrWhiteSpace(contextBlock) ? null : contextBlock, ct);
-
-            return Ok(new ChatbotResponse
-            {
-                Answer = answer,
-            });
+            var answer = await _localChatbotService.AskAsync(request.Message, ct);
+            return Ok(answer);
         }
     }
 }
