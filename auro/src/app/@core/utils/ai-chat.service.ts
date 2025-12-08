@@ -23,9 +23,9 @@ export interface UnansweredQuestionDto {
 
 @Injectable({ providedIn: 'root' })
 export class AiChatService {
-  private readonly chatbotUrl = `${environment.apiUrl}/chatbot`;
-  private readonly topicsUrl = `${environment.apiUrl}/knowledge-topics`;
-  private readonly unansweredUrl = `${environment.apiUrl}/unanswered-questions`;
+  private readonly chatbotUrl = `${environment.apiUrl}/api/chatbot`;
+  private readonly topicsUrl = `${environment.apiUrl}/api/knowledge-topics`;
+  private readonly unansweredUrl = `${environment.apiUrl}/api/unanswered-questions`;
 
   constructor(private http: HttpClient) {}
 
