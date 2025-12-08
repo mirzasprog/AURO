@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ChatbotService } from '../../../@core/utils/chatbot.service';
 import { AiChatService, ChatResponseDto } from '../../../@core/utils/ai-chat.service';
 
@@ -20,6 +20,7 @@ export class ChatbotComponent implements OnInit {
   suggestions: string[] = [];
   isSending = false;
   isLoading = false;
+  @ViewChild('chatWindow') chatWindow?: ElementRef<HTMLDivElement>;
 
   constructor(private chatbotService: ChatbotService, private aiChatService: AiChatService) {}
 
@@ -32,6 +33,9 @@ export class ChatbotComponent implements OnInit {
 
   toggleChat(): void {
     this.isOpen = !this.isOpen;
+    if (this.isOpen) {
+      this.scrollChatToBottom();
+    }
   }
 
   submitQuestion(): void {
@@ -67,16 +71,27 @@ export class ChatbotComponent implements OnInit {
 
   private addUserMessage(text: string): void {
     this.conversation.push({ from: 'user', text, timestamp: new Date() });
+    this.scrollChatToBottom();
   }
 
   private addBotMessage(text: string): void {
     this.conversation.push({ from: 'bot', text, timestamp: new Date() });
+    this.scrollChatToBottom();
   }
 
   private loadSuggestions(): void {
     this.chatbotService.getTopicSuggestions().subscribe({
       next: suggestions => (this.suggestions = suggestions.slice(0, 3)),
       error: () => (this.suggestions = []),
+    });
+  }
+
+  private scrollChatToBottom(): void {
+    setTimeout(() => {
+      if (this.chatWindow?.nativeElement) {
+        const element = this.chatWindow.nativeElement;
+        element.scrollTo({ top: element.scrollHeight, behavior: 'smooth' });
+      }
     });
   }
 }

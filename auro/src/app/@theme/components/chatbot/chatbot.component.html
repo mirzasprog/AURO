@@ -24,6 +24,7 @@
           </div>
         </div>
         <div class="header-actions">
+          <nb-icon icon="flash-outline" status="info" nbTooltip="Demo verzija učenja"></nb-icon>
           <nb-badge text="Demo" status="info" position="top right"></nb-badge>
           <button nbButton outline size="small" ghost  status="basic" (click)="toggleChat()" aria-label="Zatvori prozor">
            <nb-icon icon="close-outline"></nb-icon>
@@ -51,7 +52,7 @@
       <hr />
         <!--Chat-->
         <div class="col">
-        <div class="chat-window">
+        <div class="chat-window" #chatWindow>
           <div
             *ngFor="let message of conversation"
             class="message"
@@ -78,11 +79,17 @@
           (keyup.enter)="submitQuestion()"
           name="chatQuestion"
           autocomplete="off"
-          [disabled]="isLoading"
-        />
-        <button nbButton status="primary" (click)="submitQuestion()" [disabled]="isSending">{{ isSending ? 'Slanje...' : 'Pošalji' }}</button>
+        [disabled]="isLoading"
+      />
+      <button nbButton status="primary" (click)="submitQuestion()" [disabled]="isSending">{{ isSending ? 'Slanje...' : 'Pošalji' }}</button>
+    </div>
+    <div class="footer-note">
+      <nb-icon icon="alert-circle-outline" status="warning"></nb-icon>
+      <div class="footer-text">
+        Ovo je demo verzija asistenta koji još uči i može ponekad dati netačne informacije.
+        Ako odgovor ne postoji, asistent će te uputiti da kontaktiraš IT službu.
       </div>
-      <div class="footer-note">Ako odgovor ne postoji, asistent će te uputiti da kontaktiraš IT službu.</div>
-    </nb-card-footer>
-  </nb-card>
+    </div>
+  </nb-card-footer>
+</nb-card>
 </div>
