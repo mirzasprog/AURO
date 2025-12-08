@@ -3,35 +3,53 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface ChatSource {
-  chunkId: string;
-  documentId?: string;
-  fileName: string;
-  section: string;
+export interface ChatResponseDto {
+  answer: string;
+  matchedTopic?: string;
+  fallback: boolean;
 }
 
-export interface ChatResponseDto {
-  conversationId: string;
-  answer: string;
-  sources: ChatSource[];
+export interface KnowledgeTopicDto {
+  id: number;
+  tema: string;
+  upute: string;
+}
+
+export interface UnansweredQuestionDto {
+  id: number;
+  question: string;
+  createdAt: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AiChatService {
-  private readonly baseUrl = `${environment.apiUrl}/ai`;
+  private readonly chatbotUrl = `${environment.apiUrl}/chatbot`;
+  private readonly topicsUrl = `${environment.apiUrl}/knowledge-topics`;
+  private readonly unansweredUrl = `${environment.apiUrl}/unanswered-questions`;
 
   constructor(private http: HttpClient) {}
 
-  chatWithFiles(question: string, conversationId?: string, files: File[] = []): Observable<ChatResponseDto> {
-    const formData = new FormData();
-    formData.append('question', question);
+  ask(question: string): Observable<ChatResponseDto> {
+    return this.http.post<ChatResponseDto>(this.chatbotUrl, { message: question });
+  }
 
-    if (conversationId) {
-      formData.append('conversationId', conversationId);
-    }
+  getKnowledgeTopics(): Observable<KnowledgeTopicDto[]> {
+    return this.http.get<KnowledgeTopicDto[]>(this.topicsUrl);
+  }
 
-    files.forEach(file => formData.append('files', file, file.name));
+  createKnowledgeTopic(topic: Omit<KnowledgeTopicDto, 'id'>): Observable<KnowledgeTopicDto> {
+    return this.http.post<KnowledgeTopicDto>(this.topicsUrl, topic);
+  }
 
-    return this.http.post<ChatResponseDto>(`${this.baseUrl}/chat-with-files`, formData);
+  updateKnowledgeTopic(topic: KnowledgeTopicDto): Observable<void> {
+    return this.http.put<void>(`${this.topicsUrl}/${topic.id}`, topic);
+  }
+
+  deleteKnowledgeTopic(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.topicsUrl}/${id}`);
+  }
+
+  getUnansweredQuestions(): Observable<UnansweredQuestionDto[]> {
+    return this.http.get<UnansweredQuestionDto[]>(this.unansweredUrl);
   }
 }

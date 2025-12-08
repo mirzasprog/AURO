@@ -59,15 +59,6 @@
             [class.from-bot]="message.from === 'bot'">
             <div class="message-meta">{{ message.timestamp | date:'HH:mm' }}</div>
             <div class="bubble">{{ message.text }}</div>
-            <div class="sources" *ngIf="message.from === 'bot' && message.sources?.length">
-              <div class="sources-title">Izvori</div>
-              <ul>
-                <li *ngFor="let source of message.sources">
-                  <span class="source-name">{{ source.fileName }}</span>
-                  <span class="source-section" *ngIf="source.section"> - {{ source.section }}</span>
-                </li>
-              </ul>
-            </div>
           </div>
           <div class="loading" *ngIf="isLoading">
             <nb-spinner size="tiny"></nb-spinner>
@@ -89,27 +80,7 @@
           autocomplete="off"
           [disabled]="isLoading"
         />
-        <div class="file-input">
-          <input
-            type="file"
-            #fileInput
-            (change)="onFilesSelected($event)"
-            accept=".pdf,.xlsx,.xls,.csv,.png,.jpg,.jpeg"
-            multiple
-            aria-label="Dodaj dokument za pitanje"
-          />
-          <nb-icon icon="attach-outline"></nb-icon>
-        </div>
         <button nbButton status="primary" (click)="submitQuestion()" [disabled]="isSending">{{ isSending ? 'Slanje...' : 'Pošalji' }}</button>
-      </div>
-      <div *ngIf="selectedFiles.length" class="attachment-list">
-        <div *ngFor="let file of selectedFiles; let i = index" class="attachment-item">
-          <nb-icon icon="file-text-outline"></nb-icon>
-          <span class="attachment-name">{{ file.name }}</span>
-          <button nbButton ghost size="tiny" status="basic" (click)="removeFile(i)" aria-label="Ukloni fajl">
-            <nb-icon icon="close-outline"></nb-icon>
-          </button>
-        </div>
       </div>
       <div class="footer-note">Ako odgovor ne postoji, asistent će te uputiti da kontaktiraš IT službu.</div>
     </nb-card-footer>
