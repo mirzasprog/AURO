@@ -6,7 +6,8 @@
 
 ## Migracije
 - Nova tabela za znanje: `KnowledgeDocumentsRag` (Id, Title, Content, Embedding, CreatedAt).
-- Pokrenuti migraciju: `dotnet ef database update` (ili primijeniti SQL iz migracije `20240608_AddKnowledgeDocumentsRag`).
+- Nova tabela za lokalni chatbot: `KnowledgeTopics` + `UnansweredQuestions` sa inicijalnim podacima za inventuru i otpise.
+- Pokrenuti migraciju: `dotnet ef database update` (ili primijeniti SQL iz migracija `20240608_AddKnowledgeDocumentsRag`, `20241005_AddLocalChatbot` i `20241029_AddKnowledgeTopicsIfMissing`).
 
 ## Dodavanje dokumenta
 `POST /api/knowledge-docs`
