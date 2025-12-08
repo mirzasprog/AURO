@@ -87,7 +87,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   columnStates: any = {};
   prometHistoryRows: PrometHistoryRow[] = [];
   prometHistoryPage = 1;
-  prometHistoryPageSize = 10;
+  prometHistoryPageSize = 7;
   isPrometHistoryLoading = false;
   settings: any = {
     actions: false,
