@@ -9,6 +9,8 @@ using backend.Entities;
 using backend.Services.Ai;
 using backend.Services.Chat;
 using backend.Services.Knowledge;
+using backend.Services.KnowledgeBase;
+using backend.Services.OpenAi;
 using backend.Services.VectorStore;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
@@ -60,6 +62,10 @@ builder.Services.AddSingleton<ITextExtractor, ExcelTextExtractor>();
 builder.Services.AddSingleton<ITextExtractor, ImageTextExtractor>();
 builder.Services.AddScoped<DocumentImportService>();
 builder.Services.AddScoped<RagChatService>();
+builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenAiOptions.SectionName));
+builder.Services.AddHttpClient<OpenAiChatService>();
+builder.Services.AddHttpClient<OpenAiEmbeddingService>();
+builder.Services.AddScoped<KnowledgeBaseService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
