@@ -317,6 +317,13 @@
       margin-top: 0.35rem;
       font-size: 0.78rem;
       color: nb-theme(text-hint-color);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+
+      .footer-text {
+        line-height: 1.4;
+      }
     }
 
   }
