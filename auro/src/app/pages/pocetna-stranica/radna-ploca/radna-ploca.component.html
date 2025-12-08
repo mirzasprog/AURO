@@ -191,16 +191,11 @@
         <div class="modal-table__header">
           <div class="modal-table__copy">
             <p class="eyebrow">Historijski pregled</p>
-            <span class="muted">Po danima za tekuću i prošlu godinu</span>
           </div>
 
           <div class="modal-table__actions">
-            <div class="page-size-indicator">
-              <nb-icon icon="layers-outline"></nb-icon>
-              <span>{{ prometHistoryPageSize }} dana po stranici</span>
-            </div>
 
-            <button nbButton size="tiny" status="primary" appearance="outline"
+            <button nbButton size="small" status="success" 
                     (click)="exportPrometHistory()"
                     [disabled]="!prometHistoryRows?.length">
               <nb-icon icon="download-outline"></nb-icon>
@@ -252,13 +247,13 @@
           </div>
 
           <div class="pagination-actions">
-            <button nbButton size="tiny" status="basic"
+            <button nbButton size="small" status="primary"
                     (click)="goToPrometHistoryPage('prev')"
                     [disabled]="prometHistoryPage === 1">
               <nb-icon icon="arrow-back-outline"></nb-icon>
               Prethodna
             </button>
-            <button nbButton size="tiny" status="primary"
+            <button nbButton size="small" status="primary"
                     (click)="goToPrometHistoryPage('next')"
                     [disabled]="prometHistoryPage === totalPrometHistoryPages">
               Sljedeća
