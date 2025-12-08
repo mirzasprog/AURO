@@ -1,5 +1,5 @@
 export enum Verzija {
-  produkcija = "3.5.0",
-  lokalno = "3.5.0",
-  staging = "v3.5.0-STAGING"
+  produkcija = "4.0.0",
+  lokalno = "4.0.0",
+  staging = "v4.0.0-STAGING"
 }
