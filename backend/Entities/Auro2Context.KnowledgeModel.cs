@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -70,6 +71,33 @@ namespace backend.Entities
 
                 entity.Property(e => e.SectionTitle)
                     .HasMaxLength(256);
+            });
+
+            modelBuilder.Entity<KnowledgeBaseDocument>(entity =>
+            {
+                var jsonConverter = new ValueConverter<float[], string>(
+                    v => JsonSerializer.Serialize(v ?? Array.Empty<float>()),
+                    v => string.IsNullOrWhiteSpace(v)
+                        ? Array.Empty<float>()
+                        : JsonSerializer.Deserialize<float[]>(v) ?? Array.Empty<float>());
+
+                entity.ToTable("KnowledgeDocumentsRag");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Title)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(e => e.Content)
+                    .IsRequired();
+
+                entity.Property(e => e.Embedding)
+                    .HasConversion(jsonConverter)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
             });
 
             modelBuilder.Entity<ChatConversation>(entity =>
