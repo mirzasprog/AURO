@@ -197,7 +197,7 @@
           <div class="modal-table__actions">
             <div class="page-size-indicator">
               <nb-icon icon="layers-outline"></nb-icon>
-              <span>10 redova po stranici</span>
+              <span>{{ prometHistoryPageSize }} dana po stranici</span>
             </div>
 
             <button nbButton size="tiny" status="primary" appearance="outline"
@@ -209,40 +209,42 @@
           </div>
         </div>
 
-        <table class="turnover-table">
-          <thead>
-            <tr>
-              <th>Dan</th>
-              <th>Trenutna godina ({{ prometHistoryRows[0]?.currentYear }})</th>
-              <th>Prethodna godina ({{ prometHistoryRows[0]?.previousYear }})</th>
-              <th>Razlika</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of paginatedPrometHistoryRows" [ngClass]="getPrometRowClass(row)">
-              <td>
-                <div class="date-badge">
-                  <span class="date-day">{{ row.currentYearDate | date:'dd' }}</span>
-                  <span class="date-month">{{ row.currentYearDate | date:'MMM' }}</span>
-                </div>
-              </td>
-              <td>
-                {{ row.currentYearTurnover | number:'1.0-0' }}
-                {{ dashboardSummary?.currency ?? 'KM' }}
-              </td>
-              <td>
-                {{ row.previousYearTurnover | number:'1.0-0' }}
-                {{ dashboardSummary?.currency ?? 'KM' }}
-              </td>
-              <td class="delta-cell">
-                <span class="delta-chip" [ngClass]="getPrometRowClass(row)">
-                  {{ row.difference | number:'1.0-0' }}
+        <div class="turnover-table__container">
+          <table class="turnover-table">
+            <thead>
+              <tr>
+                <th>Dan</th>
+                <th>Trenutna godina ({{ prometHistoryRows[0]?.currentYear }})</th>
+                <th>Prethodna godina ({{ prometHistoryRows[0]?.previousYear }})</th>
+                <th>Razlika</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of paginatedPrometHistoryRows" [ngClass]="getPrometRowClass(row)">
+                <td>
+                  <div class="date-badge">
+                    <span class="date-day">{{ row.currentYearDate | date:'dd' }}</span>
+                    <span class="date-month">{{ row.currentYearDate | date:'MMM' }}</span>
+                  </div>
+                </td>
+                <td class="numeric-cell">
+                  {{ row.currentYearTurnover | number:'1.0-0' }}
                   {{ dashboardSummary?.currency ?? 'KM' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+                <td class="numeric-cell">
+                  {{ row.previousYearTurnover | number:'1.0-0' }}
+                  {{ dashboardSummary?.currency ?? 'KM' }}
+                </td>
+                <td class="delta-cell">
+                  <span class="delta-chip" [ngClass]="getPrometRowClass(row)">
+                    {{ row.difference | number:'1.0-0' }}
+                    {{ dashboardSummary?.currency ?? 'KM' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <div class="modal-pagination" *ngIf="prometHistoryRows.length > prometHistoryPageSize">
           <div class="pagination-meta">
