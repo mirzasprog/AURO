@@ -77,9 +77,8 @@ namespace backend.Data
 
             var lastAvailableCurrentDay = _context.PrometiHistorija
                 .Where(p => p.Godina == currentYear && p.Mjesec == currentMonth)
-                .Select(p => p.Dan)
-                .DefaultIfEmpty(0)
-                .Max();
+                .Select(p => (int?)p.Dan)
+                .Max() ?? 0;
 
             lastAvailableCurrentDay = Math.Min(lastAvailableCurrentDay, DateTime.DaysInMonth(currentYear, currentMonth));
 
