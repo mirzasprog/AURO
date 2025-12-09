@@ -75,7 +75,14 @@ namespace backend.Data
             var previousYear = currentYear - 1;
             var previousMonth = currentMonth;
 
-            var lastAvailableCurrentDay = Math.Min(today.AddDays(-1).Day, DateTime.DaysInMonth(currentYear, currentMonth));
+            var lastAvailableCurrentDay = _context.PrometiHistorija
+                .Where(p => p.Godina == currentYear && p.Mjesec == currentMonth)
+                .Select(p => p.Dan)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            lastAvailableCurrentDay = Math.Min(lastAvailableCurrentDay, DateTime.DaysInMonth(currentYear, currentMonth));
+
             var daysInPreviousMonth = DateTime.DaysInMonth(previousYear, previousMonth);
 
             var currentYearLookup = _context.PrometiHistorija
