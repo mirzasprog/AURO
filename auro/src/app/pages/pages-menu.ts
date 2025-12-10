@@ -177,8 +177,13 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: "shopping-bag-outline",
     link: "/pages/vikend-akcije"
   },
+  {
+    title: "Fakturisanje usluga",
+    icon: "file-text-outline",
+    link: "/pages/fakturisanje-usluga"
+  },
   //Reklamacija kvaliteta Voća i povrća -- rola: prodavnica [8], kontrolaKvaliteta
-  { 
+  {
     title: "Kvaliteta VIP-a",
     icon: "swap-outline",
     link: "/pages/kvalitetaVIP"

@@ -1,0 +1,59 @@
+.print-container {
+  background: #f5f6f8;
+  padding: 10px;
+}
+
+.a4-sheet {
+  background: white;
+  padding: 24px;
+  margin: auto;
+  max-width: 850px;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+
+.header h6 {
+  font-weight: 700;
+}
+
+.line {
+  font-size: 13px;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+
+.totals {
+  text-align: right;
+  font-weight: 600;
+  display: grid;
+  gap: 4px;
+}
+
+.note {
+  background: #f7f9fc;
+  padding: 10px;
+  border-radius: 4px;
+}
+
+.signatures .sign-line {
+  border-bottom: 1px solid #333;
+  margin: 24px 40px 8px;
+  height: 40px;
+}
+
+@media print {
+  :host nb-layout-header,
+  :host nb-sidebar,
+  :host .no-print {
+    display: none !important;
+  }
+  .a4-sheet {
+    box-shadow: none;
+    margin: 0;
+    padding: 16px;
+  }
+  nb-card, nb-card-body, nb-card-header {
+    box-shadow: none !important;
+  }
+}

@@ -13,6 +13,8 @@ using backend.Services.Knowledge;
 using backend.Services.KnowledgeBase;
 using backend.Services.OpenAi;
 using backend.Services.VectorStore;
+using backend.Services;
+using backend.Models;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 
@@ -49,6 +51,7 @@ builder.Services.AddScoped<IDailyTaskRepository, DailyTaskRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IPrometiRepository, PrometiRepository>();
 builder.Services.AddScoped<IVikendAkcijeRepository, VikendAkcijeRepository>();
+builder.Services.AddScoped<IServiceInvoiceRepository, ServiceInvoiceRepository>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -68,6 +71,8 @@ builder.Services.Configure<OpenAiOptions>(builder.Configuration.GetSection(OpenA
 builder.Services.AddHttpClient<OpenAiChatService>();
 builder.Services.AddHttpClient<OpenAiEmbeddingService>();
 builder.Services.AddScoped<KnowledgeBaseService>();
+builder.Services.Configure<CompanyInfoOptions>(builder.Configuration.GetSection(CompanyInfoOptions.SectionName));
+builder.Services.AddSingleton<ICompanyInfoProvider, CompanyInfoProvider>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
