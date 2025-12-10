@@ -1,0 +1,93 @@
+<div class="print-container" [nbSpinner]="loading">
+  <div class="print-actions no-print mb-3 d-flex justify-content-end" *ngIf="!loading">
+    <button nbButton status="primary" size="small" (click)="stampaj()">
+      <nb-icon icon="printer-outline"></nb-icon>
+      Štampaj
+    </button>
+  </div>
+
+  <div *ngIf="faktura" class="a4-sheet">
+    <div class="header d-flex justify-content-between">
+      <div class="customer-block">
+        <h6>Primatelj</h6>
+        <div class="line">{{ faktura.customerName }}</div>
+        <div class="line">{{ faktura.customerAddress }}</div>
+        <div class="line">{{ faktura.customerCity }} {{ faktura.customerCountry }}</div>
+        <div class="line">PDV: {{ faktura.customerTaxId }}</div>
+      </div>
+      <div class="company-block" *ngIf="faktura.companyInfo">
+        <h6>Konzum</h6>
+        <div class="line">{{ faktura.companyInfo.companyName }}</div>
+        <div class="line">{{ faktura.companyInfo.address }}</div>
+        <div class="line">JIB: {{ faktura.companyInfo.jib }}</div>
+        <div class="line">PDV broj: {{ faktura.companyInfo.pdvNumber }}</div>
+        <div class="line" *ngIf="faktura.companyInfo.registrationNumber">Reg. broj: {{ faktura.companyInfo.registrationNumber }}</div>
+        <div class="line">IBAN: {{ faktura.companyInfo.iban }}</div>
+        <div class="line">Banka: {{ faktura.companyInfo.bankName }} {{ faktura.companyInfo.swift ? '(' + faktura.companyInfo.swift + ')' : '' }}</div>
+        <div class="line" *ngIf="faktura.companyInfo.phone">Tel: {{ faktura.companyInfo.phone }}</div>
+        <div class="line" *ngIf="faktura.companyInfo.email">Email: {{ faktura.companyInfo.email }}</div>
+        <div class="line" *ngIf="faktura.companyInfo.web">Web: {{ faktura.companyInfo.web }}</div>
+      </div>
+    </div>
+
+    <div class="meta row mt-3">
+      <div class="col-md-3"><strong>Broj fakture:</strong> {{ faktura.invoiceNumber }}</div>
+      <div class="col-md-3"><strong>Datum:</strong> {{ faktura.invoiceDate | date:'dd.MM.yyyy' }}</div>
+      <div class="col-md-3"><strong>Dospijeće:</strong> {{ faktura.dueDate | date:'dd.MM.yyyy' }}</div>
+      <div class="col-md-3"><strong>Valuta:</strong> {{ faktura.currency }}</div>
+    </div>
+
+    <div class="table-responsive mt-3">
+      <table class="table table-bordered table-sm align-middle">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Opis</th>
+            <th class="text-end">Količina</th>
+            <th>JM</th>
+            <th class="text-end">Jedinična cijena</th>
+            <th class="text-end">Stopa PDV</th>
+            <th class="text-end">Osnovica</th>
+            <th class="text-end">PDV</th>
+            <th class="text-end">Ukupno</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let stavka of faktura.items; index as i">
+            <td>{{ i + 1 }}</td>
+            <td>{{ stavka.description }}</td>
+            <td class="text-end">{{ stavka.quantity | number:'1.2-2' }}</td>
+            <td>usl</td>
+            <td class="text-end">{{ stavka.unitPrice | number:'1.2-2' }}</td>
+            <td class="text-end">{{ stavka.taxRate | number:'1.0-2' }}%</td>
+            <td class="text-end">{{ stavka.lineTotalWithoutTax ?? (stavka.quantity * stavka.unitPrice) | number:'1.2-2' }}</td>
+            <td class="text-end">{{ stavka.lineTaxAmount ?? (stavka.quantity * stavka.unitPrice * stavka.taxRate/100) | number:'1.2-2' }}</td>
+            <td class="text-end">{{ stavka.lineTotalWithTax ?? (stavka.quantity * stavka.unitPrice * (1 + (stavka.taxRate/100))) | number:'1.2-2' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="totals mt-3">
+      <div><strong>Osnovica:</strong> {{ faktura.subtotalAmount ?? ukupnoBezPdv() | number:'1.2-2' }} {{ faktura.currency }}</div>
+      <div><strong>PDV:</strong> {{ faktura.taxAmount ?? ukupnoPdv() | number:'1.2-2' }} {{ faktura.currency }}</div>
+      <div><strong>Ukupno:</strong> {{ faktura.totalAmount ?? ukupnoSaPdv() | number:'1.2-2' }} {{ faktura.currency }}</div>
+    </div>
+
+    <div class="mt-3" *ngIf="faktura.notes">
+      <strong>Napomena:</strong>
+      <div class="note">{{ faktura.notes }}</div>
+    </div>
+
+    <div class="signatures row mt-4">
+      <div class="col-6 text-center">
+        <div class="sign-line"></div>
+        <div class="caption">Za izdavatelja</div>
+      </div>
+      <div class="col-6 text-center">
+        <div class="sign-line"></div>
+        <div class="caption">Za primatelja</div>
+      </div>
+    </div>
+  </div>
+</div>

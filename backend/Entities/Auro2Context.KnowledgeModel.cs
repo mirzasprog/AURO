@@ -135,6 +135,94 @@ namespace backend.Entities
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");
             });
+
+            modelBuilder.Entity<ServiceInvoice>(entity =>
+            {
+                entity.ToTable("ServiceInvoices");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.InvoiceNumber)
+                    .IsRequired()
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.InvoiceDate)
+                    .HasColumnType("date");
+
+                entity.Property(e => e.DueDate)
+                    .HasColumnType("date");
+
+                entity.Property(e => e.CustomerName)
+                    .IsRequired()
+                    .HasMaxLength(256);
+
+                entity.Property(e => e.CustomerAddress)
+                    .HasMaxLength(256);
+
+                entity.Property(e => e.CustomerCity)
+                    .HasMaxLength(128);
+
+                entity.Property(e => e.CustomerCountry)
+                    .HasMaxLength(128);
+
+                entity.Property(e => e.CustomerTaxId)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.Currency)
+                    .IsRequired()
+                    .HasMaxLength(8);
+
+                entity.Property(e => e.SubtotalAmount)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.TaxAmount)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.TotalAmount)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Notes)
+                    .HasMaxLength(1024);
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasMaxLength(64)
+                    .HasDefaultValue("Kreirano");
+
+                entity.HasMany(e => e.Items)
+                    .WithOne(i => i.ServiceInvoice)
+                    .HasForeignKey(i => i.ServiceInvoiceId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<ServiceInvoiceItem>(entity =>
+            {
+                entity.ToTable("ServiceInvoiceItems");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Description)
+                    .IsRequired()
+                    .HasMaxLength(512);
+
+                entity.Property(e => e.Quantity)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.UnitPrice)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.TaxRate)
+                    .HasColumnType("decimal(5, 2)");
+
+                entity.Property(e => e.LineTotalWithoutTax)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.LineTaxAmount)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.LineTotalWithTax)
+                    .HasColumnType("decimal(18, 2)");
+            });
         }
     }
 }

@@ -58,6 +58,7 @@ import { VipArtikal } from '../data/vip-artikal';
 import { Akcija } from '../data/akcija';
 import { AkcijaStavka } from '../data/akcija-stavka';
 import { PrometHistoryRow } from '../data/promet-history';
+import { PagedResult, ServiceInvoice, ServiceInvoiceListItem } from '../data/service-invoice';
 @Injectable({
   providedIn: 'root'
 })
@@ -197,6 +198,34 @@ export class DataService {
   
   public getArtikalReklamacije(sifraArtikla: string): Observable<GetPodaciArtiklaReklamacije[]> {
     return this.posaljiRequest<GetPodaciArtiklaReklamacije[]>("GET", this.baseUrl + `/api/vanredniOtpis/detaljiArtiklaReklamacije?sifraArtikla=${sifraArtikla}`);
+  }
+
+  // Fakturisanje usluga
+  public preuzmiFaktureUsluga(params: { datumOd?: string, datumDo?: string, kupac?: string, brojFakture?: string, pageNumber?: number, pageSize?: number }): Observable<PagedResult<ServiceInvoiceListItem>> {
+    const query = new URLSearchParams();
+    if (params.datumOd) { query.append('datumOd', params.datumOd); }
+    if (params.datumDo) { query.append('datumDo', params.datumDo); }
+    if (params.kupac) { query.append('kupac', params.kupac); }
+    if (params.brojFakture) { query.append('brojFakture', params.brojFakture); }
+    query.append('pageNumber', String(params.pageNumber ?? 1));
+    query.append('pageSize', String(params.pageSize ?? 20));
+    return this.sendRequest<PagedResult<ServiceInvoiceListItem>>("GET", `${this.baseUrl}/api/ServiceInvoices?${query.toString()}`);
+  }
+
+  public preuzmiFakturuUsluge(id: number): Observable<ServiceInvoice> {
+    return this.sendRequest<ServiceInvoice>("GET", `${this.baseUrl}/api/ServiceInvoices/${id}`);
+  }
+
+  public kreirajFakturuUsluge(podaci: ServiceInvoice): Observable<ServiceInvoice> {
+    return this.sendRequest<ServiceInvoice>("POST", `${this.baseUrl}/api/ServiceInvoices`, podaci);
+  }
+
+  public azurirajFakturuUsluge(id: number, podaci: ServiceInvoice): Observable<ServiceInvoice> {
+    return this.sendRequest<ServiceInvoice>("PUT", `${this.baseUrl}/api/ServiceInvoices/${id}`, podaci);
+  }
+
+  public obrisiFakturuUsluge(id: number): Observable<void> {
+    return this.sendRequest<void>("DELETE", `${this.baseUrl}/api/ServiceInvoices/${id}`);
   }
 
 

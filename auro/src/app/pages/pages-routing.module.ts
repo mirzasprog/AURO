@@ -97,6 +97,11 @@ const routes: Routes = [{
       loadChildren: () => import('./vikend-akcije/vikend-akcije.module')
       .then(m => m.VikendAkcijeModule)
     },
+    {
+      path: 'fakturisanje-usluga',
+      loadChildren: () => import('./fakturisanje-usluga/fakturisanje-usluga.module')
+      .then(m => m.FakturisanjeUslugaModule)
+    },
 
     {
       path: '',
