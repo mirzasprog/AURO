@@ -3,6 +3,7 @@ using System;
 
 namespace AURO.Migrations
 {
+    [Migration("20240601000000_AddServiceInvoices")]
     public partial class AddServiceInvoices : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
