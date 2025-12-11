@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace backend.Migrations
 {
+    [Migration("20240601000000_AddServiceInvoices")]
     public partial class AddServiceInvoices : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
