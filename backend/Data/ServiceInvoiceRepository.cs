@@ -93,6 +93,7 @@ namespace backend.Data
                 CustomerTaxId = request.CustomerTaxId,
                 CustomerId = request.CustomerId,
                 Currency = request.Currency,
+                ServiceId = request.ServiceId,
                 Notes = request.Notes,
                 Status = request.Status ?? "Kreirano"
             };
@@ -131,6 +132,7 @@ namespace backend.Data
             invoice.CustomerTaxId = request.CustomerTaxId;
             invoice.CustomerId = request.CustomerId;
             invoice.Currency = request.Currency;
+            invoice.ServiceId = request.ServiceId;
             invoice.Notes = request.Notes;
             invoice.Status = string.IsNullOrWhiteSpace(request.Status) ? invoice.Status : request.Status!;
 
@@ -225,6 +227,7 @@ namespace backend.Data
                 CustomerTaxId = invoice.CustomerTaxId,
                 CustomerId = invoice.CustomerId,
                 Currency = invoice.Currency,
+                ServiceId = invoice.ServiceId,
                 SubtotalAmount = invoice.SubtotalAmount,
                 TaxAmount = invoice.TaxAmount,
                 TotalAmount = invoice.TotalAmount,

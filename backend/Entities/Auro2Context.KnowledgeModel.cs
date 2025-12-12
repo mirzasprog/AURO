@@ -172,6 +172,9 @@ namespace backend.Entities
                     .IsRequired()
                     .HasMaxLength(8);
 
+                entity.Property(e => e.ServiceId)
+                    .IsRequired();
+
                 entity.Property(e => e.SubtotalAmount)
                     .HasColumnType("decimal(18, 2)");
 

@@ -52,6 +52,8 @@ namespace backend.Entities
         [MaxLength(64)]
         public string Status { get; set; } = "Kreirano";
 
+        public int ServiceId { get; set; } = 1;
+
         public virtual ICollection<ServiceInvoiceItem> Items { get; set; }
     }
 }
