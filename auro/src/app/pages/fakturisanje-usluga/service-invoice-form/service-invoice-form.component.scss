@@ -6,8 +6,57 @@ label {
   font-weight: 700;
 }
 
+.form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(90deg, var(--card-background-color), var(--background-basic-color-2));
+  border-bottom: 1px solid var(--border-basic-color-3);
+  padding: 1rem 1.25rem;
+}
+
+.title-stack .subtitle {
+  color: var(--text-hint-color);
+}
+
+.glass-card {
+  background: var(--background-basic-color-1);
+  border: 1px solid var(--border-basic-color-3);
+  box-shadow: var(--shadow);
+}
+
+.line-card nb-card-header {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.summary-line {
+  background: var(--background-basic-color-2);
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-basic-color-3);
+}
+
+.summary-line .chip {
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  background: var(--background-basic-color-1);
+  border: 1px solid var(--border-basic-color-3);
+}
+
+.summary-line .chip.accent {
+  background: var(--color-primary-100);
+  color: var(--text-primary-color);
+  border-color: var(--color-primary-400);
+}
+
 .totals {
-  background: #f7f9fc;
+  background: var(--background-basic-color-2);
   padding: 10px;
   border-radius: 4px;
+  border: 1px solid var(--border-basic-color-3);
+}
+
+.table thead th {
+  background: var(--background-basic-color-2);
 }
