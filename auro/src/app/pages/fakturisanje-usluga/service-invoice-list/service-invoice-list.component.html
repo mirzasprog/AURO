@@ -1,14 +1,20 @@
 <nb-card>
-  <nb-card-header class="d-flex justify-content-between align-items-center">
-    <span>Fakturisanje usluga</span>
-    <button nbButton status="primary" size="small" (click)="kreirajNovu()">
-      <nb-icon icon="plus"></nb-icon>
-      Nova faktura
-    </button>
+  <nb-card-header class="header-panel">
+    <div class="title-stack">
+      <div class="title">Fakturisanje usluga</div>
+      <div class="subtitle">Simetričan pregled faktura i filtera u skladu sa corporate izgledom</div>
+    </div>
+    <div class="header-actions">
+      <button nbButton status="primary" size="small" hero (click)="kreirajNovu()">
+        <nb-icon icon="plus"></nb-icon>
+        Nova faktura
+      </button>
+    </div>
   </nb-card-header>
   <nb-card-body>
     <form [formGroup]="filterForma" class="filter-form" (ngSubmit)="ucitajFakture()">
-      <div class="row g-3 align-items-end">
+      <div class="section-title">Filter i pretraga</div>
+      <div class="row g-3 align-items-end filter-grid">
         <div class="col-md-3">
           <label>Datum od</label>
           <input nbInput fullWidth placeholder="Početni datum" formControlName="datumOd" [nbDatepicker]="pickerOd">
@@ -28,52 +34,71 @@
           <input nbInput fullWidth placeholder="Broj fakture" formControlName="brojFakture">
         </div>
       </div>
-      <div class="mt-3 d-flex gap-2">
-        <button nbButton status="primary" type="submit">Primijeni filter</button>
-        <button nbButton status="info" type="button" ghost (click)="resetujFilter()">Očisti filter</button>
+      <div class="mt-3 d-flex gap-2 justify-content-end">
+        <button nbButton status="primary" type="submit" hero>
+          <nb-icon icon="funnel-outline"></nb-icon>
+          Primijeni filter
+        </button>
+        <button nbButton status="info" type="button" ghost (click)="resetujFilter()">
+          <nb-icon icon="refresh-outline"></nb-icon>
+          Očisti filter
+        </button>
       </div>
     </form>
 
-    <div class="table-responsive mt-4" *ngIf="!loading; else loadingTemplate">
-      <table class="table table-bordered table-sm">
-        <thead>
-          <tr>
-            <th>Broj fakture</th>
-            <th>Datum</th>
-            <th>Kupac</th>
-            <th class="text-end">Ukupno</th>
-            <th>Valuta</th>
-            <th>Dosijeće</th>
-            <th>Status</th>
-            <th class="text-center">Akcije</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let faktura of fakture">
-            <td>{{ faktura.invoiceNumber }}</td>
-            <td>{{ faktura.invoiceDate | date:'dd.MM.yyyy' }}</td>
-            <td>{{ faktura.customerName }}</td>
-            <td class="text-end">{{ faktura.totalAmount | number:'1.2-2' }}</td>
-            <td>{{ faktura.currency }}</td>
-            <td>{{ faktura.dueDate | date:'dd.MM.yyyy' }}</td>
-            <td><nb-badge [text]="faktura.status" status="info"></nb-badge></td>
-            <td class="text-center d-flex gap-1 justify-content-center">
-              <button nbButton size="tiny" status="info" (click)="otvoriFakturu(faktura.id)">
-                <nb-icon icon="eye-outline"></nb-icon>
-              </button>
-              <button nbButton size="tiny" status="success" (click)="otvoriFakturu(faktura.id)">
-                <nb-icon icon="edit-2-outline"></nb-icon>
-              </button>
-              <button nbButton size="tiny" status="primary" ghost (click)="stampajFakturu(faktura.id)">
-                <nb-icon icon="printer-outline"></nb-icon>
-              </button>
-            </td>
-          </tr>
-          <tr *ngIf="!fakture.length">
-            <td colspan="8" class="text-center">Nema zapisa za prikaz.</td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="table-wrapper" *ngIf="!loading; else loadingTemplate">
+      <div class="section-title d-flex justify-content-between align-items-center">
+        <span>Pregled faktura</span>
+        <span class="muted">Prikazano {{ fakture.length }} od {{ ukupnoZapisa }} faktura</span>
+      </div>
+      <div class="table-responsive mt-2">
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr>
+              <th>Broj fakture</th>
+              <th>Datum</th>
+              <th>Kupac</th>
+              <th class="text-end">Ukupno</th>
+              <th>Valuta</th>
+              <th>Dospijeće</th>
+              <th>Status</th>
+              <th class="text-center">Akcije</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let faktura of fakture">
+              <td class="fw-semibold">{{ faktura.invoiceNumber }}</td>
+              <td>{{ faktura.invoiceDate | date:'dd.MM.yyyy' }}</td>
+              <td>{{ faktura.customerName }}</td>
+              <td class="text-end">{{ faktura.totalAmount | number:'1.2-2' }}</td>
+              <td>{{ faktura.currency }}</td>
+              <td>{{ faktura.dueDate | date:'dd.MM.yyyy' }}</td>
+              <td>
+                <nb-badge [text]="faktura.status" status="info" appearance="outline" size="small"></nb-badge>
+              </td>
+              <td class="text-center">
+                <div class="d-flex gap-1 justify-content-center action-bar">
+                  <button nbButton size="tiny" status="info" ghost (click)="otvoriFakturu(faktura.id)" nbTooltip="Prikaži detalje">
+                    <nb-icon icon="eye-outline"></nb-icon>
+                  </button>
+                  <button nbButton size="tiny" status="success" ghost (click)="otvoriFakturu(faktura.id)" nbTooltip="Uredi fakturu">
+                    <nb-icon icon="edit-2-outline"></nb-icon>
+                  </button>
+                  <button nbButton size="tiny" status="primary" ghost (click)="stampajFakturu(faktura.id)" nbTooltip="Štampaj fakturu">
+                    <nb-icon icon="printer-outline"></nb-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="!fakture.length">
+              <td colspan="8" class="text-center empty-state">
+                <nb-icon icon="file-text-outline"></nb-icon>
+                <div class="mt-1">Nema zapisa za prikaz.</div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
     <ng-template #loadingTemplate>
       <div class="text-center p-4">
@@ -81,12 +106,15 @@
       </div>
     </ng-template>
 
-    <div class="d-flex justify-content-between align-items-center mt-3">
-      <span>Prikazano {{ fakture.length }} od {{ ukupnoZapisa }} faktura</span>
-      <div class="d-flex gap-2">
-        <button nbButton size="small" [disabled]="page === 1" (click)="promijeniStranicu(-1)">Prethodna</button>
-        <button nbButton size="small" [disabled]="page * pageSize >= ukupnoZapisa" (click)="promijeniStranicu(1)">Sljedeća</button>
-      </div>
+    <div class="d-flex justify-content-end align-items-center mt-3 gap-2 paging-bar">
+      <button nbButton size="small" [disabled]="page === 1" (click)="promijeniStranicu(-1)">
+        <nb-icon icon="arrow-back-outline"></nb-icon>
+        Prethodna
+      </button>
+      <button nbButton size="small" [disabled]="page * pageSize >= ukupnoZapisa" (click)="promijeniStranicu(1)">
+        Sljedeća
+        <nb-icon icon="arrow-forward-outline"></nb-icon>
+      </button>
     </div>
   </nb-card-body>
 </nb-card>

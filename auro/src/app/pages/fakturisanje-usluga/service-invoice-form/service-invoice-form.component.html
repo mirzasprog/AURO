@@ -1,15 +1,15 @@
 <nb-card [nbSpinner]="loading">
-  <nb-card-header class="d-flex justify-content-between align-items-center">
-    <div>
-      <div class="h6 mb-0">{{ fakturaId ? 'Uredi fakturu' : 'Nova faktura' }}</div>
-      <small class="text-muted">Podaci o kupcu i stavkama usluga</small>
+  <nb-card-header class="form-header">
+    <div class="title-stack">
+      <div class="title h6 mb-0">{{ fakturaId ? 'Uredi fakturu' : 'Nova faktura' }}</div>
+      <small class="subtitle">Podaci o kupcu i stavkama usluga u ravnoteži</small>
     </div>
-    <div class="d-flex gap-2">
-      <button nbButton status="info" size="small" *ngIf="fakturaId" [routerLink]="['/pages/fakturisanje-usluga', fakturaId, 'print']" target="_blank">
+    <div class="d-flex gap-2 align-items-center">
+      <button nbButton status="info" size="small" ghost *ngIf="fakturaId" [routerLink]="['/pages/fakturisanje-usluga', fakturaId, 'print']" target="_blank">
         <nb-icon icon="printer-outline"></nb-icon>
         Štampa
       </button>
-      <button nbButton status="primary" size="small" (click)="sacuvaj()" [disabled]="spremanje">
+      <button nbButton status="primary" size="small" (click)="sacuvaj()" [disabled]="spremanje" hero>
         <nb-icon icon="save-outline"></nb-icon>
         Sačuvaj
       </button>
@@ -19,7 +19,7 @@
     <form [formGroup]="forma">
       <div class="row g-3">
         <div class="col-md-6">
-          <nb-card size="small">
+          <nb-card size="small" class="glass-card">
             <nb-card-header>Podaci o kupcu</nb-card-header>
             <nb-card-body>
               <div class="row g-2">
@@ -52,7 +52,7 @@
           </nb-card>
         </div>
         <div class="col-md-6">
-          <nb-card size="small">
+          <nb-card size="small" class="glass-card">
             <nb-card-header>Podaci o fakturi</nb-card-header>
             <nb-card-body>
               <div class="row g-2">
@@ -85,10 +85,10 @@
                   <textarea nbInput fullWidth formControlName="notes" rows="2" placeholder="Napomena"></textarea>
                 </div>
                 <div class="col-md-12 mt-2">
-                  <div class="d-flex justify-content-end gap-3 fw-bold">
-                    <div>Osnovica: {{ forma.get('subtotalAmount')?.value | number:'1.2-2' }}</div>
-                    <div>PDV: {{ forma.get('taxAmount')?.value | number:'1.2-2' }}</div>
-                    <div>Ukupno: {{ forma.get('totalAmount')?.value | number:'1.2-2' }}</div>
+                  <div class="d-flex justify-content-between gap-3 fw-bold summary-line">
+                    <div class="chip">Osnovica: {{ forma.get('subtotalAmount')?.value | number:'1.2-2' }}</div>
+                    <div class="chip">PDV: {{ forma.get('taxAmount')?.value | number:'1.2-2' }}</div>
+                    <div class="chip accent">Ukupno: {{ forma.get('totalAmount')?.value | number:'1.2-2' }}</div>
                   </div>
                 </div>
               </div>
@@ -97,10 +97,10 @@
         </div>
       </div>
 
-      <nb-card size="small" class="mt-3">
+      <nb-card size="small" class="mt-3 line-card">
         <nb-card-header class="d-flex justify-content-between align-items-center">
           <span>Stavke usluga</span>
-          <button nbButton size="small" status="primary" (click)="dodajStavku()">
+          <button nbButton size="small" status="primary" (click)="dodajStavku()" hero>
             <nb-icon icon="plus"></nb-icon>
             Dodaj stavku
           </button>
@@ -123,7 +123,7 @@
               </thead>
               <tbody>
                 <tr *ngFor="let stavka of stavke.controls; index as i" [formGroup]="stavka">
-                  <td>{{ i + 1 }}</td>
+                  <td class="text-center fw-semibold">{{ i + 1 }}</td>
                   <td><input nbInput fullWidth formControlName="description" placeholder="Naziv usluge"></td>
                   <td><input nbInput fullWidth type="number" min="0.01" step="0.01" formControlName="quantity"></td>
                   <td><input nbInput fullWidth type="number" min="0" step="0.01" formControlName="unitPrice"></td>
@@ -132,7 +132,7 @@
                   <td class="text-end">{{ (stavka.value.quantity * stavka.value.unitPrice * stavka.value.taxRate/100) | number:'1.2-2' }}</td>
                   <td class="text-end">{{ (stavka.value.quantity * stavka.value.unitPrice * (1 + stavka.value.taxRate/100)) | number:'1.2-2' }}</td>
                   <td class="text-center">
-                    <button nbButton status="danger" size="tiny" (click)="ukloniStavku(i)" [disabled]="stavke.length === 1">
+                    <button nbButton status="danger" size="tiny" (click)="ukloniStavku(i)" [disabled]="stavke.length === 1" ghost>
                       <nb-icon icon="trash-2-outline"></nb-icon>
                     </button>
                   </td>

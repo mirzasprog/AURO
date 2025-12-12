@@ -1,5 +1,59 @@
+.header-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(90deg, var(--card-background-color) 0%, var(--background-basic-color-2) 100%);
+  border-bottom: 1px solid var(--border-basic-color-3);
+}
+
+.title-stack .title {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.title-stack .subtitle {
+  color: var(--text-hint-color);
+  font-size: 0.85rem;
+}
+
+.filter-form {
+  background: var(--background-basic-color-2);
+  border: 1px solid var(--border-basic-color-3);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  box-shadow: var(--shadow);
+}
+
 .filter-form label {
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.filter-grid input,
+.filter-grid nb-select {
+  background: var(--input-basic-background-color);
+}
+
+.section-title {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  color: var(--text-hint-color);
+  margin-bottom: 0.5rem;
+}
+
+.muted {
+  color: var(--text-hint-color);
+  font-weight: 500;
+}
+
+.table-wrapper {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--background-basic-color-1);
+  border: 1px solid var(--border-basic-color-3);
 }
 
 .table-responsive {
@@ -8,4 +62,23 @@
 
 .table td, .table th {
   vertical-align: middle;
+}
+
+.table thead th {
+  background: var(--background-basic-color-2);
+  border-bottom: 2px solid var(--border-basic-color-4);
+}
+
+.action-bar button {
+  min-width: 38px;
+}
+
+.empty-state {
+  color: var(--text-hint-color);
+  padding: 1.5rem 0;
+}
+
+.paging-bar {
+  border-top: 1px solid var(--border-basic-color-3);
+  padding-top: 1rem;
 }
