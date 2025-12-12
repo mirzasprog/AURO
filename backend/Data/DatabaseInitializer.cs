@@ -157,6 +157,66 @@ BEGIN
     );
 END";
 
+        private const string EnsureServiceInvoicesTableSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceInvoices' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[ServiceInvoices]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [InvoiceNumber] NVARCHAR(64) NOT NULL,
+        [InvoiceDate] DATE NOT NULL,
+        [DueDate] DATE NOT NULL,
+        [CustomerName] NVARCHAR(256) NOT NULL,
+        [CustomerAddress] NVARCHAR(256) NULL,
+        [CustomerCity] NVARCHAR(128) NULL,
+        [CustomerCountry] NVARCHAR(128) NULL,
+        [CustomerTaxId] NVARCHAR(64) NULL,
+        [CustomerId] INT NULL,
+        [Currency] NVARCHAR(8) NOT NULL,
+        [SubtotalAmount] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoices_SubtotalAmount] DEFAULT(0),
+        [TaxAmount] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoices_TaxAmount] DEFAULT(0),
+        [TotalAmount] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoices_TotalAmount] DEFAULT(0),
+        [Notes] NVARCHAR(1024) NULL,
+        [Status] NVARCHAR(64) NOT NULL CONSTRAINT [DF_ServiceInvoices_Status] DEFAULT('Kreirano'),
+        [ServiceId] INT NOT NULL CONSTRAINT [DF_ServiceInvoices_ServiceId] DEFAULT(1),
+        CONSTRAINT [PK_ServiceInvoices] PRIMARY KEY CLUSTERED ([Id] ASC)
+    );
+
+    CREATE UNIQUE INDEX [IX_ServiceInvoices_InvoiceNumber] ON [dbo].[ServiceInvoices]([InvoiceNumber]);
+END";
+
+        private const string EnsureServiceInvoiceServiceIdColumnSql = @"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceInvoices' AND schema_id = SCHEMA_ID('dbo'))
+    AND NOT EXISTS (
+        SELECT 1 FROM sys.columns WHERE Name = 'ServiceId' AND Object_ID = OBJECT_ID('[dbo].[ServiceInvoices]')
+    )
+BEGIN
+    ALTER TABLE [dbo].[ServiceInvoices]
+    ADD [ServiceId] INT NOT NULL CONSTRAINT [DF_ServiceInvoices_ServiceId] DEFAULT(1);
+END";
+
+        private const string EnsureServiceInvoiceItemsTableSql = @"
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceInvoiceItems' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    CREATE TABLE [dbo].[ServiceInvoiceItems]
+    (
+        [Id] INT IDENTITY(1,1) NOT NULL,
+        [ServiceInvoiceId] INT NOT NULL,
+        [Description] NVARCHAR(512) NOT NULL,
+        [Quantity] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoiceItems_Quantity] DEFAULT(0),
+        [UnitPrice] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoiceItems_UnitPrice] DEFAULT(0),
+        [TaxRate] DECIMAL(5, 2) NOT NULL CONSTRAINT [DF_ServiceInvoiceItems_TaxRate] DEFAULT(0),
+        [LineTotalWithoutTax] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoiceItems_LineTotalWithoutTax] DEFAULT(0),
+        [LineTaxAmount] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoiceItems_LineTaxAmount] DEFAULT(0),
+        [LineTotalWithTax] DECIMAL(18, 2) NOT NULL CONSTRAINT [DF_ServiceInvoiceItems_LineTotalWithTax] DEFAULT(0),
+        CONSTRAINT [PK_ServiceInvoiceItems] PRIMARY KEY CLUSTERED ([Id] ASC),
+        CONSTRAINT [FK_ServiceInvoiceItems_ServiceInvoices_ServiceInvoiceId] FOREIGN KEY([ServiceInvoiceId])
+            REFERENCES [dbo].[ServiceInvoices]([Id]) ON DELETE CASCADE
+    );
+
+    CREATE INDEX [IX_ServiceInvoiceItems_ServiceInvoiceId] ON [dbo].[ServiceInvoiceItems]([ServiceInvoiceId]);
+END";
+
         public static async Task EnsureDailyTaskTablesAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
@@ -178,6 +238,16 @@ END";
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdColumnSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdIndexSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliTableSql);
+        }
+
+        public static async Task EnsureServiceInvoiceTablesAsync(IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<Auro2Context>();
+
+            await context.Database.ExecuteSqlRawAsync(EnsureServiceInvoicesTableSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureServiceInvoiceServiceIdColumnSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureServiceInvoiceItemsTableSql);
         }
     }
 }

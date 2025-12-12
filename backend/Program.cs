@@ -119,6 +119,7 @@ var app = builder.Build();
 
 await DatabaseInitializer.EnsureDailyTaskTablesAsync(app.Services);
 await DatabaseInitializer.EnsureVipTablesAsync(app.Services);
+await DatabaseInitializer.EnsureServiceInvoiceTablesAsync(app.Services);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

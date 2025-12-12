@@ -55,6 +55,9 @@ namespace backend.Models
         [MaxLength(8)]
         public string Currency { get; set; } = "BAM";
 
+        [Range(1, int.MaxValue, ErrorMessage = "ServiceId mora biti postavljen.")]
+        public int ServiceId { get; set; } = 1;
+
         [MaxLength(1024)]
         public string? Notes { get; set; }
 
@@ -91,6 +94,7 @@ namespace backend.Models
         public string? CustomerTaxId { get; set; }
         public int? CustomerId { get; set; }
         public string Currency { get; set; } = "BAM";
+        public int ServiceId { get; set; }
         public decimal SubtotalAmount { get; set; }
         public decimal TaxAmount { get; set; }
         public decimal TotalAmount { get; set; }
