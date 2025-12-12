@@ -17,29 +17,29 @@
       <div class="row g-3 align-items-end filter-grid">
         <div class="col-md-3">
           <label>Datum od</label>
-          <input nbInput fullWidth placeholder="Početni datum" formControlName="datumOd" [nbDatepicker]="pickerOd">
+          <input nbInput size="small" fullWidth placeholder="Početni datum" formControlName="datumOd" [nbDatepicker]="pickerOd">
           <nb-datepicker #pickerOd></nb-datepicker>
         </div>
         <div class="col-md-3">
           <label>Datum do</label>
-          <input nbInput fullWidth placeholder="Krajnji datum" formControlName="datumDo" [nbDatepicker]="pickerDo">
+          <input nbInput size="small" fullWidth placeholder="Krajnji datum" formControlName="datumDo" [nbDatepicker]="pickerDo">
           <nb-datepicker #pickerDo></nb-datepicker>
         </div>
         <div class="col-md-3">
           <label>Kupac</label>
-          <input nbInput fullWidth placeholder="Naziv kupca" formControlName="kupac">
+          <input nbInput size="small" fullWidth placeholder="Naziv kupca" formControlName="kupac">
         </div>
         <div class="col-md-3">
           <label>Broj fakture</label>
-          <input nbInput fullWidth placeholder="Broj fakture" formControlName="brojFakture">
+          <input nbInput size="small" fullWidth placeholder="Broj fakture" formControlName="brojFakture">
         </div>
       </div>
       <div class="mt-3 d-flex gap-2 justify-content-end">
-        <button nbButton status="primary" type="submit" hero>
+        <button nbButton status="primary" size="small" type="submit" hero>
           <nb-icon icon="funnel-outline"></nb-icon>
           Primijeni filter
         </button>
-        <button nbButton status="info" type="button" ghost (click)="resetujFilter()">
+        <button nbButton status="info" size="small" type="button" ghost (click)="resetujFilter()">
           <nb-icon icon="refresh-outline"></nb-icon>
           Očisti filter
         </button>
@@ -78,13 +78,13 @@
               </td>
               <td class="text-center">
                 <div class="d-flex gap-1 justify-content-center action-bar">
-                  <button nbButton size="tiny" status="info" ghost (click)="otvoriFakturu(faktura.id)" nbTooltip="Prikaži detalje">
+                  <button nbButton size="small" status="info" ghost (click)="otvoriFakturu(faktura.id)" nbTooltip="Prikaži detalje">
                     <nb-icon icon="eye-outline"></nb-icon>
                   </button>
-                  <button nbButton size="tiny" status="success" ghost (click)="otvoriFakturu(faktura.id)" nbTooltip="Uredi fakturu">
+                  <button nbButton size="small" status="success" ghost (click)="otvoriFakturu(faktura.id)" nbTooltip="Uredi fakturu">
                     <nb-icon icon="edit-2-outline"></nb-icon>
                   </button>
-                  <button nbButton size="tiny" status="primary" ghost (click)="stampajFakturu(faktura.id)" nbTooltip="Štampaj fakturu">
+                  <button nbButton size="small" status="primary" ghost (click)="stampajFakturu(faktura.id)" nbTooltip="Štampaj fakturu">
                     <nb-icon icon="printer-outline"></nb-icon>
                   </button>
                 </div>

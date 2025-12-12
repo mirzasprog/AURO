@@ -60,6 +60,10 @@
   max-height: 60vh;
 }
 
+.table {
+  color: var(--text-basic-color);
+}
+
 .table td, .table th {
   vertical-align: middle;
 }
@@ -67,6 +71,7 @@
 .table thead th {
   background: var(--background-basic-color-2);
   border-bottom: 2px solid var(--border-basic-color-4);
+  color: var(--text-basic-color);
 }
 
 .action-bar button {

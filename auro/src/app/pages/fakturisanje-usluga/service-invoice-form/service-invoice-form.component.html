@@ -17,74 +17,74 @@
   </nb-card-header>
   <nb-card-body>
     <form [formGroup]="forma">
-      <div class="row g-3">
+      <div class="row g-4">
         <div class="col-md-6">
-          <nb-card size="small" class="glass-card">
+          <nb-card class="glass-card">
             <nb-card-header>Podaci o kupcu</nb-card-header>
             <nb-card-body>
-              <div class="row g-2">
-                <div class="col-md-12">
+              <div class="form-grid">
+                <div class="full-span">
                   <label>Ime/Naziv *</label>
-                  <input nbInput fullWidth formControlName="customerName" placeholder="Kupac">
+                  <input nbInput size="small" fullWidth formControlName="customerName" placeholder="Kupac">
                 </div>
-                <div class="col-md-12">
+                <div class="full-span">
                   <label>Adresa</label>
-                  <input nbInput fullWidth formControlName="customerAddress" placeholder="Ulica i broj">
+                  <input nbInput size="small" fullWidth formControlName="customerAddress" placeholder="Ulica i broj">
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Grad</label>
-                  <input nbInput fullWidth formControlName="customerCity" placeholder="Grad">
+                  <input nbInput size="small" fullWidth formControlName="customerCity" placeholder="Grad">
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Država</label>
-                  <input nbInput fullWidth formControlName="customerCountry" placeholder="Država">
+                  <input nbInput size="small" fullWidth formControlName="customerCountry" placeholder="Država">
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>PDV broj</label>
-                  <input nbInput fullWidth formControlName="customerTaxId" placeholder="PDV/Porezni broj">
+                  <input nbInput size="small" fullWidth formControlName="customerTaxId" placeholder="PDV/Porezni broj">
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>ID kupca</label>
-                  <input nbInput fullWidth formControlName="customerId" type="number" placeholder="Opcionalno">
+                  <input nbInput size="small" fullWidth formControlName="customerId" type="number" placeholder="Opcionalno">
                 </div>
               </div>
             </nb-card-body>
           </nb-card>
         </div>
         <div class="col-md-6">
-          <nb-card size="small" class="glass-card">
+          <nb-card class="glass-card">
             <nb-card-header>Podaci o fakturi</nb-card-header>
             <nb-card-body>
-              <div class="row g-2">
-                <div class="col-md-6">
+              <div class="form-grid">
+                <div>
                   <label>Broj fakture</label>
-                  <input nbInput fullWidth formControlName="invoiceNumber" placeholder="Ostavite prazno za automatski broj">
+                  <input nbInput size="small" fullWidth formControlName="invoiceNumber" placeholder="Ostavite prazno za automatski broj">
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Status</label>
-                  <input nbInput fullWidth formControlName="status" placeholder="Status">
+                  <input nbInput size="small" fullWidth formControlName="status" placeholder="Status">
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Datum fakture *</label>
-                  <input nbInput fullWidth formControlName="invoiceDate" [nbDatepicker]="pickerDatum">
+                  <input nbInput size="small" fullWidth formControlName="invoiceDate" [nbDatepicker]="pickerDatum">
                   <nb-datepicker #pickerDatum></nb-datepicker>
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Datum dospijeća *</label>
-                  <input nbInput fullWidth formControlName="dueDate" [nbDatepicker]="pickerDue">
+                  <input nbInput size="small" fullWidth formControlName="dueDate" [nbDatepicker]="pickerDue">
                   <nb-datepicker #pickerDue></nb-datepicker>
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Valuta *</label>
-                  <nb-select fullWidth placeholder="Valuta" formControlName="currency">
+                  <nb-select size="small" fullWidth placeholder="Valuta" formControlName="currency">
                     <nb-option *ngFor="let valuta of valute" [value]="valuta">{{ valuta }}</nb-option>
                   </nb-select>
                 </div>
-                <div class="col-md-6">
+                <div>
                   <label>Napomena</label>
-                  <textarea nbInput fullWidth formControlName="notes" rows="2" placeholder="Napomena"></textarea>
+                  <textarea nbInput size="small" fullWidth formControlName="notes" rows="2" placeholder="Napomena"></textarea>
                 </div>
-                <div class="col-md-12 mt-2">
+                <div class="full-span mt-2">
                   <div class="d-flex justify-content-between gap-3 fw-bold summary-line">
                     <div class="chip">Osnovica: {{ forma.get('subtotalAmount')?.value | number:'1.2-2' }}</div>
                     <div class="chip">PDV: {{ forma.get('taxAmount')?.value | number:'1.2-2' }}</div>
@@ -124,15 +124,15 @@
               <tbody>
                 <tr *ngFor="let stavka of stavke.controls; index as i" [formGroup]="stavka">
                   <td class="text-center fw-semibold">{{ i + 1 }}</td>
-                  <td><input nbInput fullWidth formControlName="description" placeholder="Naziv usluge"></td>
-                  <td><input nbInput fullWidth type="number" min="0.01" step="0.01" formControlName="quantity"></td>
-                  <td><input nbInput fullWidth type="number" min="0" step="0.01" formControlName="unitPrice"></td>
-                  <td><input nbInput fullWidth type="number" min="0" step="0.01" formControlName="taxRate"></td>
+                  <td><input nbInput size="small" fullWidth formControlName="description" placeholder="Naziv usluge"></td>
+                  <td><input nbInput size="small" fullWidth type="number" min="0.01" step="0.01" formControlName="quantity"></td>
+                  <td><input nbInput size="small" fullWidth type="number" min="0" step="0.01" formControlName="unitPrice"></td>
+                  <td><input nbInput size="small" fullWidth type="number" min="0" step="0.01" formControlName="taxRate"></td>
                   <td class="text-end">{{ (stavka.value.quantity * stavka.value.unitPrice) | number:'1.2-2' }}</td>
                   <td class="text-end">{{ (stavka.value.quantity * stavka.value.unitPrice * stavka.value.taxRate/100) | number:'1.2-2' }}</td>
                   <td class="text-end">{{ (stavka.value.quantity * stavka.value.unitPrice * (1 + stavka.value.taxRate/100)) | number:'1.2-2' }}</td>
                   <td class="text-center">
-                    <button nbButton status="danger" size="tiny" (click)="ukloniStavku(i)" [disabled]="stavke.length === 1" ghost>
+                    <button nbButton status="danger" size="small" (click)="ukloniStavku(i)" [disabled]="stavke.length === 1" ghost>
                       <nb-icon icon="trash-2-outline"></nb-icon>
                     </button>
                   </td>
