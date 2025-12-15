@@ -147,7 +147,7 @@ namespace backend.Data
 
             if (currentStart <= today && today <= currentEnd)
             {
-                var todayEntries = _context.Prometi
+                var todayEntries = _context.ResponsePrometiProdavnica
                     .AsNoTracking()
                     .Select(p => new PrometRangeEntry
                     {
@@ -238,7 +238,7 @@ namespace backend.Data
                 {
                     BrojProdavnice = p.BrojProdavnice,
                     Datum = p.Datum,
-                    Promet = p.UkupniPromet ?? 0,
+                    Promet = p.UkupniPromet,
                     BrojKupaca = p.BrojKupaca ?? 0
                 })
                 .ToList();
@@ -246,7 +246,7 @@ namespace backend.Data
 
         private Dictionary<string, PrometRangeStoreRow> DohvatiStoreMetapodatke()
         {
-            return _context.Prometi
+            return _context.ResponsePrometiProdavnica
                 .AsNoTracking()
                 .GroupBy(p => NormalizeStoreId(p.BrojProdavnice))
                 .Where(g => !string.IsNullOrWhiteSpace(g.Key))
