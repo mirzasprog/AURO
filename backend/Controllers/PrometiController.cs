@@ -132,7 +132,6 @@ namespace backend.Controllers
                     PrometPoNetoKvadraturi = prometPoKvadraturi,
                     PrometProslaGodinaPoNetoKvadraturi = item.PrometProslaGodinaPoNetoKvadraturi,
                     PrometPoUposleniku = prometPoZaposlenom,
-                    BrojZaposlenih = brojZaposlenih,
                     PrometPoZaposlenom = prometPoZaposlenom
                 };
             }).ToList();
