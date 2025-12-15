@@ -98,6 +98,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   prometHistoryPage = 1;
   prometHistoryPageSize = 7;
   isPrometHistoryLoading = false;
+  isManagementBootstrapLoading = false;
+  private shouldQueueManagementLoads = false;
   categoryOptions: CategoryShareItem[] = [];
   selectedCategories: string[] = [];
   categoryShareValue = 0;
@@ -170,22 +172,28 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         return;
       }
       else if (this.rola === 'uprava') {
-        this.columnKeys = Object.keys(this.settings.columns);
-        this.columnKeys.forEach(col => {
-          this.columnStates[col] = !this.settings.columns[col].hide;
-        });
-        const mid = Math.ceil(this.columnKeys.length / 2);
-        this.columnRows = [
-          this.columnKeys.slice(0, mid),
-          this.columnKeys.slice(mid)
-        ];
-        this.loadStores();
-        this.loadGodisnjiPromet();
-        this.loadSviPrometi();
-        this.loadStoreCharts();
-        this.source.load(this.dataTable);
+        this.bootstrapManagementDashboard();
       }
     });
+  }
+
+  private bootstrapManagementDashboard(): void {
+    this.isManagementBootstrapLoading = true;
+    this.shouldQueueManagementLoads = true;
+
+    this.columnKeys = Object.keys(this.settings.columns);
+    this.columnKeys.forEach(col => {
+      this.columnStates[col] = !this.settings.columns[col].hide;
+    });
+    const mid = Math.ceil(this.columnKeys.length / 2);
+    this.columnRows = [
+      this.columnKeys.slice(0, mid),
+      this.columnKeys.slice(mid)
+    ];
+
+    this.loadStores();
+    this.loadSviPrometi(true);
+    this.source.load(this.dataTable);
   }
 
   toggleColumn(colKey: string, visible: boolean) {
@@ -302,11 +310,16 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadSviPrometi(): void {
+  private loadSviPrometi(triggerBalancedFollowup = false): void {
     this.isDashboardLoading = true;
 
     this.dataService.getSviPrometi()
-      .pipe(finalize(() => (this.isDashboardLoading = false)))
+      .pipe(finalize(() => {
+        this.isDashboardLoading = false;
+        if (triggerBalancedFollowup) {
+          this.queueManagementFollowUp();
+        }
+      }))
       .subscribe({
         next: (response: any[]) => {
           if (!response || !Array.isArray(response)) {
@@ -361,6 +374,18 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           this.dataTable = this.getEmptyRows(this.PAGE_SIZE);
         }
       });
+  }
+
+  private queueManagementFollowUp(): void {
+    if (!this.shouldQueueManagementLoads) {
+      return;
+    }
+
+    this.shouldQueueManagementLoads = false;
+    this.isManagementBootstrapLoading = false;
+
+    setTimeout(() => this.loadGodisnjiPromet(), 150);
+    setTimeout(() => this.loadStoreCharts(), 250);
   }
 
   private calculateAggregatedMetrics(stores: any[]): AggregatedPrometMetrics {
