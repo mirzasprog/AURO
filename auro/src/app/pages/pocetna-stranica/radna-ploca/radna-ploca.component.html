@@ -389,6 +389,55 @@
     </div>
   </nb-alert>
 
+  <div class="range-filter-card">
+    <div class="range-filter-header">
+      <div>
+        <p class="eyebrow">Opseg datuma</p>
+        <h4 class="section-title">Usporedba tekuće i prošle godine</h4>
+        <p class="muted">Odaberite intervale i automatski ćemo povući podatke za obje godine.</p>
+      </div>
+      <div class="range-actions">
+        <button nbButton size="small" status="info" (click)="syncPreviousRangeWithCurrent()">
+          <nb-icon icon="flip-outline"></nb-icon>
+          Uskladi prošlu godinu
+        </button>
+        <nb-spinner *ngIf="isRangeLoading" size="small"></nb-spinner>
+      </div>
+    </div>
+
+    <div class="range-grid">
+      <div class="range-column">
+        <h5>Tekuća godina</h5>
+        <label>Od</label>
+        <input nbInput fullWidth type="date" [(ngModel)]="currentRangeStart" (change)="onCurrentRangeChange()" />
+        <label>Do</label>
+        <input nbInput fullWidth type="date" [(ngModel)]="currentRangeEnd" (change)="onCurrentRangeChange()" />
+      </div>
+      <div class="range-column">
+        <h5>Prošla godina</h5>
+        <label>Od</label>
+        <input nbInput fullWidth type="date" [(ngModel)]="previousRangeStart" (change)="onPreviousRangeChange()" />
+        <label>Do</label>
+        <input nbInput fullWidth type="date" [(ngModel)]="previousRangeEnd" (change)="onPreviousRangeChange()" />
+      </div>
+
+      <div class="range-column range-summary-card" *ngIf="prometRangeTotals">
+        <p class="eyebrow">Sumarno</p>
+        <h5>Ukupni promet: {{ prometRangeTotals?.promet | number:'1.0-0' }} KM</h5>
+        <p class="muted">Promet PG: {{ prometRangeTotals?.prometProslaGodina | number:'1.0-0' }} KM</p>
+        <div class="delta-row" *ngIf="prometRangeTotals">
+          <span class="delta-chip" [ngClass]="{'positive': getRangeDelta(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) >= 0, 'negative': getRangeDelta(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) < 0}">
+            {{ getRangeDelta(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) | number:'1.0-0' }} KM
+            ({{ getRangeDeltaPercent(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) | number:'1.0-2' }}%)
+          </span>
+        </div>
+        <div class="summary-row">
+          <small>Kupci: {{ prometRangeTotals?.brojKupaca | number:'1.0-0' }} / PG {{ prometRangeTotals?.brojKupacaProslaGodina | number:'1.0-0' }}</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="filter-row" [class.is-disabled]="isManagementBootstrapLoading">
     <nb-toggle id="toggleSelectAll" class="tiny-toggle" status="info" [checked]="allSelected"
       (checkedChange)="toggleAllColumns($event)" labelPosition="right">
@@ -429,5 +478,38 @@
       <p>Brzo balansiramo učitavanje, podaci stižu za trenutak...</p>
     </div>
     <ng2-smart-table [settings]="settings" [source]="source" [attr.aria-busy]="isManagementBootstrapLoading"></ng2-smart-table>
+  </div>
+
+  <div *ngIf="prometRangeDays.length" class="range-day-table">
+    <div class="section-heading data-heading">
+      <div>
+        <p class="eyebrow">Sumarno po danu</p>
+        <h3 class="section-title">Pregled po datumima</h3>
+        <p class="muted">Vidite ukupne promete i broj kupaca za svaki dan izabranog opsega.</p>
+      </div>
+    </div>
+
+    <div class="day-table-wrapper">
+      <table class="range-table">
+        <thead>
+          <tr>
+            <th>Datum</th>
+            <th>Promet</th>
+            <th>Promet PG</th>
+            <th>Kupci</th>
+            <th>Kupci PG</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let day of prometRangeDays">
+            <td>{{ day.datum | date:'dd.MM.yyyy' }}</td>
+            <td>{{ day.promet | number:'1.0-0' }} KM</td>
+            <td>{{ day.prometProslaGodina | number:'1.0-0' }} KM</td>
+            <td>{{ day.brojKupaca | number:'1.0-0' }}</td>
+            <td>{{ day.brojKupacaProslaGodina | number:'1.0-0' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>

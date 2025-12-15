@@ -14,6 +14,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { PreuzmiUExcelService } from '../../../@core/utils/preuzmiExcel.service';
 import { LocalDataSource } from 'ng2-smart-table';
+import { PrometRangeResponse, PrometRangeDayRow } from '../../../@core/data/promet-range';
 
 interface QuickAction {
   title: string;
@@ -99,7 +100,14 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   prometHistoryPageSize = 7;
   isPrometHistoryLoading = false;
   isManagementBootstrapLoading = false;
+  isRangeLoading = false;
   private shouldQueueManagementLoads = false;
+  currentRangeStart = '';
+  currentRangeEnd = '';
+  previousRangeStart = '';
+  previousRangeEnd = '';
+  prometRangeTotals: PrometRangeResponse['totals'] | null = null;
+  prometRangeDays: PrometRangeDayRow[] = [];
   categoryOptions: CategoryShareItem[] = [];
   selectedCategories: string[] = [];
   categoryShareValue = 0;
@@ -160,6 +168,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupStoreSelectionBalancer();
     this.initializeCategoryShareData();
+    this.initializeDefaultRanges();
 
     this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
       this.rola = token.getPayload()['role'] ?? this.rola;
@@ -192,7 +201,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     ];
 
     this.loadStores();
-    this.loadSviPrometi(true);
+    this.loadPrometRange(true);
     this.source.load(this.dataTable);
   }
 
@@ -327,53 +336,145 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             return;
           }
           const aggregatedMetrics = response.length ? this.calculateAggregatedMetrics(response) : null;
-          // mapiramo backend rezultate u tabelu
-          let mappedData = response.map(item => {
-            const razlikaPromet = item.promet - item.prometProslaGodina;
-            const postotakPromet = item.prometProslaGodina
-              ? ((item.promet - item.prometProslaGodina) / item.prometProslaGodina) * 100
-              : 0;
-
-            const prosjecnaKorpa =
-              item.brojKupaca ? item.promet / item.brojKupaca : 0;
-
-            const prosjecnaKorpaProsla =
-              item.brojKupacaProslaGodina
-                ? item.prometProslaGodina / item.brojKupacaProslaGodina
-                : 0;
-
-            const razlikaKorpa = prosjecnaKorpa - prosjecnaKorpaProsla;
-            const postotakKorpa = prosjecnaKorpaProsla
-              ? ((prosjecnaKorpa - prosjecnaKorpaProsla) / prosjecnaKorpaProsla) * 100
-              : 0;
-
-            return {
-              ...item,
-              razlikaPromet,
-              postotakPromet,
-              prosjecnaKorpa,
-              prosjecnaKorpaProslaGodina: prosjecnaKorpaProsla,
-              razlikaKorpa,
-              postotakKorpa
-            };
-          });
-
-          // dodajemo prazne redove da uvijek bude PAGE_SIZE
-          if (mappedData.length < this.PAGE_SIZE) {
-            mappedData = [...mappedData, ...this.getEmptyRows(this.PAGE_SIZE - mappedData.length)];
-          }
-
-          this.dataTable = mappedData;
-          this.source.load(this.dataTable);
-
-          if (!this.selectedStoreId && aggregatedMetrics) {
-            this.applyAggregatedMetrics(aggregatedMetrics);
-          }
+          this.hydratePrometTable(response, aggregatedMetrics);
         },
         error: () => {
           this.dataTable = this.getEmptyRows(this.PAGE_SIZE);
         }
       });
+  }
+
+  private hydratePrometTable(stores: any[], aggregatedMetrics: AggregatedPrometMetrics | null): void {
+    const mappedData = this.mapPrometRows(stores);
+
+    const filledData = mappedData.length < this.PAGE_SIZE
+      ? [...mappedData, ...this.getEmptyRows(this.PAGE_SIZE - mappedData.length)]
+      : mappedData;
+
+    this.dataTable = filledData;
+    this.source.load(this.dataTable);
+
+    if (!this.selectedStoreId && aggregatedMetrics) {
+      this.applyAggregatedMetrics(aggregatedMetrics);
+    }
+  }
+
+  private mapPrometRows(items: any[]): any[] {
+    return (items ?? []).map(item => {
+      const razlikaPromet = (item.promet ?? 0) - (item.prometProslaGodina ?? 0);
+      const postotakPromet = item.prometProslaGodina
+        ? ((item.promet - item.prometProslaGodina) / item.prometProslaGodina) * 100
+        : 0;
+
+      const prosjecnaKorpa =
+        item.brojKupaca ? item.promet / item.brojKupaca : 0;
+
+      const prosjecnaKorpaProsla =
+        item.brojKupacaProslaGodina
+          ? item.prometProslaGodina / item.brojKupacaProslaGodina
+          : 0;
+
+      const razlikaKorpa = prosjecnaKorpa - prosjecnaKorpaProsla;
+      const postotakKorpa = prosjecnaKorpaProsla
+        ? ((prosjecnaKorpa - prosjecnaKorpaProsla) / prosjecnaKorpaProsla) * 100
+        : 0;
+
+      return {
+        ...item,
+        razlikaPromet,
+        postotakPromet,
+        prosjecnaKorpa,
+        prosjecnaKorpaProslaGodina: prosjecnaKorpaProsla,
+        razlikaKorpa,
+        postotakKorpa
+      };
+    });
+  }
+
+  private loadPrometRange(triggerBalancedFollowup = false): void {
+    if (!this.currentRangeStart || !this.currentRangeEnd || !this.previousRangeStart || !this.previousRangeEnd) {
+      return;
+    }
+
+    this.isRangeLoading = true;
+    this.isManagementBootstrapLoading = true;
+    this.prometRangeTotals = null;
+    this.prometRangeDays = [];
+
+    this.dataService.getPrometiPoOpsegu(
+      this.currentRangeStart,
+      this.currentRangeEnd,
+      this.previousRangeStart,
+      this.previousRangeEnd
+    )
+      .pipe(finalize(() => {
+        this.isRangeLoading = false;
+        this.isManagementBootstrapLoading = false;
+        if (triggerBalancedFollowup) {
+          this.queueManagementFollowUp();
+        }
+      }))
+      .subscribe({
+        next: (response: PrometRangeResponse) => {
+          const stores = this.extractStoresFromRangeResponse(response);
+          const aggregatedMetrics = stores.length ? this.calculateAggregatedMetrics(stores) : null;
+          this.hydratePrometTable(stores, aggregatedMetrics);
+          this.prometRangeTotals = this.extractTotalsFromRangeResponse(response);
+          this.prometRangeDays = this.extractDaysFromRangeResponse(response);
+        },
+        error: (err) => {
+          const poruka = err?.error?.poruka ?? err?.error ?? err?.statusText ?? err?.message;
+          Swal.fire('Greška', 'Nije moguće učitati promet za zadani opseg: ' + poruka, 'error');
+        }
+      });
+  }
+
+  private extractStoresFromRangeResponse(response: any): any[] {
+    return (response as any)?.stores ?? (response as any)?.Stores ?? [];
+  }
+
+  private extractTotalsFromRangeResponse(response: any): PrometRangeResponse['totals'] | null {
+    const totals = (response as any)?.totals ?? (response as any)?.Totals;
+    if (!totals) return null;
+
+    return {
+      promet: Number(totals.promet ?? totals.Promet ?? 0),
+      prometProslaGodina: Number(totals.prometProslaGodina ?? totals.PrometProslaGodina ?? 0),
+      brojKupaca: Number(totals.brojKupaca ?? totals.BrojKupaca ?? 0),
+      brojKupacaProslaGodina: Number(totals.brojKupacaProslaGodina ?? totals.BrojKupacaProslaGodina ?? 0)
+    };
+  }
+
+  private extractDaysFromRangeResponse(response: any): PrometRangeDayRow[] {
+    const days = (response as any)?.days ?? (response as any)?.Days ?? [];
+    return (days as any[]).map(day => {
+      const datum = day.datum ?? day.Datum;
+      const parsedDate = datum ? this.formatDateForInput(new Date(datum)) : '';
+      return {
+        datum: parsedDate,
+        promet: Number(day.promet ?? day.Promet ?? 0),
+        prometProslaGodina: Number(day.prometProslaGodina ?? day.PrometProslaGodina ?? 0),
+        brojKupaca: Number(day.brojKupaca ?? day.BrojKupaca ?? 0),
+        brojKupacaProslaGodina: Number(day.brojKupacaProslaGodina ?? day.BrojKupacaProslaGodina ?? 0)
+      } as PrometRangeDayRow;
+    }).sort((a, b) => a.datum.localeCompare(b.datum));
+  }
+
+  getRangeDelta(current?: number, previous?: number): number {
+    const curr = Number(current ?? 0);
+    const prev = Number(previous ?? 0);
+    return +(curr - prev);
+  }
+
+  getRangeDeltaPercent(current?: number, previous?: number): number {
+    const curr = Number(current ?? 0);
+    const prev = Number(previous ?? 0);
+
+    if (!prev) {
+      return curr ? 100 : 0;
+    }
+
+    return +(((curr - prev) / prev) * 100).toFixed(2);
   }
 
   private queueManagementFollowUp(): void {
@@ -386,6 +487,59 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     setTimeout(() => this.loadGodisnjiPromet(), 150);
     setTimeout(() => this.loadStoreCharts(), 250);
+  }
+
+  private initializeDefaultRanges(): void {
+    const today = new Date();
+    this.currentRangeStart = this.formatDateForInput(today);
+    this.currentRangeEnd = this.formatDateForInput(today);
+
+    const previousStart = new Date(today);
+    previousStart.setFullYear(previousStart.getFullYear() - 1);
+    const previousEnd = new Date(today);
+    previousEnd.setFullYear(previousEnd.getFullYear() - 1);
+
+    this.previousRangeStart = this.formatDateForInput(previousStart);
+    this.previousRangeEnd = this.formatDateForInput(previousEnd);
+  }
+
+  onCurrentRangeChange(): void {
+    this.syncPreviousRangeWithCurrent();
+    this.loadPrometRange();
+  }
+
+  onPreviousRangeChange(): void {
+    this.loadPrometRange();
+  }
+
+  syncPreviousRangeWithCurrent(): void {
+    const start = this.parseDate(this.currentRangeStart);
+    const end = this.parseDate(this.currentRangeEnd);
+
+    if (start) {
+      const previousStart = new Date(start);
+      previousStart.setFullYear(previousStart.getFullYear() - 1);
+      this.previousRangeStart = this.formatDateForInput(previousStart);
+    }
+
+    if (end) {
+      const previousEnd = new Date(end);
+      previousEnd.setFullYear(previousEnd.getFullYear() - 1);
+      this.previousRangeEnd = this.formatDateForInput(previousEnd);
+    }
+  }
+
+  private formatDateForInput(date: Date): string {
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toISOString().split('T')[0];
+  }
+
+  private parseDate(value: string): Date | null {
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
   }
 
   private calculateAggregatedMetrics(stores: any[]): AggregatedPrometMetrics {
