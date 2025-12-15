@@ -81,6 +81,40 @@
     </div>
   </nb-card-header>
   <nb-card-body>
+    <section class="store-rating" *ngIf="dashboardSummary">
+      <div class="rating-card" tabindex="0">
+        <div class="rating-main">
+          <p class="eyebrow">{{ ratingTitle }}</p>
+          <div class="rating-value-row">
+            <span class="rating-number">{{ storeRating | number:'1.1-1' }}</span>
+            <div class="rating-stars" aria-label="Grafička ocjena" title="Formula za ocjenu">
+              <i *ngFor="let star of ratingStars" [class]="star"></i>
+              <div class="rating-tooltip">
+                <p><strong>Kako računamo ocjenu</strong></p>
+                <ul>
+                  <li *ngFor="let item of ratingBreakdown">{{ item }}</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <p class="muted rating-caption">{{ ratingCaption }}</p>
+        </div>
+        <div class="rating-highlights">
+          <span class="rating-chip" [ngClass]="calcPercent(dashboardSummary.promet, dashboardSummary.prometProslaGodina) >= 0 ? 'positive' : 'negative'">
+            <nb-icon [icon]="calcPercent(dashboardSummary.promet, dashboardSummary.prometProslaGodina) >= 0 ? 'trending-up' : 'trending-down'"></nb-icon>
+            Promet {{ calcPercent(dashboardSummary.promet, dashboardSummary.prometProslaGodina) | number:'1.0-1' }}%
+          </span>
+          <span class="rating-chip" [ngClass]="calcPercent(dashboardSummary.averageBasket?.value, dashboardSummary.averageBasket?.previousValue) >= 0 ? 'positive' : 'negative'">
+            <nb-icon [icon]="calcPercent(dashboardSummary.averageBasket?.value, dashboardSummary.averageBasket?.previousValue) >= 0 ? 'trending-up' : 'trending-down'"></nb-icon>
+            Korpa {{ calcPercent(dashboardSummary.averageBasket?.value, dashboardSummary.averageBasket?.previousValue) | number:'1.0-1' }}%
+          </span>
+          <span class="rating-chip" [ngClass]="calcPercent(dashboardSummary.prometPoNetoKvadraturi, dashboardSummary.prometProslaGodinaPoNetoKvadraturi) >= 0 ? 'positive' : 'negative'">
+            <nb-icon [icon]="calcPercent(dashboardSummary.prometPoNetoKvadraturi, dashboardSummary.prometProslaGodinaPoNetoKvadraturi) >= 0 ? 'home' : 'alert-triangle'"></nb-icon>
+            Neto m² {{ calcPercent(dashboardSummary.prometPoNetoKvadraturi, dashboardSummary.prometProslaGodinaPoNetoKvadraturi) | number:'1.0-1' }}%
+          </span>
+        </div>
+      </div>
+    </section>
     <!-- KPI -->
     <section class="kpi-section">
       <div class="kpi-loading" *ngIf="isDashboardLoading">
