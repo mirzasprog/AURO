@@ -248,6 +248,7 @@ namespace backend.Data
         {
             return _context.ResponsePrometiProdavnica
                 .AsNoTracking()
+                .AsEnumerable()
                 .GroupBy(p => NormalizeStoreId(p.BrojProdavnice))
                 .Where(g => !string.IsNullOrWhiteSpace(g.Key))
                 .ToDictionary(g => g.Key, g =>
