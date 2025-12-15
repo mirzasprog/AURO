@@ -92,10 +92,7 @@
           <span class="kpi-title">{{ card.label }}
             <nb-icon *ngIf="card.icon" [icon]="card.icon" status="primary" class="kpi-icon" size="large"></nb-icon>
           </span>
-          <div class="kpi-support"
-            *ngIf="card.key === 'turnoverPerArea' && dashboardSummary?.netoKvadraturaObjekta !== undefined">
-            Neto površina: {{ dashboardSummary.netoKvadraturaObjekta | number:'1.0-2' }} m²
-          </div>
+          <div class="kpi-support" *ngIf="card.supportText">{{ card.supportText }}</div>
           <div class="kpi-value">
             {{ card.formattedValue }}
             <small *ngIf="card.unit">{{ card.unit }}</small>
@@ -301,9 +298,9 @@
 </ng-template>
 
 <ng-template #categoryDetail>
-  <nb-card>
+  <nb-card class="category-share-modal">
     <nb-card-header>Udio kategorija u prodaji</nb-card-header>
-    <nb-card-body>
+    <nb-card-body class="category-share-modal__body">
       <div class="category-share__layout">
         <div class="category-share__controls">
           <div class="category-share__summary">
