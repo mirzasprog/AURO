@@ -590,18 +590,26 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   private loadPromet(storeId: string): void {
     this.isDashboardLoading = true;
-    //getPrometCijelaMreza
-    this.dataService.getPromet(storeId).pipe(finalize(() => this.isDashboardLoading = false))
-      .subscribe({
-        next: (r: any) => {
-          this.applyPrometResponse(r);
-          this.loadPrometDetalji();
-        },
-        error: (err) => {
-          const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
-          Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
-        }
-      });
+    this.isPrometHistoryLoading = true;
+
+    forkJoin({
+      summary: this.dataService.getPromet(storeId),
+      history: this.dataService.getPrometDetalji()
+    }).pipe(
+      finalize(() => {
+        this.isDashboardLoading = false;
+        this.isPrometHistoryLoading = false;
+      })
+    ).subscribe({
+      next: ({ summary, history }) => {
+        this.applyPrometResponse(summary);
+        this.setPrometHistoryRows(history);
+      },
+      error: (err) => {
+        const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+        Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
+      }
+    });
   }
 
   private applyPrometResponse(r: any): void {
@@ -645,18 +653,26 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   private loadGodisnjiPromet(): void {
     this.isDashboardLoading = true;
-    //getPrometCijelaMreza
-    this.dataService.getPrometCijelaMreza().pipe(finalize(() => this.isDashboardLoading = false))
-      .subscribe({
-        next: (r: any) => {
-          this.applyPrometResponse(r);
-          this.loadPrometDetalji();
-        },
-        error: (err) => {
-          const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
-          Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
-        }
-      });
+    this.isPrometHistoryLoading = true;
+
+    forkJoin({
+      summary: this.dataService.getPrometCijelaMreza(),
+      history: this.dataService.getPrometDetalji(),
+    }).pipe(
+      finalize(() => {
+        this.isDashboardLoading = false;
+        this.isPrometHistoryLoading = false;
+      })
+    ).subscribe({
+      next: ({ summary, history }) => {
+        this.applyPrometResponse(summary);
+        this.setPrometHistoryRows(history);
+      },
+      error: (err) => {
+        const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+        Swal.fire('Greška', 'Greška prilikom učitavanja prometa: ' + greska, 'error');
+      }
+    });
   }
 
   private loadPrometDetalji(): void {
@@ -665,14 +681,19 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$), finalize(() => this.isPrometHistoryLoading = false))
       .subscribe({
         next: (detalji: PrometHistoryRow[]) => {
-          this.prometHistoryRows = detalji ?? [];
-          this.prometHistoryPage = 1;
+          this.setPrometHistoryRows(detalji);
         },
         error: (err) => {
           const poruka = err?.error?.poruka ?? err?.statusText ?? err?.message;
           Swal.fire('Greška', 'Greška prilikom učitavanja historije prometa: ' + poruka, 'error');
         }
       });
+  }
+
+  private setPrometHistoryRows(detalji: PrometHistoryRow[] | null | undefined): void {
+    this.prometHistoryRows = detalji ?? [];
+    this.prometHistoryPage = 1;
+    this.renderMonthComparisonChart();
   }
 
   goToPrometHistoryPage(direction: 'prev' | 'next'): void {
@@ -1057,7 +1078,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     switch (key) {
       case 'visitors':
-        this.openDialog(this.visitorsDetail, () => this.renderTrendChart('visitorsTrendChart', this.dashboardSummary.visitors?.trend ?? this.dashboardSummary.visitorsTrend ?? [], 'Broj posjetilaca', '#3366ff'));
+        this.openDialog(this.visitorsDetail, () => this.renderVisitorsChart());
         break;
       case 'turnover':
         this.openDialog(this.turnoverDetail, () => this.renderTrendChart('turnoverTrendChart', this.dashboardSummary.turnover?.trend ?? this.dashboardSummary.turnoverTrend ?? [], 'Promet', '#00d68f'));
@@ -1066,7 +1087,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         this.openDialog(this.shrinkageDetail, () => this.renderTrendChart('shrinkageTrendChart', this.dashboardSummary.shrinkage?.trend ?? [], 'Otpis', '#ff3d71'));
         break;
       case 'averageBasket':
-        this.openDialog(this.basketDetail, () => this.renderTrendChart('basketTrendChart', this.dashboardSummary.averageBasket?.trend ?? [], 'Prosječna korpa', '#ffaa00'));
+        this.openDialog(this.basketDetail, () => this.renderAverageBasketChart());
         break;
       case 'categoryShare':
         this.openDialog(this.categoryDetail, () => this.renderCategoryChart());
@@ -1107,6 +1128,70 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     };
 
     this.renderChart(elementId, config);
+  }
+
+  private renderComparisonChart(
+    elementId: string,
+    label: string,
+    currentValue: number,
+    previousValue: number,
+    currentColor: string,
+    previousColor: string
+  ): void {
+    const config: Chart.ChartConfiguration = {
+      type: 'bar',
+      data: {
+        labels: ['Ove godine', 'Prošle godine'],
+        datasets: [
+          {
+            label,
+            data: [currentValue, previousValue],
+            backgroundColor: [currentColor, previousColor],
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { display: false },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true } }],
+        },
+      },
+    };
+
+    this.renderChart(elementId, config);
+  }
+
+  private renderVisitorsChart(): void {
+    const trend = this.dashboardSummary?.visitors?.trend ?? this.dashboardSummary?.visitorsTrend ?? [];
+
+    if (Array.isArray(trend) && trend.length) {
+      this.renderTrendChart('visitorsTrendChart', trend, 'Broj posjetilaca', '#3366ff');
+      return;
+    }
+
+    const currentVisitors = this.toNumberSafe(this.dashboardSummary?.brojKupaca ?? this.dashboardSummary?.visitors?.value ?? 0);
+    const previousVisitors = this.toNumberSafe(this.dashboardSummary?.brojKupacaProslaGodina ?? this.dashboardSummary?.visitors?.previousValue ?? 0);
+
+    this.renderComparisonChart('visitorsTrendChart', 'Broj kupaca', currentVisitors, previousVisitors, '#3366ff', '#ffce54');
+  }
+
+  private renderAverageBasketChart(): void {
+    const trend = this.dashboardSummary?.averageBasket?.trend ?? [];
+
+    if (Array.isArray(trend) && trend.length) {
+      this.renderTrendChart('basketTrendChart', trend, 'Prosječna korpa', '#ffaa00');
+      return;
+    }
+
+    const current = this.toNumberSafe(this.dashboardSummary?.averageBasket?.value ?? 0);
+    const previous = this.toNumberSafe(this.dashboardSummary?.averageBasket?.previousValue ?? 0);
+
+    this.renderComparisonChart('basketTrendChart', 'Prosječna korpa', current, previous, '#ffaa00', '#ffd166');
   }
 
   private renderDayComparisonChart(): void {
@@ -1154,26 +1239,64 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   private renderMonthComparisonChart(): void {
-    if (!this.dashboardSummary?.monthOnMonth) return;
+    const history = this.getCurrentMonthHistory();
+
+    if (history.labels.length) {
+      const config: Chart.ChartConfiguration = {
+        type: 'line',
+        data: {
+          labels: history.labels,
+          datasets: [
+            {
+              label: history.currentLabel,
+              data: history.currentValues,
+              borderColor: '#3366ff',
+              backgroundColor: 'rgba(51, 102, 255, 0.15)',
+              fill: false,
+              lineTension: 0.25,
+              borderWidth: 3,
+              pointRadius: 3,
+            },
+            {
+              label: history.previousLabel,
+              data: history.previousValues,
+              borderColor: '#ffce54',
+              backgroundColor: 'rgba(255, 206, 84, 0.15)',
+              fill: false,
+              lineTension: 0.25,
+              borderWidth: 3,
+              pointRadius: 3,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          legend: { position: 'bottom' },
+          animation: { duration: 250 },
+          tooltips: { mode: 'index', intersect: false },
+          scales: {
+            xAxes: [{ gridLines: { display: false } }],
+            yAxes: [{ ticks: { beginAtZero: true } }],
+          },
+        },
+      };
+
+      this.renderChart('monthComparisonChart', config);
+      return;
+    }
+
+    if (!this.dashboardSummary?.monthOnMonth) {
+      return;
+    }
 
     const { current, previous, currentLabel, previousLabel } = this.dashboardSummary.monthOnMonth;
-
-    // Kreiranje lookup mape za previous podatke
     const prevMap = new Map(previous.map((x: any) => [x.label, x.value]));
-
     const labels = current.map((x: any) => x.label);
     const currentValues = current.map((x: any) => x.value);
     const previousValues = labels.map(label => prevMap.get(label) ?? 0);
 
-    // Ako postoji stari graf — uništi ga prije kreiranja novog
-    if (this.charts['monthComparisonChart']) {
-      this.charts['monthComparisonChart'].destroy();
-    }
-
-    const ctx = document.getElementById('monthComparisonChart') as HTMLCanvasElement;
-    if (!ctx) return;
-
-    this.charts['monthComparisonChart'] = new Chart(ctx, {
+    const fallbackConfig: Chart.ChartConfiguration = {
       type: 'line',
       data: {
         labels,
@@ -1184,7 +1307,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             borderColor: '#3366ff',
             backgroundColor: 'rgba(51, 102, 255, 0.15)',
             fill: false,
-            tension: 0.25,
+            lineTension: 0.25,
             borderWidth: 3,
             pointRadius: 3,
           },
@@ -1194,7 +1317,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             borderColor: '#ffce54',
             backgroundColor: 'rgba(255, 206, 84, 0.15)',
             fill: false,
-            tension: 0.25,
+            lineTension: 0.25,
             borderWidth: 3,
             pointRadius: 3,
           }
@@ -1203,29 +1326,55 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            display: true,
-            position: 'bottom',
-          },
-          tooltip: {
-            enabled: true,
-          }
-        },
+        legend: { position: 'bottom' },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
         scales: {
-          x: {
-            grid: { display: false }
-          },
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{ ticks: { beginAtZero: true } }],
+        },
+      },
+    };
+
+    this.renderChart('monthComparisonChart', fallbackConfig);
+  }
+
+  private getCurrentMonthHistory(): {
+    labels: string[];
+    currentValues: number[];
+    previousValues: number[];
+    currentLabel: string;
+    previousLabel: string;
+  } {
+    if (!Array.isArray(this.prometHistoryRows) || !this.prometHistoryRows.length) {
+      return { labels: [], currentValues: [], previousValues: [], currentLabel: '', previousLabel: '' };
+    }
+
+    const now = new Date();
+    const currentMonth = now.getMonth();
+
+    const parsedRows = this.prometHistoryRows
+      .map(row => {
+        const currentDate = new Date(row.currentYearDate);
+        const fallbackDate = new Date(now.getFullYear(), now.getMonth(), Number(row.day) || 1);
+        const parsedDate = isNaN(currentDate.getTime()) ? fallbackDate : currentDate;
+
+        return { ...row, parsedDate };
+      })
+      .filter(row => row.parsedDate.getMonth() === currentMonth)
+      .sort((a, b) => a.parsedDate.getTime() - b.parsedDate.getTime());
+
+    const labels = parsedRows.map(row => row.parsedDate.getDate().toString().padStart(2, '0'));
+    const currentValues = parsedRows.map(row => row.currentYearTurnover ?? 0);
+    const previousValues = parsedRows.map(row => row.previousYearTurnover ?? 0);
+
+    return {
+      labels,
+      currentValues,
+      previousValues,
+      currentLabel: String(now.getFullYear()),
+      previousLabel: String(now.getFullYear() - 1),
+    };
   }
 
   private renderCategoryChart(): void {
