@@ -246,7 +246,8 @@ namespace backend.Data
 
         private Dictionary<string, PrometRangeStoreRow> DohvatiStoreMetapodatke()
         {
-            return _context.ResponsePrometiProdavnica
+            return _context.PrometiProdavnica
+                .FromSqlInterpolated($"EXEC GetPrometiSvihProdavnica")
                 .AsNoTracking()
                 .AsEnumerable()
                 .GroupBy(p => NormalizeStoreId(p.BrojProdavnice))

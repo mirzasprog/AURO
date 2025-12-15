@@ -109,6 +109,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   previousRangeEnd = '';
   prometRangeTotals: PrometRangeResponse['totals'] | null = null;
   prometRangeDays: PrometRangeDayRow[] = [];
+  rangeHelperText = 'Tekući opseg automatski popunjava prethodnu godinu, ali i dalje možete ručno prilagoditi datume.';
   categoryOptions: CategoryShareItem[] = [];
   selectedCategories: string[] = [];
   categoryShareValue = 0;
@@ -562,6 +563,27 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
   }
 
+  applyPreset(preset: 'currentMonth' | 'last30Days'): void {
+    const today = new Date();
+
+    if (preset === 'currentMonth') {
+      const start = new Date(today.getFullYear(), today.getMonth(), 1);
+      this.currentRangeStart = this.formatDateForInput(start);
+      this.currentRangeEnd = this.formatDateForInput(today);
+    }
+
+    if (preset === 'last30Days') {
+      const start = new Date(today);
+      start.setDate(today.getDate() - 29);
+      this.currentRangeStart = this.formatDateForInput(start);
+      this.currentRangeEnd = this.formatDateForInput(today);
+    }
+
+    this.isRangeFilterOpen = true;
+    this.syncPreviousRangeWithCurrent();
+    this.loadPrometRange();
+  }
+
   private formatDateForInput(date: Date): string {
     if (isNaN(date.getTime())) {
       return '';
@@ -573,6 +595,21 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   private parseDate(value: string): Date | null {
     const parsed = new Date(value);
     return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  rangeSummary(start: string, end: string): string {
+    const startDate = this.parseDate(start);
+    const endDate = this.parseDate(end);
+
+    if (!startDate || !endDate) {
+      return 'Nije odabrano';
+    }
+
+    return `${this.formatDateForDisplay(startDate)} — ${this.formatDateForDisplay(endDate)}`;
+  }
+
+  private formatDateForDisplay(date: Date): string {
+    return date.toLocaleDateString('bs-BA', { day: '2-digit', month: '2-digit', year: 'numeric' });
   }
 
   private calculateAggregatedMetrics(stores: any[]): AggregatedPrometMetrics {
