@@ -5,11 +5,11 @@ import Swal from 'sweetalert2';
 import { DataService } from '../../../@core/utils/data.service';
 import { NbDialogService, NbIconLibraries } from '@nebular/theme';
 import Chart from 'chart.js';
-import { finalize, takeUntil } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, finalize, switchMap, takeUntil } from 'rxjs/operators';
+import { forkJoin, of, Subject, Subscription } from 'rxjs';
 import { DashboardTrendPoint } from '../../../@core/data/dashboard/dashboard-summary';
 import { PrometHistoryRow } from '../../../@core/data/promet-history';
 import { DailyTaskService } from '../../../@core/utils/daily-task.service';
-import { Subject } from 'rxjs';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { PreuzmiUExcelService } from '../../../@core/utils/preuzmiExcel.service';
@@ -36,6 +36,7 @@ interface AggregatedPrometMetrics {
   brojKupaca: number;
   brojKupacaProslaGodina: number;
   netoKvadratura: number;
+  brojZaposlenih: number;
   prometPoNetoKvadraturi: number;
   prometProslaGodinaPoNetoKvadraturi: number;
 }
@@ -125,6 +126,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   filteredStores = [];
   rolesWithStoreSelection: string[] = ['uprava', 'podrucni', 'regionalni'];
   private destroy$ = new Subject<void>();
+  private storeSelection$ = new Subject<string>();
+  private storeSelectionSubscription?: Subscription;
 
   constructor(
     private router: Router,
@@ -140,6 +143,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
+    this.setupStoreSelectionBalancer();
+
     this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
       this.rola = token.getPayload()['role'] ?? this.rola;
       this.korisnickoIme = token.getPayload()['name'] ?? this.korisnickoIme;
@@ -147,8 +152,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       if (this.rola === 'prodavnica') {
         const storeId = String(parseInt(this.korisnickoIme, 10)).padStart(3, '0');
         this.selectedStoreId = storeId;
-        this.loadPromet(storeId);
-        this.loadStoreCharts(storeId);
+        this.storeSelection$.next(storeId);
         return;
       }
       else if (this.rola === 'uprava') {
@@ -246,6 +250,44 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     return this.prometHistoryRows.slice(start, start + this.prometHistoryPageSize);
   }
 
+  private setupStoreSelectionBalancer(): void {
+    this.storeSelectionSubscription = this.storeSelection$
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap(storeCode => {
+          this.isDashboardLoading = true;
+          this.isStoreChartsLoading = true;
+
+          return forkJoin({
+            promet: this.dataService.getPromet(storeCode),
+            stats: this.getStoreChartsObservable(storeCode),
+          }).pipe(
+            finalize(() => {
+              this.isDashboardLoading = false;
+              this.isStoreChartsLoading = false;
+            }),
+            catchError(err => {
+              const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+              Swal.fire('Greška', 'Greška prilikom učitavanja prodavnice: ' + greska, 'error');
+              return of({ promet: null, stats: [] });
+            })
+          );
+        }),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: ({ promet, stats }) => {
+          if (promet) {
+            this.applyPrometResponse(promet);
+            this.loadPrometDetalji();
+          }
+
+          this.applyStoreChartsData(stats);
+        }
+      });
+  }
+
   private loadSviPrometi(): void {
     this.isDashboardLoading = true;
 
@@ -314,6 +356,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       brojKupaca: 0,
       brojKupacaProslaGodina: 0,
       netoKvadratura: 0,
+      brojZaposlenih: 0,
       prometPoNetoKvadraturi: 0,
       prometProslaGodinaPoNetoKvadraturi: 0,
     };
@@ -324,12 +367,14 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       const kupaca = Number(item.brojKupaca ?? 0);
       const kupacaProsla = Number(item.brojKupacaProslaGodina ?? 0);
       const neto = Number(item.netoKvadraturaObjekta ?? 0);
+      const zaposlenih = Number((item as any).brojZaposlenih ?? item['brojZaposlenih'] ?? 0);
 
       acc.promet += promet;
       acc.prometProslaGodina += prometProsla;
       acc.brojKupaca += kupaca;
       acc.brojKupacaProslaGodina += kupacaProsla;
       acc.netoKvadratura += neto;
+      acc.brojZaposlenih += zaposlenih;
 
       return acc;
     }, initial);
@@ -355,6 +400,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     const prometProslaGodina = Number(metrics.prometProslaGodina.toFixed(2));
     const brojKupaca = metrics.brojKupaca;
     const brojKupacaProslaGodina = metrics.brojKupacaProslaGodina;
+    const brojZaposlenih = metrics.brojZaposlenih;
+    const prometPoUposleniku = brojZaposlenih
+      ? Number((promet / brojZaposlenih).toFixed(2))
+      : 0;
     const averageBasketValue = brojKupaca ? Number((promet / brojKupaca).toFixed(2)) : 0;
     const averageBasketPrevious = brojKupacaProslaGodina
       ? Number((prometProslaGodina / brojKupacaProslaGodina).toFixed(2))
@@ -370,6 +419,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       turnover: { value: promet, previousValue: prometProslaGodina },
       visitors: { value: brojKupaca, previousValue: brojKupacaProslaGodina },
       netoKvadraturaObjekta: Number(metrics.netoKvadratura.toFixed(2)),
+      brojZaposlenih,
+      prometPoUposleniku,
       prometPoNetoKvadraturi: metrics.prometPoNetoKvadraturi,
       prometProslaGodinaPoNetoKvadraturi: metrics.prometProslaGodinaPoNetoKvadraturi,
       averageBasket: {
@@ -377,6 +428,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         previousValue: averageBasketPrevious,
       },
     };
+
+    this.buildPrometTableRows();
+    this.renderDayComparisonChart?.();
+    this.renderMonthComparisonChart?.();
   }
 
   preuzmiExcel() {
@@ -470,36 +525,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.dataService.getPromet(storeId).pipe(finalize(() => this.isDashboardLoading = false))
       .subscribe({
         next: (r: any) => {
-          const netoKvadratura = Number(r.netoKvadraturaObjekta ?? 0);
-          const prometPoKvadraturi = r.prometPoNetoKvadraturi ?? (netoKvadratura
-            ? Number((Number(r.promet) / netoKvadratura).toFixed(2))
-            : 0);
-          const prometPoUposleniku = r.prometPoUposleniku ?? 0;
-
-          this.dashboardSummary = {
-            promet: Number(r.promet ?? 0),
-            prometProslaGodina: Number(r.prometProslaGodina),
-            brojKupaca: Number(r.brojKupaca),
-            brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
-            currency: 'KM',
-            turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
-            visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
-            prometPoUposleniku,
-            prometPoNetoKvadraturi: prometPoKvadraturi,
-            netoKvadraturaObjekta: netoKvadratura,
-            averageBasket: {
-              value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
-              previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0
-            }
-          };
-          this.buildPrometTableRows();
-          // odmah renderujemo KPI kartice
-          this.getKpiCards?.();
-
-          // render grafova vezanih za promet
-          this.renderDayComparisonChart?.();
-          this.renderMonthComparisonChart?.();
-
+          this.applyPrometResponse(r);
           this.loadPrometDetalji();
         },
         error: (err) => {
@@ -509,43 +535,47 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       });
   }
 
+  private applyPrometResponse(r: any): void {
+    if (!r) return;
+
+    const netoKvadratura = Number(r.netoKvadraturaObjekta ?? 0);
+    const prometPoKvadraturi = r.prometPoNetoKvadraturi ?? (netoKvadratura
+      ? Number((Number(r.promet) / netoKvadratura).toFixed(2))
+      : 0);
+    const brojZaposlenih = Number(r.brojZaposlenih ?? 0);
+    const prometPoUposleniku = r.prometPoUposleniku ?? (brojZaposlenih ? Number((Number(r.promet) / brojZaposlenih).toFixed(2)) : 0);
+
+    this.dashboardSummary = {
+      promet: Number(r.promet ?? 0),
+      prometProslaGodina: Number(r.prometProslaGodina),
+      brojKupaca: Number(r.brojKupaca),
+      brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
+      currency: 'KM',
+      turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
+      visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
+      prometPoUposleniku,
+      brojZaposlenih,
+      prometPoNetoKvadraturi: prometPoKvadraturi,
+      netoKvadraturaObjekta: netoKvadratura,
+      averageBasket: {
+        value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
+        previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0
+      }
+    };
+
+    this.buildPrometTableRows();
+    this.getKpiCards?.();
+    this.renderDayComparisonChart?.();
+    this.renderMonthComparisonChart?.();
+  }
+
   private loadGodisnjiPromet(): void {
     this.isDashboardLoading = true;
     //getPrometCijelaMreza
     this.dataService.getPrometCijelaMreza().pipe(finalize(() => this.isDashboardLoading = false))
       .subscribe({
         next: (r: any) => {
-          const netoKvadratura = Number(r.netoKvadraturaObjekta ?? 0);
-          const prometPoKvadraturi = r.prometPoNetoKvadraturi ?? (netoKvadratura
-            ? Number((Number(r.promet) / netoKvadratura).toFixed(2))
-            : 0);
-          const prometPoUposleniku = r.prometPoUposleniku ?? 0;
-
-          this.dashboardSummary = {
-            promet: Number(r.promet),
-            prometProslaGodina: Number(r.prometProslaGodina),
-            brojKupaca: Number(r.brojKupaca),
-            brojKupacaProslaGodina: Number(r.brojKupacaProslaGodina),
-            currency: 'KM',
-            turnover: { value: Number(r.promet), previousValue: Number(r.prometProslaGodina) },
-            visitors: { value: Number(r.brojKupaca), previousValue: Number(r.brojKupacaProslaGodina) },
-            prometPoUposleniku,
-            prometPoNetoKvadraturi: prometPoKvadraturi,
-            netoKvadraturaObjekta: netoKvadratura,
-            averageBasket: {
-              value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
-              previousValue: r.brojKupacaProslaGodina ? Number((r.prometProslaGodina / r.brojKupacaProslaGodina).toFixed(2)) : 0
-            }
-          };
-          this.buildPrometTableRows();
-
-          // odmah renderujemo KPI kartice
-          this.getKpiCards?.();
-
-          // render grafova vezanih za promet
-          this.renderDayComparisonChart?.();
-          this.renderMonthComparisonChart?.();
-
+          this.applyPrometResponse(r);
           this.loadPrometDetalji();
         },
         error: (err) => {
@@ -644,8 +674,19 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   private loadStoreCharts(storeId?: string | number | null): void {
     this.isStoreChartsLoading = true;
-    const numericStoreId = storeId != null ? Number(storeId) : undefined;
+    this.getStoreChartsObservable(storeId)
+      .pipe(finalize(() => this.isStoreChartsLoading = false))
+      .subscribe({
+        next: (response: any) => this.applyStoreChartsData(response),
+        error: (err: any) => {
+          const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+          Swal.fire('Greška', 'Greška: ' + greska, 'error');
+        }
+      });
+  }
 
+  private getStoreChartsObservable(storeId?: string | number | null) {
+    const numericStoreId = storeId != null ? Number(storeId) : undefined;
     let statObservable: any = null;
 
     if (numericStoreId != null && numericStoreId !== 0) {
@@ -662,29 +703,25 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       statObservable = (this.dataService as any).pregledajStatistiku();
     }
 
-    statObservable.pipe(finalize(() => this.isStoreChartsLoading = false)).subscribe({
-      next: (response: any) => {
-        this.data = Array.isArray(response) ? response : [];
+    return statObservable;
+  }
 
-        if (!this.data.length) {
-          this.renderStoreSummaryCharts(0, 0, 0, 0);
-          return;
-        }
+  private applyStoreChartsData(response: any): void {
+    this.data = Array.isArray(response) ? response : [];
 
-        const latest = this.data[this.data.length - 1];
-        this.redovni = Number(latest?.resultBrojRedovnog ?? 0);
-        this.vanredni = Number(latest?.resultBrojVanrednog ?? 0);
-        this.izdatnice = Number(latest?.resultIzdatnica ?? 0);
-        this.neuslovnaRoba = Number(latest?.resultNeuslovnaRoba ?? 0);
+    if (!this.data.length) {
+      this.renderStoreSummaryCharts(0, 0, 0, 0);
+      return;
+    }
 
-        // render grafova na početnom dashboardu
-        this.renderStoreSummaryCharts(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
-      },
-      error: (err: any) => {
-        const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
-        Swal.fire('Greška', 'Greška: ' + greska, 'error');
-      }
-    });
+    const latest = this.data[this.data.length - 1];
+    this.redovni = Number(latest?.resultBrojRedovnog ?? 0);
+    this.vanredni = Number(latest?.resultBrojVanrednog ?? 0);
+    this.izdatnice = Number(latest?.resultIzdatnica ?? 0);
+    this.neuslovnaRoba = Number(latest?.resultNeuslovnaRoba ?? 0);
+
+    // render grafova na početnom dashboardu
+    this.renderStoreSummaryCharts(this.redovni, this.vanredni, this.izdatnice, this.neuslovnaRoba);
   }
 
   onStoreDropdownOpen(isOpen: boolean) {
@@ -742,6 +779,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         chart.destroy();
       }
     });
+
+    this.storeSelectionSubscription?.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   isRoleStoreDashboardVisible(): boolean {
@@ -754,11 +795,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stores) => {
-          this.stores = stores;
-          if (stores.length > 0) {
-            this.selectedStoreId = stores[0].code;
-
-          }
+          this.stores = stores.filter(s => s.code !== '0000');
+          this.filteredStores = this.stores;
+          this.selectedStoreId = null;
         },
         error: (err) => {
           const poruka = err.error?.poruka ?? err.statusText;
@@ -775,13 +814,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     // formatiranje u 3 cifre kao 001, 015, 203
     const storeCode = String(parseInt(storeId, 10)).padStart(3, '0');
 
-    // učitaj KPI + promet grafove
-    this.loadPromet(storeCode);
-
-    // učitaj OTPIS + NEUSLOVNA ROBA + IZDATNICE grafove
-    this.loadStoreCharts(storeId);
-
-    console.log("SELECTED STORE CODE:", storeCode);
+    this.storeSelection$.next(storeCode);
   }
 
   private getEmptyRows(count: number) {

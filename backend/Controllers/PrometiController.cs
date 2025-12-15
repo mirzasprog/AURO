@@ -109,6 +109,11 @@ namespace backend.Controllers
                     ? Math.Round(item.Promet.Value / netoKvadratura, 2)
                     : 0;
 
+                var brojZaposlenih = item.BrojZaposlenih ?? 0;
+                var prometPoZaposlenom = brojZaposlenih > 0 && item.Promet.HasValue
+                    ? Math.Round(item.Promet.Value / brojZaposlenih, 2)
+                    : 0;
+
                 return new ResponsePrometiProdavnica
                 {
                     BrojProdavnice = item.BrojProdavnice,
@@ -122,7 +127,9 @@ namespace backend.Controllers
                     NetoKvadraturaObjekta = netoKvadratura,
                     PrometPoNetoKvadraturi = prometPoKvadraturi,
                     PrometProslaGodinaPoNetoKvadraturi = item.PrometProslaGodinaPoNetoKvadraturi,
-                    PrometPoUposleniku = 0
+                    PrometPoUposleniku = prometPoZaposlenom,
+                    BrojZaposlenih = brojZaposlenih,
+                    PrometPoZaposlenom = prometPoZaposlenom
                 };
             }).ToList();
 
