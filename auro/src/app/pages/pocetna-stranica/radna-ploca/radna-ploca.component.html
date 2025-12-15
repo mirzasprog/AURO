@@ -397,7 +397,11 @@
         <p class="muted">Odaberite intervale i automatski ćemo povući podatke za obje godine.</p>
       </div>
       <div class="range-actions">
-        <button nbButton size="small" status="info" (click)="syncPreviousRangeWithCurrent()">
+        <button nbButton size="small" status="basic" (click)="toggleRangeFilter()">
+          <nb-icon [icon]="isRangeFilterOpen ? 'chevron-up' : 'chevron-down'"></nb-icon>
+          {{ isRangeFilterOpen ? 'Sakrij unos' : 'Prikaži unos' }}
+        </button>
+        <button nbButton size="small" status="info" (click)="syncPreviousRangeWithCurrent()" [disabled]="!isRangeFilterOpen">
           <nb-icon icon="flip-outline"></nb-icon>
           Uskladi prošlu godinu
         </button>
@@ -405,7 +409,7 @@
       </div>
     </div>
 
-    <div class="range-grid">
+    <div class="range-grid" *ngIf="isRangeFilterOpen">
       <div class="range-column">
         <h5>Tekuća godina</h5>
         <label>Od</label>
