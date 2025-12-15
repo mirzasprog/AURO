@@ -1,6 +1,9 @@
 using backend.Entities;
 using backend.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace backend.Data
 {
@@ -130,6 +133,136 @@ namespace backend.Data
             return results;
         }
 
+        public PrometRangeResponse PreuzmiPrometePoOpsegu(DateTime currentStart, DateTime currentEnd, DateTime previousStart, DateTime previousEnd)
+        {
+            currentStart = currentStart.Date;
+            currentEnd = currentEnd.Date;
+            previousStart = previousStart.Date;
+            previousEnd = previousEnd.Date;
+
+            var today = DateTime.Today;
+            var storeMetadata = DohvatiStoreMetapodatke();
+
+            var currentEntries = UcitajHistoriju(currentStart, currentEnd);
+
+            if (currentStart <= today && today <= currentEnd)
+            {
+                var todayEntries = _context.Prometi
+                    .AsNoTracking()
+                    .Select(p => new PrometRangeEntry
+                    {
+                        BrojProdavnice = p.BrojProdavnice,
+                        Datum = today,
+                        Promet = p.Promet ?? 0,
+                        BrojKupaca = p.BrojKupaca ?? 0
+                    })
+                    .ToList();
+
+                currentEntries = currentEntries
+                    .Where(e => e.Datum.Date != today || !todayEntries.Any(t => AreSameStore(t.BrojProdavnice, e.BrojProdavnice)))
+                    .Concat(todayEntries)
+                    .ToList();
+            }
+
+            var previousEntries = UcitajHistoriju(previousStart, previousEnd);
+
+            var allStoreIds = currentEntries.Select(e => e.BrojProdavnice)
+                .Concat(previousEntries.Select(e => e.BrojProdavnice))
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Select(NormalizeStoreId)
+                .Distinct()
+                .ToList();
+
+            var stores = allStoreIds
+                .Select(id =>
+                {
+                    var current = currentEntries.Where(e => AreSameStore(e.BrojProdavnice, id));
+                    var previous = previousEntries.Where(e => AreSameStore(e.BrojProdavnice, id));
+
+                    var hasMeta = storeMetadata.TryGetValue(id, out var meta);
+
+                    return new PrometRangeStoreRow
+                    {
+                        BrojProdavnice = hasMeta ? meta?.BrojProdavnice ?? id : id,
+                        Adresa = meta?.Adresa,
+                        Format = meta?.Format,
+                        Regija = meta?.Regija,
+                        Promet = current.Sum(e => e.Promet),
+                        PrometProslaGodina = previous.Sum(e => e.Promet),
+                        BrojKupaca = current.Sum(e => e.BrojKupaca),
+                        BrojKupacaProslaGodina = previous.Sum(e => e.BrojKupaca)
+                    };
+                })
+                .OrderBy(s => s.BrojProdavnice)
+                .ToList();
+
+            var allDates = currentEntries.Select(e => e.Datum.Date)
+                .Concat(previousEntries.Select(e => e.Datum.Date))
+                .Distinct()
+                .OrderBy(d => d)
+                .ToList();
+
+            var days = allDates.Select(datum => new PrometRangeDayRow
+            {
+                Datum = datum,
+                Promet = currentEntries.Where(e => e.Datum.Date == datum).Sum(e => e.Promet),
+                PrometProslaGodina = previousEntries.Where(e => e.Datum.Date == datum).Sum(e => e.Promet),
+                BrojKupaca = currentEntries.Where(e => e.Datum.Date == datum).Sum(e => e.BrojKupaca),
+                BrojKupacaProslaGodina = previousEntries.Where(e => e.Datum.Date == datum).Sum(e => e.BrojKupaca)
+            }).ToList();
+
+            var totals = new PrometRangeSummary
+            {
+                Promet = currentEntries.Sum(e => e.Promet),
+                PrometProslaGodina = previousEntries.Sum(e => e.Promet),
+                BrojKupaca = currentEntries.Sum(e => e.BrojKupaca),
+                BrojKupacaProslaGodina = previousEntries.Sum(e => e.BrojKupaca)
+            };
+
+            return new PrometRangeResponse
+            {
+                CurrentRange = new DateRangeDescriptor { StartDate = currentStart, EndDate = currentEnd },
+                PreviousRange = new DateRangeDescriptor { StartDate = previousStart, EndDate = previousEnd },
+                Totals = totals,
+                Stores = stores,
+                Days = days
+            };
+        }
+
+        private List<PrometRangeEntry> UcitajHistoriju(DateTime start, DateTime end)
+        {
+            return _context.PrometiHistorija
+                .AsNoTracking()
+                .Where(p => p.Datum >= start && p.Datum <= end)
+                .Select(p => new PrometRangeEntry
+                {
+                    BrojProdavnice = p.BrojProdavnice,
+                    Datum = p.Datum,
+                    Promet = p.UkupniPromet ?? 0,
+                    BrojKupaca = p.BrojKupaca ?? 0
+                })
+                .ToList();
+        }
+
+        private Dictionary<string, PrometRangeStoreRow> DohvatiStoreMetapodatke()
+        {
+            return _context.Prometi
+                .AsNoTracking()
+                .GroupBy(p => NormalizeStoreId(p.BrojProdavnice))
+                .Where(g => !string.IsNullOrWhiteSpace(g.Key))
+                .ToDictionary(g => g.Key, g =>
+                {
+                    var first = g.First();
+                    return new PrometRangeStoreRow
+                    {
+                        BrojProdavnice = first.BrojProdavnice,
+                        Adresa = first.Adresa,
+                        Format = first.Format,
+                        Regija = first.Regija,
+                    };
+                });
+        }
+
         private decimal DohvatiNetoKvadraturu(string? brojProdavnice)
         {
             var netoPovrsina = _context.NetoPovrsinaProd
@@ -170,6 +303,14 @@ namespace backend.Data
 
             var zaposleni = brojZaposlenih ?? 0;
             return zaposleni > 0 ? Math.Round(promet.Value / zaposleni, 2) : 0;
+        }
+
+        private class PrometRangeEntry
+        {
+            public string? BrojProdavnice { get; set; }
+            public DateTime Datum { get; set; }
+            public decimal Promet { get; set; }
+            public int BrojKupaca { get; set; }
         }
 
         private static bool AreSameStore(string? left, string? right)

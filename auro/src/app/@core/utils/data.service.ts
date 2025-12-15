@@ -38,6 +38,7 @@ import { PregledDinamike } from '../data/pregled-dinamike';
 import { ZavrseniRedovniZahtjevi } from '../data/zavrseni-redovni-zahtjev';
 import { ZavrseniVanredniZahtjevi } from '../data/zavrseni-vanredni-zahtjevi';
 import { Statistika } from '../data/Statistika';
+import { PrometRangeResponse } from '../data/promet-range';
 import { Zaposlenici } from '../data/zaposlenici';
 import { PodaciParcijalneInventure } from '../data/PodaciParcijalneInventure';
 import { ZaglavljeParcijaneInv } from '../data/zaglavljeParcijaneInv';
@@ -268,7 +269,12 @@ export class DataService {
   public getSviPrometi(): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/sviPrometi`)
   }
-  
+
+  public getPrometiPoOpsegu(currentStart: string, currentEnd: string, previousStart: string, previousEnd: string): Observable<PrometRangeResponse> {
+    const params = `currentStart=${currentStart}&currentEnd=${currentEnd}&previousStart=${previousStart}&previousEnd=${previousEnd}`;
+    return this.posaljiRequest<PrometRangeResponse>("GET", `${this.baseUrl}/api/prometi/range?${params}`);
+  }
+
   public getPrometCijelaMreza(): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/`)
   }

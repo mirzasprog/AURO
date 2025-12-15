@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using backend.Entities;
 using Microsoft.AspNetCore.Authorization;
 using backend.Models;
+using System;
 using System.Linq;
 
 namespace backend.Controllers
@@ -144,6 +145,23 @@ namespace backend.Controllers
         {
             var prometDetalji = _repo.PreuzmiPrometDetaljeZaMjesec();
             return Ok(prometDetalji);
+        }
+
+        [HttpGet("range")]
+        public IActionResult PreuzmiPrometePoOpsegu([FromQuery] DateTime currentStart, [FromQuery] DateTime currentEnd, [FromQuery] DateTime previousStart, [FromQuery] DateTime previousEnd)
+        {
+            if (currentStart == default || currentEnd == default || previousStart == default || previousEnd == default)
+            {
+                return BadRequest("Svi datumi su obavezni.");
+            }
+
+            if (currentStart > currentEnd || previousStart > previousEnd)
+            {
+                return BadRequest("Početni datum mora biti manji ili jednak krajnjem.");
+            }
+
+            var response = _repo.PreuzmiPrometePoOpsegu(currentStart, currentEnd, previousStart, previousEnd);
+            return Ok(response);
         }
 
     }
