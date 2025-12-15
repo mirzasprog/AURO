@@ -139,6 +139,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private storeSelection$ = new Subject<string>();
   private storeSelectionSubscription?: Subscription;
+  storeRating = 0;
+  ratingBreakdown: string[] = [];
 
   constructor(
     private router: Router,
@@ -444,6 +446,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.updateCategoryShareValue();
 
     this.buildPrometTableRows();
+    this.updateStoreRating();
     this.renderDayComparisonChart?.();
     this.renderMonthComparisonChart?.();
   }
@@ -635,6 +638,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     this.buildPrometTableRows();
     this.getKpiCards?.();
+    this.updateStoreRating();
     this.renderDayComparisonChart?.();
     this.renderMonthComparisonChart?.();
   }
@@ -803,7 +807,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   formatNumber(value: number, currency?: string): string {
     if (value === null || value === undefined) return '';
-    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) + (currency ? ' ' + currency : '');
+    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
   }
 
   getKpiCards(): KpiCard[] {
@@ -826,8 +830,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         : 0;
       const deltaValue = hasPrevious ? Number((current - (prev ?? 0)).toFixed(2)) : undefined;
       const formattedValue = unit === '%'
-        ? `${current.toFixed(1)} %`
-        : this.formatNumber(current, unit);
+        ? current.toFixed(1)
+        : this.formatNumber(current);
 
       return {
         key,
@@ -870,17 +874,101 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     const areaSupportText = this.dashboardSummary.netoKvadraturaObjekta !== undefined
       ? `Neto površina: ${Number(this.dashboardSummary.netoKvadraturaObjekta).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`
       : undefined;
-    cards.push(buildCard(
-      'turnoverPerArea',
-      'Promet po neto kvadraturi',
-      this.dashboardSummary.prometPoNetoKvadraturi ?? 0,
-      previousAreaTurnover,
-      areaUnit,
-      undefined,
-      areaSupportText
-    ));
+      cards.push(buildCard(
+        'turnoverPerArea',
+        'Promet po neto kvadraturi',
+        this.dashboardSummary.prometPoNetoKvadraturi ?? 0,
+        previousAreaTurnover,
+        areaUnit,
+        undefined,
+        areaSupportText
+      ));
+
+    this.updateStoreRating();
 
     return cards;
+  }
+
+  get ratingStars(): string[] {
+    const stars: string[] = [];
+    let remaining = this.storeRating;
+
+    for (let i = 0; i < 5; i++) {
+      if (remaining >= 0.75) {
+        stars.push('fas fa-star');
+      } else if (remaining >= 0.25) {
+        stars.push('fas fa-star-half-alt');
+      } else {
+        stars.push('far fa-star');
+      }
+      remaining -= 1;
+    }
+
+    return stars;
+  }
+
+  get ratingTitle(): string {
+    return this.selectedStoreId ? 'Ocjena prodavnice' : 'Prosječna ocjena mreže';
+  }
+
+  get ratingCaption(): string {
+    return this.selectedStoreId
+      ? `Kombinovana ocjena za prodavnicu ${this.selectedStoreId}`
+      : 'Kombinovani skor svih prodavnica';
+  }
+
+  private computePercentChange(current?: number, previous?: number): number {
+    const prev = this.toNumberSafe(previous);
+    if (!prev) return 0;
+
+    const curr = this.toNumberSafe(current);
+    return ((curr - prev) / prev) * 100;
+  }
+
+  private normalizeChangeScore(current?: number, previous?: number, maxChange = 0.5): number {
+    const prev = this.toNumberSafe(previous);
+    const curr = this.toNumberSafe(current);
+
+    if (!prev) return 0.5;
+
+    const delta = (curr - prev) / prev;
+    const clamped = Math.max(-maxChange, Math.min(maxChange, delta));
+
+    return 0.5 + (clamped / (2 * maxChange));
+  }
+
+  private updateStoreRating(): void {
+    const s = this.dashboardSummary;
+    if (!s) {
+      this.storeRating = 0;
+      this.ratingBreakdown = [];
+      return;
+    }
+
+    const turnoverScore = this.normalizeChangeScore(s.promet, s.prometProslaGodina, 0.4);
+    const visitorsScore = this.normalizeChangeScore(s.brojKupaca, s.brojKupacaProslaGodina, 0.35);
+    const basketScore = this.normalizeChangeScore(s.averageBasket?.value, s.averageBasket?.previousValue, 0.3);
+    const areaScore = this.normalizeChangeScore(s.prometPoNetoKvadraturi, s.prometProslaGodinaPoNetoKvadraturi, 0.35);
+    const previousEmployeeTurnover = s.brojZaposlenih
+      ? this.toNumberSafe(s.prometProslaGodina) / this.toNumberSafe(s.brojZaposlenih)
+      : 0;
+    const employeeScore = this.normalizeChangeScore(s.prometPoUposleniku, previousEmployeeTurnover, 0.35);
+
+    const weightedScore = (turnoverScore * 0.35)
+      + (basketScore * 0.2)
+      + (visitorsScore * 0.15)
+      + (areaScore * 0.15)
+      + (employeeScore * 0.15);
+
+    this.storeRating = Number((1 + (weightedScore * 4)).toFixed(1));
+
+    this.ratingBreakdown = [
+      `35% rast/pad prometa (${this.computePercentChange(s.promet, s.prometProslaGodina).toFixed(1)}%)`,
+      `20% prosječna korpa (${this.computePercentChange(s.averageBasket?.value, s.averageBasket?.previousValue).toFixed(1)}%)`,
+      `15% broj kupaca (${this.computePercentChange(s.brojKupaca, s.brojKupacaProslaGodina).toFixed(1)}%)`,
+      `15% promet po m² (${this.computePercentChange(s.prometPoNetoKvadraturi, s.prometProslaGodinaPoNetoKvadraturi).toFixed(1)}%)`,
+      `15% promet po uposleniku (${this.computePercentChange(s.prometPoUposleniku, previousEmployeeTurnover).toFixed(1)}%)`
+    ];
   }
 
   ngOnDestroy(): void {
