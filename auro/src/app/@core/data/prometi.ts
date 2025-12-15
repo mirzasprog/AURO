@@ -12,4 +12,5 @@ export interface Prometi {
     prometPoNetoKvadraturi?: number,
     prometProslaGodinaPoNetoKvadraturi?: number,
     prometPoUposleniku?: number,
+    prometPoZaposlenom?: number,
 }

@@ -304,8 +304,28 @@
   <nb-card>
     <nb-card-header>Udio kategorija u prodaji</nb-card-header>
     <nb-card-body>
-      <div class="modal-chart">
-        <canvas id="categoryShareChart"></canvas>
+      <div class="category-share__layout">
+        <div class="category-share__controls">
+          <div class="category-share__summary">
+            <p class="eyebrow">Odabrane kategorije</p>
+            <h3>{{ categoryShareValue | number: '1.1-1' }}%</h3>
+            <p class="muted">Trenutno koristimo privremene podatke dok se ne poveže stvarni izvor.</p>
+          </div>
+          <div class="category-share__list">
+            <label class="category-share__item" *ngFor="let category of categoryOptions">
+              <input type="checkbox" [checked]="selectedCategories.includes(category.category)"
+                (change)="toggleCategorySelection(category.category, $event.target.checked)" />
+              <div class="category-share__copy">
+                <span class="category-share__name">{{ category.category }}</span>
+                <small>{{ (category.share * 100) | number: '1.0-1' }}% / {{ category.promet | number:'1.0-0' }} KM</small>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-chart">
+          <canvas id="categoryShareChart"></canvas>
+        </div>
       </div>
     </nb-card-body>
   </nb-card>

@@ -36,7 +36,7 @@ namespace backend.Controllers
             var prometPoKvadraturi = netoKvadratura > 0 ? Math.Round(r.Promet / netoKvadratura, 2) : 0;
 
             var br_Zaposlenih = r.BrojZaposlenih ?? 0;
-            var prometPoZaposlenom = br_Zaposlenih > 0 ? Math.Round(r.Promet / br_Zaposlenih, 2) : 0;
+            var prometPoZaposlenom = r.PrometPoZaposlenom ?? (br_Zaposlenih > 0 ? Math.Round(r.Promet / br_Zaposlenih, 2) : 0);
 
             return Ok(new ResponsePrometProdavnice
             {
@@ -49,8 +49,10 @@ namespace backend.Controllers
                 BrojKupaca = r.BrojKupaca,
                 BrojKupacaProslaGodina = r.BrojKupacaProslaGodina,
                 NetoKvadraturaObjekta = netoKvadratura,
+                BrojZaposlenih = br_Zaposlenih,
                 PrometPoNetoKvadraturi = prometPoKvadraturi,
                 PrometProslaGodinaPoNetoKvadraturi = r.PrometProslaGodinaPoNetoKvadraturi,
+                PrometPoZaposlenom = prometPoZaposlenom,
                 PrometPoUposleniku = prometPoZaposlenom
             });
         }
@@ -68,12 +70,12 @@ namespace backend.Controllers
             var netoKvadratura = r.NetoKvadraturaObjekta ?? 0;
             var prometPoKvadraturi = netoKvadratura > 0 && r.Promet.HasValue
                 ? Math.Round(r.Promet.Value / netoKvadratura, 2)
-                : 0;            
-            
-            var br_Zaposlenih = r.BrojZaposlenih ?? 0;
-            var prometPoZaposlenom = br_Zaposlenih > 0 && r.Promet.HasValue
-                ? Math.Round(r.Promet.Value / br_Zaposlenih, 2)
                 : 0;
+
+            var br_Zaposlenih = r.BrojZaposlenih ?? 0;
+            var prometPoZaposlenom = r.PrometPoZaposlenom ?? (br_Zaposlenih > 0 && r.Promet.HasValue
+                ? Math.Round(r.Promet.Value / br_Zaposlenih, 2)
+                : 0);
 
             return Ok(new ResponsePrometiProdavnica
             {
@@ -86,6 +88,7 @@ namespace backend.Controllers
                 BrojKupaca = r.BrojKupaca,
                 BrojKupacaProslaGodina = r.BrojKupacaProslaGodina,
                 NetoKvadraturaObjekta = netoKvadratura,
+                BrojZaposlenih = br_Zaposlenih,
                 PrometPoNetoKvadraturi = prometPoKvadraturi,
                 PrometPoZaposlenom = prometPoZaposlenom,
                 PrometProslaGodinaPoNetoKvadraturi = r.PrometProslaGodinaPoNetoKvadraturi,
@@ -110,9 +113,9 @@ namespace backend.Controllers
                     : 0;
 
                 var brojZaposlenih = item.BrojZaposlenih ?? 0;
-                var prometPoZaposlenom = brojZaposlenih > 0 && item.Promet.HasValue
+                var prometPoZaposlenom = item.PrometPoZaposlenom ?? (brojZaposlenih > 0 && item.Promet.HasValue
                     ? Math.Round(item.Promet.Value / brojZaposlenih, 2)
-                    : 0;
+                    : 0);
 
                 return new ResponsePrometiProdavnica
                 {
@@ -125,6 +128,7 @@ namespace backend.Controllers
                     BrojKupaca = item.BrojKupaca,
                     BrojKupacaProslaGodina = item.BrojKupacaProslaGodina,
                     NetoKvadraturaObjekta = netoKvadratura,
+                    BrojZaposlenih = brojZaposlenih,
                     PrometPoNetoKvadraturi = prometPoKvadraturi,
                     PrometProslaGodinaPoNetoKvadraturi = item.PrometProslaGodinaPoNetoKvadraturi,
                     PrometPoUposleniku = prometPoZaposlenom,
