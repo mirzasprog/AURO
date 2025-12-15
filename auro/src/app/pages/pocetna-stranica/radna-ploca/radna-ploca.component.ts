@@ -91,6 +91,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   negativeFilterActive = false;
   selectedStoreId: number | string | null = null;
   showColumnSettings = false;
+  isRangeFilterOpen = false;
   allSelected: boolean = false;
   columnRows: string[][] = [];
   columnKeys: string[] = [];
@@ -201,8 +202,36 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     ];
 
     this.loadStores();
-    this.loadPrometRange(true);
+    this.loadInitialPrometSnapshot();
     this.source.load(this.dataTable);
+  }
+
+  private loadInitialPrometSnapshot(): void {
+    this.isManagementBootstrapLoading = true;
+
+    forkJoin({
+      summary: this.dataService.getPrometCijelaMreza(),
+      history: this.dataService.getPrometDetalji(),
+      stores: this.dataService.getSviPrometi()
+    })
+      .pipe(finalize(() => this.isManagementBootstrapLoading = false))
+      .subscribe({
+        next: ({ summary, history, stores }) => {
+          this.applyPrometResponse(summary);
+          this.setPrometHistoryRows(history);
+
+          const aggregatedMetrics = stores && stores.length
+            ? this.calculateAggregatedMetrics(stores)
+            : null;
+
+          this.hydratePrometTable(stores ?? [], aggregatedMetrics);
+          this.loadStoreCharts();
+        },
+        error: (err) => {
+          const poruka = err?.error?.poruka ?? err?.error ?? err?.statusText ?? err?.message;
+          Swal.fire('Greška', 'Nije moguće učitati promet za danas: ' + poruka, 'error');
+        }
+      });
   }
 
   toggleColumn(colKey: string, visible: boolean) {
@@ -218,6 +247,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       this.settings.columns[col].hide = !checked;
     });
     this.settings = { ...this.settings };
+  }
+
+  toggleRangeFilter(): void {
+    this.isRangeFilterOpen = !this.isRangeFilterOpen;
   }
 
   onPositiveToggleChange(state: boolean) {
