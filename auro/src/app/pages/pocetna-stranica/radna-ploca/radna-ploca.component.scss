@@ -566,6 +566,29 @@ body[data-theme='dark'] .charts-loading {
   border: 1px dashed var(--dashboard-card-border);
 }
 
+.filter-row.is-disabled {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.loading-banner {
+  border-radius: 0.85rem;
+  border: 1px solid var(--dashboard-card-border);
+  background: var(--dashboard-shell-bg);
+  margin-bottom: 1rem;
+}
+
+.loading-banner__copy {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.loading-banner nb-icon {
+  font-size: 1.4rem;
+  color: var(--color-primary-500, #3366ff);
+}
+
 .modal-chart {
   min-height: 260px;
 }
@@ -1161,11 +1184,39 @@ body[data-theme='dark'] .charts-loading {
   overflow-x: auto;
   overflow-y: hidden;
   border-radius: 12px;
-  padding-bottom: 6px; 
+  padding-bottom: 6px;
+  position: relative;
+  min-height: 240px;
 }
 
 .table-wrapper ng2-smart-table table {
   min-width: 1200px !important;
+}
+
+.table-wrapper.is-loading ng2-smart-table {
+  filter: blur(1px);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.4;
+}
+
+.table-loader {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  gap: 0.4rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: inherit;
+  z-index: 2;
+  text-align: center;
+  font-weight: 600;
+}
+
+body[data-theme='dark'] .table-loader {
+  background: rgba(15, 23, 42, 0.85);
+  color: var(--text-primary);
 }
 
 .table-wrapper::-webkit-scrollbar {

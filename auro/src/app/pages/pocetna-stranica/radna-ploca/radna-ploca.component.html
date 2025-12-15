@@ -379,7 +379,17 @@
     </div>
   </div>
 
-  <div class="filter-row">
+  <nb-alert *ngIf="isManagementBootstrapLoading" status="info" class="loading-banner">
+    <div class="loading-banner__copy">
+      <nb-icon icon="loader-outline"></nb-icon>
+      <div>
+        <strong>Pripremamo mrežu prodavnica</strong>
+        <p>Podaci se učitavaju u pozadini. Možete nastaviti pregled čim tabela postane dostupna.</p>
+      </div>
+    </div>
+  </nb-alert>
+
+  <div class="filter-row" [class.is-disabled]="isManagementBootstrapLoading">
     <nb-toggle id="toggleSelectAll" class="tiny-toggle" status="info" [checked]="allSelected"
       (checkedChange)="toggleAllColumns($event)" labelPosition="right">
       <nb-icon icon="list" status="info"></nb-icon> Sve kolone
@@ -413,7 +423,11 @@
     </div>
   </div>
 
-  <div class="table-wrapper">
-    <ng2-smart-table [settings]="settings" [source]="source"></ng2-smart-table>
+  <div class="table-wrapper" [class.is-loading]="isManagementBootstrapLoading">
+    <div class="table-loader" *ngIf="isManagementBootstrapLoading" aria-live="polite">
+      <nb-spinner size="large"></nb-spinner>
+      <p>Brzo balansiramo učitavanje, podaci stižu za trenutak...</p>
+    </div>
+    <ng2-smart-table [settings]="settings" [source]="source" [attr.aria-busy]="isManagementBootstrapLoading"></ng2-smart-table>
   </div>
 </div>
