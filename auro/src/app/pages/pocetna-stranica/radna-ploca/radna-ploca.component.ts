@@ -40,6 +40,12 @@ interface AggregatedPrometMetrics {
   prometPoNetoKvadraturi: number;
   prometProslaGodinaPoNetoKvadraturi: number;
 }
+
+interface CategoryShareItem {
+  category: string;
+  share: number;
+  promet: number;
+}
 type KpiCard = {
   key: string;
   label: string;
@@ -90,6 +96,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   prometHistoryPage = 1;
   prometHistoryPageSize = 7;
   isPrometHistoryLoading = false;
+  categoryOptions: CategoryShareItem[] = [];
+  selectedCategories: string[] = [];
+  categoryShareValue = 0;
   settings: any = {
     actions: false,
     pager: { display: true, perPage: 20 },
@@ -144,6 +153,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupStoreSelectionBalancer();
+    this.initializeCategoryShareData();
 
     this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
       this.rola = token.getPayload()['role'] ?? this.rola;
@@ -429,9 +439,63 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       },
     };
 
+    this.updateCategoryShareValue();
+
     this.buildPrometTableRows();
     this.renderDayComparisonChart?.();
     this.renderMonthComparisonChart?.();
+  }
+
+  private initializeCategoryShareData(): void {
+    this.categoryOptions = [
+      { category: 'Voće i povrće', share: 0.18, promet: 54000 },
+      { category: 'Mesni proizvodi', share: 0.24, promet: 72000 },
+      { category: 'Mlijeko i mliječni', share: 0.16, promet: 48000 },
+      { category: 'Pića', share: 0.14, promet: 43000 },
+      { category: 'Higijena', share: 0.12, promet: 36000 },
+      { category: 'Dječija njega', share: 0.09, promet: 27000 },
+      { category: 'Kućne potrepštine', share: 0.07, promet: 21000 }
+    ];
+
+    this.selectedCategories = this.categoryOptions.slice(0, 3).map(c => c.category);
+    this.updateCategoryShareValue();
+  }
+
+  toggleCategorySelection(category: string, checked: boolean): void {
+    if (checked) {
+      if (!this.selectedCategories.includes(category)) {
+        this.selectedCategories = [...this.selectedCategories, category];
+      }
+    } else {
+      this.selectedCategories = this.selectedCategories.filter(c => c !== category);
+    }
+
+    this.updateCategoryShareValue();
+  }
+
+  private updateCategoryShareValue(): void {
+    const selected = this.getSelectedCategoryData();
+    const shareSum = selected.reduce((acc, item) => acc + (item.share ?? 0), 0);
+    this.categoryShareValue = Number((shareSum * 100).toFixed(1));
+
+    if (!this.dashboardSummary) {
+      this.dashboardSummary = {};
+    }
+
+    this.dashboardSummary.categoryShare = {
+      categories: this.categoryOptions,
+      selectedCategories: this.selectedCategories
+    };
+
+    this.renderCategoryChart?.();
+  }
+
+  private getSelectedCategoryData(): CategoryShareItem[] {
+    if (!this.selectedCategories.length) {
+      return this.categoryOptions;
+    }
+
+    return this.categoryOptions.filter(c => this.selectedCategories.includes(c.category));
   }
 
   preuzmiExcel() {
@@ -741,31 +805,36 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     const cards: KpiCard[] = [];
 
-  const buildCard = (key: string, label: string, current: number, prev: number, unit?: string, trend?: any[]) => {
-    const deltaPercent = prev ? Number((((current - prev) / prev) * 100).toFixed(2)) : 0;
-    const deltaValue = Number((current - prev).toFixed(2));
+    const buildCard = (key: string, label: string, current: number, prev: number, unit?: string, trend?: any[]) => {
+      const deltaPercent = prev ? Number((((current - prev) / prev) * 100).toFixed(2)) : 0;
+      const deltaValue = Number((current - prev).toFixed(2));
+      const formattedValue = unit === '%'
+        ? `${current.toFixed(1)} %`
+        : this.formatNumber(current, unit);
 
-    return {
-      key,
-      label,
-      formattedValue: this.formatNumber(current, unit),  // <-- formatiramo odmah
-      unit: unit ?? '',
-      value: current,
-      previousValue: prev,
-      delta: deltaPercent,
-      deltaValue,
-      trend: trend ?? [],
-      icon: key === 'turnover' ? 'trending-up' :
-            key === 'visitors' ? 'people' :
-            key === 'averageBasket' ? 'shopping-cart' :
-            key === 'turnoverPerEmployee' ? 'briefcase' :
-            key === 'turnoverPerArea' ? 'home' : undefined
+      return {
+        key,
+        label,
+        formattedValue,
+        unit: unit ?? '',
+        value: current,
+        previousValue: prev,
+        delta: deltaPercent,
+        deltaValue,
+        trend: trend ?? [],
+        icon: key === 'turnover' ? 'trending-up' :
+              key === 'visitors' ? 'people' :
+              key === 'averageBasket' ? 'shopping-cart' :
+              key === 'turnoverPerEmployee' ? 'briefcase' :
+              key === 'turnoverPerArea' ? 'home' :
+              key === 'categoryShare' ? 'pie-chart-2' : undefined
+      };
     };
-  };
     cards.push(buildCard('turnover', 'Promet', this.dashboardSummary.promet ?? 0, this.dashboardSummary.prometProslaGodina ?? 0, this.dashboardSummary.currency ?? 'KM', this.dashboardSummary.turnover?.trend));
     cards.push(buildCard('visitors', 'Broj kupaca', this.dashboardSummary.brojKupaca ?? 0, this.dashboardSummary.brojKupacaProslaGodina ?? 0));
     cards.push(buildCard('averageBasket', 'Prosječna korpa', this.dashboardSummary.averageBasket?.value ?? 0, this.dashboardSummary.averageBasket?.previousValue ?? 0, this.dashboardSummary.currency ?? 'KM', this.dashboardSummary.averageBasket?.trend));
     cards.push(buildCard('turnoverPerEmployee', 'Promet po uposleniku', this.dashboardSummary.prometPoUposleniku ?? 0, 0, this.dashboardSummary.currency ?? 'KM'));
+    cards.push(buildCard('categoryShare', 'Udio kategorije u prometu', this.categoryShareValue, 0, '%'));
     const areaUnit = this.dashboardSummary.currency ? `${this.dashboardSummary.currency}/m²` : undefined;
     cards.push(buildCard('turnoverPerArea', 'Promet po neto kvadraturi', this.dashboardSummary.prometPoNetoKvadraturi ?? 0, 0, areaUnit));
 
@@ -1032,7 +1101,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   private renderCategoryChart(): void {
     if (!this.dashboardSummary) return;
 
-    const categories = this.dashboardSummary.categoryShare?.categories ?? [];
+    const categories = this.getSelectedCategoryData();
 
     const config: Chart.ChartConfiguration = {
       type: 'doughnut',

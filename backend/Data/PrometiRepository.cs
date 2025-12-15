@@ -27,8 +27,11 @@ namespace backend.Data
             if (r != null)
             {
                 r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
+                r.BrojZaposlenih = DohvatiBrojZaposlenih(r.BrojProdavnice);
                 r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
                 r.PrometProslaGodinaPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.PrometProslaGodina, r.NetoKvadraturaObjekta);
+                r.PrometPoZaposlenom = IzracunajPrometPoZaposlenom(r.Promet, r.BrojZaposlenih);
+                r.PrometPoUposleniku = r.PrometPoZaposlenom;
             }
 
             return r;
@@ -41,8 +44,11 @@ namespace backend.Data
             if (r != null)
             {
                 r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
+                r.BrojZaposlenih = DohvatiBrojZaposlenih(r.BrojProdavnice);
                 r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
                 r.PrometProslaGodinaPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.PrometProslaGodina, r.NetoKvadraturaObjekta);
+                r.PrometPoZaposlenom = IzracunajPrometPoZaposlenom(r.Promet, r.BrojZaposlenih);
+                r.PrometPoUposleniku = r.PrometPoZaposlenom;
             }
 
             return r;
@@ -59,8 +65,11 @@ namespace backend.Data
                 foreach (var prodavnica in r)
                 {
                     prodavnica.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(prodavnica.BrojProdavnice);
+                    prodavnica.BrojZaposlenih = DohvatiBrojZaposlenih(prodavnica.BrojProdavnice);
                     prodavnica.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(prodavnica.Promet, prodavnica.NetoKvadraturaObjekta);
                     prodavnica.PrometProslaGodinaPoNetoKvadraturi = IzracunajPrometPoKvadraturi(prodavnica.PrometProslaGodina, prodavnica.NetoKvadraturaObjekta);
+                    prodavnica.PrometPoZaposlenom = IzracunajPrometPoZaposlenom(prodavnica.Promet, prodavnica.BrojZaposlenih);
+                    prodavnica.PrometPoUposleniku = prodavnica.PrometPoZaposlenom;
                 }
             }
 
@@ -140,6 +149,27 @@ namespace backend.Data
 
             var kvadratura = netoKvadratura ?? 0;
             return kvadratura > 0 ? Math.Round(promet.Value / kvadratura, 2) : 0;
+        }
+
+        private decimal DohvatiBrojZaposlenih(string? brojProdavnice)
+        {
+            var brojZaposlenih = _context.ZaposleniPoProdavnicama
+                .AsNoTracking()
+                .AsEnumerable()
+                .FirstOrDefault(x => AreSameStore(x.BrojProdavnice, brojProdavnice))?.BrojZaposlenih;
+
+            return brojZaposlenih.HasValue ? brojZaposlenih.Value : 0;
+        }
+
+        private decimal IzracunajPrometPoZaposlenom(decimal? promet, decimal? brojZaposlenih)
+        {
+            if (!promet.HasValue)
+            {
+                return 0;
+            }
+
+            var zaposleni = brojZaposlenih ?? 0;
+            return zaposleni > 0 ? Math.Round(promet.Value / zaposleni, 2) : 0;
         }
 
         private static bool AreSameStore(string? left, string? right)
