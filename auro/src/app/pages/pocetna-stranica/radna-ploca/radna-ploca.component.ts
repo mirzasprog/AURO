@@ -54,8 +54,10 @@ type KpiCard = {
   value?: number;
   previousValue?: number;
   delta?: number;
+  deltaValue?: number;
   trend?: DashboardTrendPoint[];
-  icon?: string; 
+  icon?: string;
+  supportText?: string;
 };
 
 @Component({
@@ -606,6 +608,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     const prometPoKvadraturi = r.prometPoNetoKvadraturi ?? (netoKvadratura
       ? Number((Number(r.promet) / netoKvadratura).toFixed(2))
       : 0);
+    const prometProslaPoKvadraturi = r.prometProslaGodinaPoNetoKvadraturi ?? (netoKvadratura
+      ? Number((Number(r.prometProslaGodina ?? 0) / netoKvadratura).toFixed(2))
+      : 0);
     const brojZaposlenih = Number(r.brojZaposlenih ?? 0);
     const prometPoUposleniku = r.prometPoUposleniku ?? (brojZaposlenih ? Number((Number(r.promet) / brojZaposlenih).toFixed(2)) : 0);
 
@@ -620,6 +625,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       prometPoUposleniku,
       brojZaposlenih,
       prometPoNetoKvadraturi: prometPoKvadraturi,
+      prometProslaGodinaPoNetoKvadraturi: prometProslaPoKvadraturi,
       netoKvadraturaObjekta: netoKvadratura,
       averageBasket: {
         value: r.brojKupaca ? Number((r.promet / r.brojKupaca).toFixed(2)) : 0,
@@ -805,9 +811,20 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     const cards: KpiCard[] = [];
 
-    const buildCard = (key: string, label: string, current: number, prev: number, unit?: string, trend?: any[]) => {
-      const deltaPercent = prev ? Number((((current - prev) / prev) * 100).toFixed(2)) : 0;
-      const deltaValue = Number((current - prev).toFixed(2));
+    const buildCard = (
+      key: string,
+      label: string,
+      current: number,
+      prev?: number,
+      unit?: string,
+      trend?: any[],
+      supportText?: string,
+    ) => {
+      const hasPrevious = prev !== undefined && prev !== null;
+      const deltaPercent = hasPrevious && prev
+        ? Number((((current - prev) / prev) * 100).toFixed(2))
+        : 0;
+      const deltaValue = hasPrevious ? Number((current - (prev ?? 0)).toFixed(2)) : undefined;
       const formattedValue = unit === '%'
         ? `${current.toFixed(1)} %`
         : this.formatNumber(current, unit);
@@ -818,10 +835,11 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         formattedValue,
         unit: unit ?? '',
         value: current,
-        previousValue: prev,
-        delta: deltaPercent,
+        previousValue: hasPrevious ? prev ?? 0 : undefined,
+        delta: hasPrevious ? deltaPercent : undefined,
         deltaValue,
         trend: trend ?? [],
+        supportText,
         icon: key === 'turnover' ? 'trending-up' :
               key === 'visitors' ? 'people' :
               key === 'averageBasket' ? 'shopping-cart' :
@@ -833,10 +851,34 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     cards.push(buildCard('turnover', 'Promet', this.dashboardSummary.promet ?? 0, this.dashboardSummary.prometProslaGodina ?? 0, this.dashboardSummary.currency ?? 'KM', this.dashboardSummary.turnover?.trend));
     cards.push(buildCard('visitors', 'Broj kupaca', this.dashboardSummary.brojKupaca ?? 0, this.dashboardSummary.brojKupacaProslaGodina ?? 0));
     cards.push(buildCard('averageBasket', 'Prosječna korpa', this.dashboardSummary.averageBasket?.value ?? 0, this.dashboardSummary.averageBasket?.previousValue ?? 0, this.dashboardSummary.currency ?? 'KM', this.dashboardSummary.averageBasket?.trend));
-    cards.push(buildCard('turnoverPerEmployee', 'Promet po uposleniku', this.dashboardSummary.prometPoUposleniku ?? 0, 0, this.dashboardSummary.currency ?? 'KM'));
-    cards.push(buildCard('categoryShare', 'Udio kategorije u prometu', this.categoryShareValue, 0, '%'));
+    const employees = this.dashboardSummary.brojZaposlenih;
+    const employeeSupportText = employees !== undefined && employees !== null
+      ? `Broj uposlenih: ${Number(employees).toLocaleString('de-DE')}`
+      : undefined;
+    cards.push(buildCard(
+      'turnoverPerEmployee',
+      'Promet po uposleniku',
+      this.dashboardSummary.prometPoUposleniku ?? 0,
+      undefined,
+      this.dashboardSummary.currency ?? 'KM',
+      undefined,
+      employeeSupportText
+    ));
+    cards.push(buildCard('categoryShare', 'Udio kategorije u prometu', this.categoryShareValue, undefined, '%'));
     const areaUnit = this.dashboardSummary.currency ? `${this.dashboardSummary.currency}/m²` : undefined;
-    cards.push(buildCard('turnoverPerArea', 'Promet po neto kvadraturi', this.dashboardSummary.prometPoNetoKvadraturi ?? 0, 0, areaUnit));
+    const previousAreaTurnover = this.dashboardSummary.prometProslaGodinaPoNetoKvadraturi;
+    const areaSupportText = this.dashboardSummary.netoKvadraturaObjekta !== undefined
+      ? `Neto površina: ${Number(this.dashboardSummary.netoKvadraturaObjekta).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`
+      : undefined;
+    cards.push(buildCard(
+      'turnoverPerArea',
+      'Promet po neto kvadraturi',
+      this.dashboardSummary.prometPoNetoKvadraturi ?? 0,
+      previousAreaTurnover,
+      areaUnit,
+      undefined,
+      areaSupportText
+    ));
 
     return cards;
   }
