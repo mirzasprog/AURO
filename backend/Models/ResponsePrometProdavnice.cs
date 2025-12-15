@@ -15,6 +15,12 @@ public class ResponsePrometProdavnice
     public decimal? NetoKvadraturaObjekta { get; set; }
 
     [NotMapped]
+    public decimal? BrojZaposlenih { get; set; }    
+    
+    [NotMapped]
+    public decimal? PrometPoZaposlenom { get; set; }
+
+    [NotMapped]
     public decimal? PrometPoNetoKvadraturi { get; set; }
 
     [NotMapped]
