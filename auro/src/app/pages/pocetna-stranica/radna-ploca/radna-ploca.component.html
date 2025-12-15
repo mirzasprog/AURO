@@ -401,12 +401,32 @@
           <nb-icon [icon]="isRangeFilterOpen ? 'chevron-up' : 'chevron-down'"></nb-icon>
           {{ isRangeFilterOpen ? 'Sakrij unos' : 'Prikaži unos' }}
         </button>
+        <button nbButton size="small" status="primary" appearance="ghost" (click)="applyPreset('currentMonth')">
+          <nb-icon icon="calendar-outline"></nb-icon>
+          Ovaj mjesec
+        </button>
+        <button nbButton size="small" status="primary" appearance="ghost" (click)="applyPreset('last30Days')">
+          <nb-icon icon="clock-outline"></nb-icon>
+          Zadnjih 30 dana
+        </button>
         <button nbButton size="small" status="info" (click)="syncPreviousRangeWithCurrent()" [disabled]="!isRangeFilterOpen">
           <nb-icon icon="flip-outline"></nb-icon>
           Uskladi prošlu godinu
         </button>
         <nb-spinner *ngIf="isRangeLoading" size="small"></nb-spinner>
       </div>
+    </div>
+
+    <div class="range-summary">
+      <div class="range-pill">
+        <span>Tekuća godina</span>
+        <strong>{{ rangeSummary(currentRangeStart, currentRangeEnd) }}</strong>
+      </div>
+      <div class="range-pill">
+        <span>Prošla godina</span>
+        <strong>{{ rangeSummary(previousRangeStart, previousRangeEnd) }}</strong>
+      </div>
+      <p class="muted helper-text">{{ rangeHelperText }}</p>
     </div>
 
     <div class="range-grid" *ngIf="isRangeFilterOpen">
