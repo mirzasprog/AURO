@@ -110,6 +110,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   previousRangeEnd = '';
   prometRangeTotals: PrometRangeResponse['totals'] | null = null;
   prometRangeDays: PrometRangeDayRow[] = [];
+  rangeDayPage = 1;
+  readonly rangeDayPageSize = 10;
   private defaultRangeDates?: { currentStart: string; currentEnd: string; previousStart: string; previousEnd: string; };
   private baselineDataTable: any[] | null = null;
   private baselineDashboardSummary: any | null = null;
@@ -442,6 +444,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.rangeComparisonActive = true;
     this.prometRangeTotals = null;
     this.prometRangeDays = [];
+    this.resetRangeDayPage();
 
     this.dataService.getPrometiPoOpsegu(
       this.currentRangeStart,
@@ -459,12 +462,14 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         next: (response: PrometRangeResponse) => {
           this.prometRangeTotals = this.extractTotalsFromRangeResponse(response);
           this.prometRangeDays = this.extractDaysFromRangeResponse(response);
+          this.resetRangeDayPage();
           this.rangeComparisonActive = !!this.prometRangeDays.length;
           setTimeout(() => this.renderRangeDayChart());
         },
         error: (err) => {
           this.rangeComparisonActive = false;
           this.destroyChart('rangeDayChart');
+          this.resetRangeDayPage();
           const poruka = err?.error?.poruka ?? err?.error ?? err?.statusText ?? err?.message;
           Swal.fire('Greška', 'Nije moguće učitati promet za zadani opseg: ' + poruka, 'error');
         }
@@ -500,6 +505,40 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         brojKupacaProslaGodina: Number(day.brojKupacaProslaGodina ?? day.BrojKupacaProslaGodina ?? 0)
       } as PrometRangeDayRow;
     }).sort((a, b) => a.datum.localeCompare(b.datum));
+  }
+
+  get pagedRangeDays(): PrometRangeDayRow[] {
+    if (!this.prometRangeDays?.length) {
+      return [];
+    }
+
+    this.enforceRangePageBounds();
+
+    const start = (this.rangeDayPage - 1) * this.rangeDayPageSize;
+    return this.prometRangeDays.slice(start, start + this.rangeDayPageSize);
+  }
+
+  get rangeDayPageCount(): number {
+    return this.prometRangeDays?.length
+      ? Math.ceil(this.prometRangeDays.length / this.rangeDayPageSize)
+      : 1;
+  }
+
+  changeRangePage(delta: number): void {
+    const target = this.rangeDayPage + delta;
+    const totalPages = this.rangeDayPageCount || 1;
+    this.rangeDayPage = Math.min(Math.max(target, 1), totalPages);
+  }
+
+  private resetRangeDayPage(): void {
+    this.rangeDayPage = 1;
+  }
+
+  private enforceRangePageBounds(): void {
+    const totalPages = this.rangeDayPageCount || 1;
+    if (this.rangeDayPage > totalPages) {
+      this.rangeDayPage = totalPages;
+    }
   }
 
   getRangeDelta(current?: number, previous?: number): number {
@@ -613,6 +652,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.isRangeFilterOpen = false;
     this.prometRangeTotals = null;
     this.prometRangeDays = [];
+    this.resetRangeDayPage();
     this.destroyChart('rangeDayChart');
 
     if (this.baselineDataTable?.length) {
