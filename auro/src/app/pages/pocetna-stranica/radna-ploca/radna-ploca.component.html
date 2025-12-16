@@ -536,40 +536,47 @@
     </div>
 
     <div class="day-table-wrapper">
-      <table class="range-table comparison-table">
+      <table class="range-table comparison-table range-paired-table">
         <thead>
           <tr>
-            <th>Datum</th>
             <th>Tekuća godina</th>
             <th>Prošla godina</th>
-            <th>Razlika KM</th>
-            <th>Razlika %</th>
+            <th>Razlika</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let day of prometRangeDays">
-            <td>{{ day.datum | date:'dd.MM.yyyy' }}</td>
-            <td>
+            <td class="stacked-cell">
+              <div class="date-pill">
+                <nb-icon icon="calendar-outline"></nb-icon>
+                <span>{{ formatRangeTableDate(day.datum) }}</span>
+              </div>
               <div class="value-with-subtext">
                 <strong>{{ day.promet | number:'1.0-0' }} KM</strong>
                 <small class="muted">Kupci {{ day.brojKupaca | number:'1.0-0' }}</small>
               </div>
             </td>
-            <td>
+            <td class="stacked-cell">
+              <div class="date-pill muted">
+                <nb-icon icon="flip-outline"></nb-icon>
+                <span>{{ getPreviousRangeDateLabel(day.datum) }}</span>
+              </div>
               <div class="value-with-subtext">
                 <strong>{{ day.prometProslaGodina | number:'1.0-0' }} KM</strong>
                 <small class="muted">Kupci {{ day.brojKupacaProslaGodina | number:'1.0-0' }}</small>
               </div>
             </td>
-            <td>
-              <span class="delta-chip" [ngClass]="{'positive': getRangeDelta(day.promet, day.prometProslaGodina) >= 0, 'negative': getRangeDelta(day.promet, day.prometProslaGodina) < 0}">
-                {{ getRangeDelta(day.promet, day.prometProslaGodina) | number:'1.0-0' }} KM
-              </span>
-            </td>
-            <td>
-              <span class="delta-percent" [ngClass]="{'positive': getRangeDeltaPercent(day.promet, day.prometProslaGodina) >= 0, 'negative': getRangeDeltaPercent(day.promet, day.prometProslaGodina) < 0}">
-                {{ getRangeDeltaPercent(day.promet, day.prometProslaGodina) | number:'1.0-2' }}%
-              </span>
+            <td class="delta-cell">
+              <div class="delta-pair">
+                <span class="delta-chip"
+                  [ngClass]="{'positive': getRangeDelta(day.promet, day.prometProslaGodina) >= 0, 'negative': getRangeDelta(day.promet, day.prometProslaGodina) < 0}">
+                  {{ getRangeDelta(day.promet, day.prometProslaGodina) | number:'1.0-0' }} KM
+                </span>
+                <span class="delta-percent"
+                  [ngClass]="{'positive': getRangeDeltaPercent(day.promet, day.prometProslaGodina) >= 0, 'negative': getRangeDeltaPercent(day.promet, day.prometProslaGodina) < 0}">
+                  {{ getRangeDeltaPercent(day.promet, day.prometProslaGodina) | number:'1.0-2' }}%
+                </span>
+              </div>
             </td>
           </tr>
         </tbody>
