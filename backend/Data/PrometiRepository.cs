@@ -150,6 +150,7 @@ namespace backend.Data
                 var todayEntries = _context.ResponsePrometiProdavnica
                     .FromSqlInterpolated($"EXEC GetPrometSvihProdavnica")
                     .AsNoTracking()
+                    .AsEnumerable()
                     .Select(p => new PrometRangeEntry
                     {
                         BrojProdavnice = p.BrojProdavnice,
