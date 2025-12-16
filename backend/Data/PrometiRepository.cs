@@ -150,7 +150,7 @@ namespace backend.Data
                 var todayEntries = _context.ResponsePrometiProdavnica
                     .FromSqlInterpolated($"EXEC GetPrometSvihProdavnica")
                     .AsNoTracking()
-                    .AsEnumerable()
+                    .ToList()
                     .Select(p => new PrometRangeEntry
                     {
                         BrojProdavnice = p.BrojProdavnice,
@@ -251,7 +251,7 @@ namespace backend.Data
             return _context.PrometiProdavnica
                 .FromSqlInterpolated($"EXEC GetPrometiSvihProdavnica")
                 .AsNoTracking()
-                .AsEnumerable()
+                .ToList()
                 .GroupBy(p => NormalizeStoreId(p.BrojProdavnice))
                 .Where(g => !string.IsNullOrWhiteSpace(g.Key))
                 .ToDictionary(g => g.Key, g =>
