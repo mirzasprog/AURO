@@ -10,6 +10,8 @@ namespace backend.Models
         public PrometRangeSummary? Totals { get; set; }
         public List<PrometRangeStoreRow> Stores { get; set; } = new();
         public List<PrometRangeDayRow> Days { get; set; } = new();
+        public List<PrometRangeDayRow> CurrentDays { get; set; } = new();
+        public List<PrometRangeDayRow> PreviousDays { get; set; } = new();
     }
 
     public class DateRangeDescriptor

@@ -198,19 +198,51 @@ namespace backend.Data
                 .OrderBy(s => s.BrojProdavnice)
                 .ToList();
 
-            var allDates = currentEntries.Select(e => e.Datum.Date)
-                .Concat(previousEntries.Select(e => e.Datum.Date))
+            var currentDays = currentEntries
+                .GroupBy(e => e.Datum.Date)
+                .OrderBy(g => g.Key)
+                .Select(g => new PrometRangeDayRow
+                {
+                    Datum = g.Key,
+                    Promet = g.Sum(e => e.Promet),
+                    PrometProslaGodina = 0,
+                    BrojKupaca = g.Sum(e => e.BrojKupaca),
+                    BrojKupacaProslaGodina = 0
+                })
+                .ToList();
+
+            var previousDays = previousEntries
+                .GroupBy(e => e.Datum.Date)
+                .OrderBy(g => g.Key)
+                .Select(g => new PrometRangeDayRow
+                {
+                    Datum = g.Key,
+                    Promet = 0,
+                    PrometProslaGodina = g.Sum(e => e.Promet),
+                    BrojKupaca = 0,
+                    BrojKupacaProslaGodina = g.Sum(e => e.BrojKupaca)
+                })
+                .ToList();
+
+            var mergedDates = currentDays.Select(d => d.Datum)
+                .Concat(previousDays.Select(d => d.Datum))
                 .Distinct()
                 .OrderBy(d => d)
                 .ToList();
 
-            var days = allDates.Select(datum => new PrometRangeDayRow
+            var days = mergedDates.Select(datum =>
             {
-                Datum = datum,
-                Promet = currentEntries.Where(e => e.Datum.Date == datum).Sum(e => e.Promet),
-                PrometProslaGodina = previousEntries.Where(e => e.Datum.Date == datum).Sum(e => e.Promet),
-                BrojKupaca = currentEntries.Where(e => e.Datum.Date == datum).Sum(e => e.BrojKupaca),
-                BrojKupacaProslaGodina = previousEntries.Where(e => e.Datum.Date == datum).Sum(e => e.BrojKupaca)
+                var current = currentDays.FirstOrDefault(d => d.Datum == datum);
+                var previous = previousDays.FirstOrDefault(d => d.Datum == datum);
+
+                return new PrometRangeDayRow
+                {
+                    Datum = datum,
+                    Promet = current?.Promet ?? 0,
+                    PrometProslaGodina = previous?.PrometProslaGodina ?? previous?.Promet ?? 0,
+                    BrojKupaca = current?.BrojKupaca ?? 0,
+                    BrojKupacaProslaGodina = previous?.BrojKupacaProslaGodina ?? previous?.BrojKupaca ?? 0
+                };
             }).ToList();
 
             var totals = new PrometRangeSummary
@@ -227,7 +259,9 @@ namespace backend.Data
                 PreviousRange = new DateRangeDescriptor { StartDate = previousStart, EndDate = previousEnd },
                 Totals = totals,
                 Stores = stores,
-                Days = days
+                Days = days,
+                CurrentDays = currentDays,
+                PreviousDays = previousDays
             };
         }
 
