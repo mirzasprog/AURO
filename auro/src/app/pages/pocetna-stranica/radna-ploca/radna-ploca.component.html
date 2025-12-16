@@ -413,6 +413,11 @@
           <nb-icon icon="flip-outline"></nb-icon>
           Uskladi prošlu godinu
         </button>
+        <button nbButton size="small" status="warning" appearance="outline" (click)="resetRangeSelection()"
+          [disabled]="!rangeComparisonActive && !prometRangeTotals && !prometRangeDays.length">
+          <nb-icon icon="refresh-outline"></nb-icon>
+          Reset opsega
+        </button>
         <nb-spinner *ngIf="isRangeLoading" size="small"></nb-spinner>
       </div>
     </div>
@@ -504,36 +509,84 @@
     <ng2-smart-table [settings]="settings" [source]="source" [attr.aria-busy]="isManagementBootstrapLoading"></ng2-smart-table>
   </div>
 
-  <div *ngIf="prometRangeDays.length" class="range-day-table">
+  <div *ngIf="rangeComparisonActive" class="range-day-table">
     <div class="section-heading data-heading">
       <div>
         <p class="eyebrow">Sumarno po danu</p>
         <h3 class="section-title">Pregled po datumima</h3>
         <p class="muted">Vidite ukupne promete i broj kupaca za svaki dan izabranog opsega.</p>
       </div>
+      <div class="range-day-summary" *ngIf="prometRangeTotals">
+        <div class="summary-chip">
+          <span class="label">Ukupni promet</span>
+          <strong>{{ prometRangeTotals?.promet | number:'1.0-0' }} KM</strong>
+        </div>
+        <div class="summary-chip muted">
+          <span class="label">Prošla godina</span>
+          <strong>{{ prometRangeTotals?.prometProslaGodina | number:'1.0-0' }} KM</strong>
+        </div>
+        <div class="summary-chip delta" [ngClass]="{'positive': getRangeDelta(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) >= 0, 'negative': getRangeDelta(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) < 0}">
+          <span class="label">Razlika</span>
+          <strong>
+            {{ getRangeDelta(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) | number:'1.0-0' }} KM
+            ({{ getRangeDeltaPercent(prometRangeTotals?.promet, prometRangeTotals?.prometProslaGodina) | number:'1.0-2' }}%)
+          </strong>
+        </div>
+      </div>
     </div>
 
     <div class="day-table-wrapper">
-      <table class="range-table">
+      <table class="range-table comparison-table">
         <thead>
           <tr>
             <th>Datum</th>
-            <th>Promet</th>
-            <th>Promet PG</th>
-            <th>Kupci</th>
-            <th>Kupci PG</th>
+            <th>Tekuća godina</th>
+            <th>Prošla godina</th>
+            <th>Razlika KM</th>
+            <th>Razlika %</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let day of prometRangeDays">
             <td>{{ day.datum | date:'dd.MM.yyyy' }}</td>
-            <td>{{ day.promet | number:'1.0-0' }} KM</td>
-            <td>{{ day.prometProslaGodina | number:'1.0-0' }} KM</td>
-            <td>{{ day.brojKupaca | number:'1.0-0' }}</td>
-            <td>{{ day.brojKupacaProslaGodina | number:'1.0-0' }}</td>
+            <td>
+              <div class="value-with-subtext">
+                <strong>{{ day.promet | number:'1.0-0' }} KM</strong>
+                <small class="muted">Kupci {{ day.brojKupaca | number:'1.0-0' }}</small>
+              </div>
+            </td>
+            <td>
+              <div class="value-with-subtext">
+                <strong>{{ day.prometProslaGodina | number:'1.0-0' }} KM</strong>
+                <small class="muted">Kupci {{ day.brojKupacaProslaGodina | number:'1.0-0' }}</small>
+              </div>
+            </td>
+            <td>
+              <span class="delta-chip" [ngClass]="{'positive': getRangeDelta(day.promet, day.prometProslaGodina) >= 0, 'negative': getRangeDelta(day.promet, day.prometProslaGodina) < 0}">
+                {{ getRangeDelta(day.promet, day.prometProslaGodina) | number:'1.0-0' }} KM
+              </span>
+            </td>
+            <td>
+              <span class="delta-percent" [ngClass]="{'positive': getRangeDeltaPercent(day.promet, day.prometProslaGodina) >= 0, 'negative': getRangeDeltaPercent(day.promet, day.prometProslaGodina) < 0}">
+                {{ getRangeDeltaPercent(day.promet, day.prometProslaGodina) | number:'1.0-2' }}%
+              </span>
+            </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div class="range-chart-card" *ngIf="prometRangeDays.length">
+      <div class="chart-header">
+        <div>
+          <p class="eyebrow">Trend po danima</p>
+          <h5 class="section-title">Vizualni prikaz kretanja prometa</h5>
+          <p class="muted">Brzo uočite rast ili pad dnevnog prometa u odnosu na prošlu godinu.</p>
+        </div>
+      </div>
+      <div class="chart-body">
+        <canvas id="rangeDayChart"></canvas>
+      </div>
     </div>
   </div>
 </div>
