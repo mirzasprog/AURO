@@ -409,14 +409,15 @@
           <nb-icon icon="clock-outline"></nb-icon>
           Zadnjih 30 dana
         </button>
-        <button nbButton size="small" status="info" (click)="syncPreviousRangeWithCurrent()" [disabled]="!isRangeFilterOpen">
-          <nb-icon icon="flip-outline"></nb-icon>
-          Uskladi prošlu godinu
-        </button>
         <button nbButton size="small" status="warning" appearance="outline" (click)="resetRangeSelection()"
-          [disabled]="!rangeComparisonActive && !prometRangeTotals && !prometRangeDays.length">
+          [disabled]="!rangeComparisonActive && !prometRangeTotals && !hasRangeDayData">
           <nb-icon icon="refresh-outline"></nb-icon>
           Reset opsega
+        </button>
+        <button nbButton size="small" status="success" appearance="ghost" (click)="exportRangeDays()"
+          [disabled]="!hasRangeDayData">
+          <nb-icon icon="download"></nb-icon>
+          Excel (opsezi)
         </button>
         <nb-spinner *ngIf="isRangeLoading" size="small"></nb-spinner>
       </div>
@@ -535,7 +536,7 @@
       </div>
     </div>
 
-    <div class="range-dual-table" *ngIf="prometRangeDays.length">
+    <div class="range-dual-table" *ngIf="hasRangeDayData">
       <div class="range-table-grid">
         <div class="range-table-card">
           <div class="table-card-header">
@@ -555,7 +556,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let day of pagedRangeDays">
+                <tr *ngFor="let day of pagedCurrentRangeDays">
                   <td>{{ formatRangeTableDate(day.datum) }}</td>
                   <td class="text-right">{{ day.promet | number:'1.0-0' }} KM</td>
                 </tr>
@@ -582,9 +583,9 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let day of pagedRangeDays">
-                  <td>{{ getPreviousRangeDateLabel(day.datum) }}</td>
-                  <td class="text-right">{{ day.prometProslaGodina | number:'1.0-0' }} KM</td>
+                <tr *ngFor="let day of pagedPreviousRangeDays">
+                  <td>{{ formatRangeTableDate(day.datum) }}</td>
+                  <td class="text-right">{{ (day.prometProslaGodina || day.promet) | number:'1.0-0' }} KM</td>
                 </tr>
               </tbody>
             </table>
@@ -593,14 +594,14 @@
       </div>
     </div>
 
-    <div class="range-table-paginator" *ngIf="prometRangeDays.length">
+    <div class="range-table-paginator" *ngIf="hasRangeDayData">
       <button nbButton size="small" appearance="ghost" (click)="changeRangePage(-1)" [disabled]="rangeDayPage === 1">
         <nb-icon icon="arrow-back-outline"></nb-icon>
         Prethodna
       </button>
       <div class="paginator-status">
         Strana {{ rangeDayPage }} / {{ rangeDayPageCount }}
-        <span class="muted">(ukupno {{ prometRangeDays.length }} dana)</span>
+        <span class="muted">(ukupno {{ maxRangeDayLength }} dana)</span>
       </div>
       <button nbButton size="small" appearance="ghost" (click)="changeRangePage(1)" [disabled]="rangeDayPage === rangeDayPageCount">
         Sljedeća
@@ -608,7 +609,7 @@
       </button>
     </div>
 
-    <div class="range-chart-card" *ngIf="prometRangeDays.length">
+    <div class="range-chart-card" *ngIf="hasRangeDayData">
       <div class="chart-header">
         <div>
           <p class="eyebrow">Trend po danima</p>

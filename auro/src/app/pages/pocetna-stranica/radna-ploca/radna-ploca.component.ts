@@ -110,6 +110,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   previousRangeEnd = '';
   prometRangeTotals: PrometRangeResponse['totals'] | null = null;
   prometRangeDays: PrometRangeDayRow[] = [];
+  currentRangeDays: PrometRangeDayRow[] = [];
+  previousRangeDays: PrometRangeDayRow[] = [];
   rangeDayPage = 1;
   readonly rangeDayPageSize = 10;
   private defaultRangeDates?: { currentStart: string; currentEnd: string; previousStart: string; previousEnd: string; };
@@ -444,6 +446,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.rangeComparisonActive = true;
     this.prometRangeTotals = null;
     this.prometRangeDays = [];
+    this.currentRangeDays = [];
+    this.previousRangeDays = [];
     this.resetRangeDayPage();
 
     this.dataService.getPrometiPoOpsegu(
@@ -461,9 +465,15 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response: PrometRangeResponse) => {
           this.prometRangeTotals = this.extractTotalsFromRangeResponse(response);
-          this.prometRangeDays = this.extractDaysFromRangeResponse(response);
+          const mergedDays = this.extractDaysFromRangeResponse(response);
+          const currentDays = this.extractDaysFromRangeResponse(response, 'currentDays');
+          const previousDays = this.extractDaysFromRangeResponse(response, 'previousDays');
+
+          this.currentRangeDays = currentDays.length ? currentDays : this.buildCurrentDaysFromMerged(mergedDays);
+          this.previousRangeDays = previousDays.length ? previousDays : this.buildPreviousDaysFromMerged(mergedDays);
+          this.prometRangeDays = this.mergeRangeDaySets(this.currentRangeDays, this.previousRangeDays, mergedDays);
           this.resetRangeDayPage();
-          this.rangeComparisonActive = !!this.prometRangeDays.length;
+          this.rangeComparisonActive = this.hasRangeDayData;
           setTimeout(() => this.renderRangeDayChart());
         },
         error: (err) => {
@@ -492,8 +502,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     };
   }
 
-  private extractDaysFromRangeResponse(response: any): PrometRangeDayRow[] {
-    const days = (response as any)?.days ?? (response as any)?.Days ?? [];
+  private extractDaysFromRangeResponse(response: any, key: 'days' | 'currentDays' | 'previousDays' = 'days'): PrometRangeDayRow[] {
+    const source = (response as any) ?? {};
+    const days = source?.[key] ?? source?.[this.capitalizeFirstLetter(key)] ?? [];
+
     return (days as any[]).map(day => {
       const datum = day.datum ?? day.Datum;
       const parsedDate = datum ? this.formatDateForInput(new Date(datum)) : '';
@@ -507,20 +519,89 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }).sort((a, b) => a.datum.localeCompare(b.datum));
   }
 
-  get pagedRangeDays(): PrometRangeDayRow[] {
-    if (!this.prometRangeDays?.length) {
+  private buildCurrentDaysFromMerged(days: PrometRangeDayRow[]): PrometRangeDayRow[] {
+    return (days ?? []).map(day => ({
+      datum: day.datum,
+      promet: day.promet,
+      prometProslaGodina: 0,
+      brojKupaca: day.brojKupaca,
+      brojKupacaProslaGodina: 0,
+    } as PrometRangeDayRow));
+  }
+
+  private buildPreviousDaysFromMerged(days: PrometRangeDayRow[]): PrometRangeDayRow[] {
+    return (days ?? []).map(day => ({
+      datum: day.datum,
+      promet: 0,
+      prometProslaGodina: day.prometProslaGodina,
+      brojKupaca: 0,
+      brojKupacaProslaGodina: day.brojKupacaProslaGodina,
+    } as PrometRangeDayRow));
+  }
+
+  private mergeRangeDaySets(
+    currentDays: PrometRangeDayRow[],
+    previousDays: PrometRangeDayRow[],
+    mergedFallback: PrometRangeDayRow[] = []
+  ): PrometRangeDayRow[] {
+    const mergedDates = [...(currentDays || []), ...(previousDays || []), ...(mergedFallback || [])]
+      .map(day => day.datum)
+      .filter(Boolean)
+      .filter((value, index, self) => self.indexOf(value) === index)
+      .sort((a, b) => a.localeCompare(b));
+
+    return mergedDates.map(date => {
+      const current = currentDays.find(day => day.datum === date);
+      const previous = previousDays.find(day => day.datum === date) ?? mergedFallback.find(day => day.datum === date);
+
+      return {
+        datum: date,
+        promet: current?.promet ?? 0,
+        prometProslaGodina: previous?.prometProslaGodina ?? previous?.promet ?? 0,
+        brojKupaca: current?.brojKupaca ?? 0,
+        brojKupacaProslaGodina: previous?.brojKupacaProslaGodina ?? previous?.brojKupaca ?? 0
+      } as PrometRangeDayRow;
+    });
+  }
+
+  private capitalizeFirstLetter(value: string): string {
+    if (!value?.length) return value;
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }
+
+  get pagedCurrentRangeDays(): PrometRangeDayRow[] {
+    if (!this.currentRangeDays?.length) {
       return [];
     }
 
     this.enforceRangePageBounds();
 
     const start = (this.rangeDayPage - 1) * this.rangeDayPageSize;
-    return this.prometRangeDays.slice(start, start + this.rangeDayPageSize);
+    return this.currentRangeDays.slice(start, start + this.rangeDayPageSize);
+  }
+
+  get pagedPreviousRangeDays(): PrometRangeDayRow[] {
+    if (!this.previousRangeDays?.length) {
+      return [];
+    }
+
+    this.enforceRangePageBounds();
+
+    const start = (this.rangeDayPage - 1) * this.rangeDayPageSize;
+    return this.previousRangeDays.slice(start, start + this.rangeDayPageSize);
+  }
+
+  get hasRangeDayData(): boolean {
+    return this.maxRangeDayLength > 0;
+  }
+
+  get maxRangeDayLength(): number {
+    return Math.max(this.currentRangeDays.length, this.previousRangeDays.length);
   }
 
   get rangeDayPageCount(): number {
-    return this.prometRangeDays?.length
-      ? Math.ceil(this.prometRangeDays.length / this.rangeDayPageSize)
+    return this.maxRangeDayLength
+      ? Math.ceil(this.maxRangeDayLength / this.rangeDayPageSize)
       : 1;
   }
 
@@ -652,6 +733,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.isRangeFilterOpen = false;
     this.prometRangeTotals = null;
     this.prometRangeDays = [];
+    this.currentRangeDays = [];
+    this.previousRangeDays = [];
     this.resetRangeDayPage();
     this.destroyChart('rangeDayChart');
 
@@ -897,6 +980,29 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
       this.excel.exportAsExcelFile(exportData, 'Prometi');
     });
+  }
+
+  exportRangeDays(): void {
+    if (!this.hasRangeDayData) {
+      return;
+    }
+
+    const currentSheet = this.currentRangeDays.map(day => ({
+      datum: this.formatRangeTableDate(day.datum),
+      promet: day.promet,
+      kupci: day.brojKupaca,
+    }));
+
+    const previousSheet = this.previousRangeDays.map(day => ({
+      datum: this.formatRangeTableDate(day.datum),
+      promet: day.prometProslaGodina ?? day.promet,
+      kupci: day.brojKupacaProslaGodina ?? day.brojKupaca,
+    }));
+
+    this.excel.exportMultipleSheets([
+      { name: 'Tekuća godina', data: currentSheet },
+      { name: 'Prošla godina', data: previousSheet }
+    ], 'promet_opseg');
   }
 
   readonly quickActions: QuickAction[] = [

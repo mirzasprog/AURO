@@ -10,50 +10,70 @@ export class PreuzmiUExcelService {
   constructor() { }
 
   exportAsExcelFile(data: any[], excelFileName: string): void {
-    // 1. Priprema naziva kolona (velika slova)
-    const columns = Object.keys(data[0] || {}).map(col => col.toUpperCase());
+    const worksheet = this.buildWorksheet(data);
 
-    // 2. Pretvaranje podataka u worksheet bez automatskog zaglavlja
-    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data, { header: [] });
-
-    // 3. Dodavanje zaglavlja (velika slova) u worksheet
-    XLSX.utils.sheet_add_aoa(worksheet, [columns], { origin: 'A1' });
-
-    // Stilizovanje zaglavlja (npr. boja pozadine)
-    const range = XLSX.utils.decode_range(worksheet['!ref']!);
-    for (let C = range.s.c; C <= range.e.c; ++C) {
-      const cellAddress = XLSX.utils.encode_cell({ c: C, r: 0 }); // Oznaka ćelije (npr. 'A1', 'B1')
-      if (!worksheet[cellAddress]) continue;
-
-      worksheet[cellAddress].s = {
-        font: { bold: true, sz: 12 }, 
-        alignment: { horizontal: 'center' },
-        fill: {
-          fgColor: { rgb: 'FFFF00' }
-        }
-      };
-    }
-
-    // 4. Automatsko prilagođavanje širine kolona
-    const columnWidths = columns.map((col, index) => ({
-      wch: Math.max(
-        col.length, 
-        ...data.map(row => String(row[Object.keys(row)[index]] || '').length)
-      )
-    }));
-
-    worksheet['!cols'] = columnWidths;
-
-    // 5. Kreiranje workbook-a i dodavanje worksheet-a
     const workbook: XLSX.WorkBook = {
       Sheets: { 'data': worksheet },
       SheetNames: ['data']
     };
 
-    // 6. Snimanje u fajl
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     this.saveAsExcelFile(excelBuffer, excelFileName);
-}
+  }
+
+  exportMultipleSheets(sheets: { name: string; data: any[]; }[], excelFileName: string): void {
+    if (!sheets?.length) {
+      return;
+    }
+
+    const workbook: XLSX.WorkBook = { Sheets: {}, SheetNames: [] };
+
+    sheets.forEach((sheet, index) => {
+      const sheetName = sheet.name || `Sheet${index + 1}`;
+      const worksheet = this.buildWorksheet(sheet.data);
+
+      workbook.SheetNames.push(sheetName);
+      workbook.Sheets[sheetName] = worksheet;
+    });
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    this.saveAsExcelFile(excelBuffer, excelFileName);
+  }
+
+  private buildWorksheet(data: any[]): XLSX.WorkSheet {
+    const columns = Object.keys(data[0] || {}).map(col => col.toUpperCase());
+
+    const worksheet: XLSX.WorkSheet = XLSX.utils.json_to_sheet(data, { header: [] });
+
+    if (columns.length) {
+      XLSX.utils.sheet_add_aoa(worksheet, [columns], { origin: 'A1' });
+
+      const range = XLSX.utils.decode_range(worksheet['!ref']!);
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ c: C, r: 0 });
+        if (!worksheet[cellAddress]) continue;
+
+        worksheet[cellAddress].s = {
+          font: { bold: true, sz: 12 },
+          alignment: { horizontal: 'center' },
+          fill: {
+            fgColor: { rgb: 'FFFF00' }
+          }
+        };
+      }
+
+      const columnWidths = columns.map((col, index) => ({
+        wch: Math.max(
+          col.length,
+          ...data.map(row => String(row[Object.keys(row)[index]] || '').length)
+        )
+      }));
+
+      worksheet['!cols'] = columnWidths;
+    }
+
+    return worksheet;
+  }
 
 
   private saveAsExcelFile(buffer: any, fileName: string): void {

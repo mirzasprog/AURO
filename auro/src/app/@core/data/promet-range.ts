@@ -30,6 +30,8 @@ export interface PrometRangeResponse {
   totals?: PrometRangeSummary;
   stores: PrometRangeStoreRow[];
   days: PrometRangeDayRow[];
+  currentDays?: PrometRangeDayRow[];
+  previousDays?: PrometRangeDayRow[];
 }
 
 export interface DateRangeDescriptor {
