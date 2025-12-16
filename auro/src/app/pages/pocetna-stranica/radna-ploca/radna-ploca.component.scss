@@ -1630,6 +1630,47 @@ body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
   margin-top: 1.25rem;
 }
 
+.range-day-summary {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.summary-chip {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.7rem;
+  background: var(--background-basic-color-1);
+  border: 1px solid var(--border-basic-color-3);
+
+  .label {
+    font-size: 0.75rem;
+    color: var(--color-basic-700);
+  }
+
+  strong {
+    font-size: 1rem;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+
+  &.muted {
+    background: var(--background-basic-color-2);
+  }
+
+  &.delta.positive {
+    border-color: var(--color-success-400);
+    background: rgba(0, 214, 143, 0.08);
+  }
+
+  &.delta.negative {
+    border-color: var(--color-danger-400);
+    background: rgba(255, 61, 113, 0.08);
+  }
+}
+
 .day-table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--border-basic-color-3);
@@ -1657,6 +1698,54 @@ body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
 
 .range-table td {
   font-size: 0.9rem;
+}
+
+.comparison-table td {
+  vertical-align: middle;
+}
+
+.value-with-subtext {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.delta-percent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 84px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 12px;
+  background: var(--background-basic-color-1);
+  border: 1px solid var(--border-basic-color-3);
+  font-weight: 700;
+}
+
+.delta-percent.positive {
+  color: var(--color-success-600);
+  border-color: var(--color-success-400);
+}
+
+.delta-percent.negative {
+  color: var(--color-danger-600);
+  border-color: var(--color-danger-400);
+}
+
+.range-chart-card {
+  margin-top: 1rem;
+  border: 1px solid var(--border-basic-color-3);
+  border-radius: 0.85rem;
+  background: linear-gradient(135deg, rgba(51, 102, 255, 0.04), rgba(0, 214, 143, 0.06));
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
+}
+
+.chart-header {
+  padding: 1rem 1.25rem 0.25rem;
+}
+
+.chart-body {
+  padding: 0.5rem 1.25rem 1.25rem;
+  height: 320px;
 }
 
 @media (max-width: 960px) {

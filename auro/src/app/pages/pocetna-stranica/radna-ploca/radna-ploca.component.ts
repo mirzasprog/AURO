@@ -102,6 +102,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   isPrometHistoryLoading = false;
   isManagementBootstrapLoading = false;
   isRangeLoading = false;
+  rangeComparisonActive = false;
   private shouldQueueManagementLoads = false;
   currentRangeStart = '';
   currentRangeEnd = '';
@@ -109,6 +110,9 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   previousRangeEnd = '';
   prometRangeTotals: PrometRangeResponse['totals'] | null = null;
   prometRangeDays: PrometRangeDayRow[] = [];
+  private defaultRangeDates?: { currentStart: string; currentEnd: string; previousStart: string; previousEnd: string; };
+  private baselineDataTable: any[] | null = null;
+  private baselineDashboardSummary: any | null = null;
   rangeHelperText = 'Tekući opseg automatski popunjava prethodnu godinu, ali i dalje možete ručno prilagoditi datume.';
   categoryOptions: CategoryShareItem[] = [];
   selectedCategories: string[] = [];
@@ -388,6 +392,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.dataTable = filledData;
     this.source.load(this.dataTable);
 
+    if (!this.rangeComparisonActive && !this.baselineDataTable) {
+      this.baselineDataTable = [...this.dataTable];
+    }
+
     if (!this.selectedStoreId && aggregatedMetrics) {
       this.applyAggregatedMetrics(aggregatedMetrics);
     }
@@ -431,7 +439,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
 
     this.isRangeLoading = true;
-    this.isManagementBootstrapLoading = true;
+    this.rangeComparisonActive = true;
     this.prometRangeTotals = null;
     this.prometRangeDays = [];
 
@@ -443,20 +451,20 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     )
       .pipe(finalize(() => {
         this.isRangeLoading = false;
-        this.isManagementBootstrapLoading = false;
         if (triggerBalancedFollowup) {
           this.queueManagementFollowUp();
         }
       }))
       .subscribe({
         next: (response: PrometRangeResponse) => {
-          const stores = this.extractStoresFromRangeResponse(response);
-          const aggregatedMetrics = stores.length ? this.calculateAggregatedMetrics(stores) : null;
-          this.hydratePrometTable(stores, aggregatedMetrics);
           this.prometRangeTotals = this.extractTotalsFromRangeResponse(response);
           this.prometRangeDays = this.extractDaysFromRangeResponse(response);
+          this.rangeComparisonActive = !!this.prometRangeDays.length;
+          setTimeout(() => this.renderRangeDayChart());
         },
         error: (err) => {
+          this.rangeComparisonActive = false;
+          this.destroyChart('rangeDayChart');
           const poruka = err?.error?.poruka ?? err?.error ?? err?.statusText ?? err?.message;
           Swal.fire('Greška', 'Nije moguće učitati promet za zadani opseg: ' + poruka, 'error');
         }
@@ -535,6 +543,13 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     this.previousRangeStart = this.formatDateForInput(previousStart);
     this.previousRangeEnd = this.formatDateForInput(previousEnd);
+
+    this.defaultRangeDates = {
+      currentStart: this.currentRangeStart,
+      currentEnd: this.currentRangeEnd,
+      previousStart: this.previousRangeStart,
+      previousEnd: this.previousRangeEnd
+    };
   }
 
   onCurrentRangeChange(): void {
@@ -582,6 +597,37 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.isRangeFilterOpen = true;
     this.syncPreviousRangeWithCurrent();
     this.loadPrometRange();
+  }
+
+  resetRangeSelection(): void {
+    if (this.defaultRangeDates) {
+      this.currentRangeStart = this.defaultRangeDates.currentStart;
+      this.currentRangeEnd = this.defaultRangeDates.currentEnd;
+      this.previousRangeStart = this.defaultRangeDates.previousStart;
+      this.previousRangeEnd = this.defaultRangeDates.previousEnd;
+    } else {
+      this.initializeDefaultRanges();
+    }
+
+    this.rangeComparisonActive = false;
+    this.isRangeFilterOpen = false;
+    this.prometRangeTotals = null;
+    this.prometRangeDays = [];
+    this.destroyChart('rangeDayChart');
+
+    if (this.baselineDataTable?.length) {
+      this.dataTable = [...this.baselineDataTable];
+      this.source.load(this.dataTable);
+    }
+
+    if (this.baselineDashboardSummary) {
+      this.dashboardSummary = JSON.parse(JSON.stringify(this.baselineDashboardSummary));
+      this.updateCategoryShareValue();
+      this.buildPrometTableRows();
+      this.updateStoreRating();
+      this.renderDayComparisonChart();
+      this.renderMonthComparisonChart();
+    }
   }
 
   private formatDateForInput(date: Date): string {
@@ -691,6 +737,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         previousValue: averageBasketPrevious,
       },
     };
+
+    if (!this.rangeComparisonActive && !this.baselineDashboardSummary) {
+      this.baselineDashboardSummary = JSON.parse(JSON.stringify(this.dashboardSummary));
+    }
 
     this.updateCategoryShareValue();
 
@@ -1483,6 +1533,68 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     };
 
     this.renderChart('dayComparisonChart', config);
+  }
+
+  private renderRangeDayChart(): void {
+    if (!this.prometRangeDays?.length) {
+      this.destroyChart('rangeDayChart');
+      return;
+    }
+
+    const labels = this.prometRangeDays.map(day => {
+      const parsed = this.parseDate(day.datum);
+      return parsed ? this.formatDateForDisplay(parsed) : day.datum;
+    });
+
+    const currentData = this.prometRangeDays.map(day => this.toNumberSafe(day.promet));
+    const previousData = this.prometRangeDays.map(day => this.toNumberSafe(day.prometProslaGodina));
+
+    const config: Chart.ChartConfiguration = {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          {
+            label: 'Tekuća godina',
+            data: currentData,
+            borderColor: '#3366ff',
+            backgroundColor: 'rgba(51, 102, 255, 0.12)',
+            borderWidth: 3,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            lineTension: 0.25,
+          },
+          {
+            label: 'Prošla godina',
+            data: previousData,
+            borderColor: '#ff9f43',
+            backgroundColor: 'rgba(255, 159, 67, 0.12)',
+            borderWidth: 3,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            lineTension: 0.25,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: { position: 'bottom' },
+        animation: { duration: 250 },
+        tooltips: { mode: 'index', intersect: false },
+        scales: {
+          xAxes: [{ gridLines: { display: false } }],
+          yAxes: [{
+            ticks: { beginAtZero: true },
+            gridLines: { color: 'rgba(0,0,0,0.05)' }
+          }],
+        },
+      },
+    };
+
+    this.renderChart('rangeDayChart', config);
   }
 
   private renderMonthComparisonChart(): void {
