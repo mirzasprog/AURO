@@ -689,13 +689,21 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   }
 
   getPreviousRangeDateLabel(dateString: string): string {
-    const comparisonDate = this.shiftDateToPreviousRange(dateString);
+    const parsedDate = this.parseDate(dateString);
+    const previousStart = this.parseDate(this.previousRangeStart);
+    const previousEnd = this.parseDate(this.previousRangeEnd);
 
-    if (comparisonDate) {
-      return this.formatDateForDisplay(comparisonDate);
+    if (parsedDate && previousStart && previousEnd) {
+      const isAlreadyPreviousRange = parsedDate >= previousStart && parsedDate <= previousEnd;
+      if (isAlreadyPreviousRange) {
+        return this.formatDateForDisplay(parsedDate);
+      }
     }
 
-    return this.formatRangeTableDate(dateString);
+    const comparisonDate = this.shiftDateToPreviousRange(dateString);
+    return comparisonDate
+      ? this.formatDateForDisplay(comparisonDate)
+      : this.formatRangeTableDate(dateString);
   }
 
   private shiftDateToPreviousRange(dateString: string): Date | null {
