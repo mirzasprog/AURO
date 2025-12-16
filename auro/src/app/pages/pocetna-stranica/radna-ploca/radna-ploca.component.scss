@@ -1682,6 +1682,10 @@ body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
   border-collapse: collapse;
 }
 
+.range-paired-table th:last-child {
+  width: 22%;
+}
+
 .range-table th,
 .range-table td {
   padding: 0.6rem 0.8rem;
@@ -1704,9 +1708,57 @@ body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
   vertical-align: middle;
 }
 
+.stacked-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: var(--background-basic-color-2);
+  border: 1px solid var(--border-basic-color-3);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.date-pill nb-icon {
+  font-size: 1rem;
+  color: var(--color-primary-500);
+}
+
+.date-pill.muted {
+  background: var(--background-basic-color-1);
+  color: var(--color-basic-800);
+  border-color: var(--border-basic-color-2);
+}
+
+.date-pill.muted nb-icon {
+  color: var(--color-warning-500);
+}
+
 .value-with-subtext {
   display: grid;
   gap: 0.15rem;
+}
+
+.delta-cell {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.delta-pair {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 .delta-percent {
@@ -1757,5 +1809,42 @@ body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
   .range-actions {
     width: 100%;
     justify-content: flex-start;
+  }
+}
+
+@media (max-width: 820px) {
+  .range-paired-table th:last-child {
+    width: 28%;
+  }
+
+  .delta-pair {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .range-paired-table thead {
+    display: none;
+  }
+
+  .range-paired-table tbody tr {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.85rem;
+    padding: 0.85rem 0.8rem;
+  }
+
+  .range-paired-table td {
+    padding: 0;
+    border-bottom: none;
+  }
+
+  .day-table-wrapper {
+    border: 1px solid var(--border-basic-color-3);
+    border-radius: 0.75rem;
+  }
+
+  .delta-cell {
+    justify-self: flex-start;
   }
 }

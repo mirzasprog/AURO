@@ -643,6 +643,35 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     return isNaN(parsed.getTime()) ? null : parsed;
   }
 
+  formatRangeTableDate(dateString: string): string {
+    const parsed = this.parseDate(dateString);
+    return parsed ? this.formatDateForDisplay(parsed) : dateString;
+  }
+
+  getPreviousRangeDateLabel(dateString: string): string {
+    const comparisonDate = this.shiftDateToPreviousRange(dateString);
+
+    if (comparisonDate) {
+      return this.formatDateForDisplay(comparisonDate);
+    }
+
+    return this.formatRangeTableDate(dateString);
+  }
+
+  private shiftDateToPreviousRange(dateString: string): Date | null {
+    const currentDate = this.parseDate(dateString);
+    const currentStart = this.parseDate(this.currentRangeStart);
+    const previousStart = this.parseDate(this.previousRangeStart);
+
+    if (!currentDate || !currentStart || !previousStart) {
+      return null;
+    }
+
+    const offset = previousStart.getTime() - currentStart.getTime();
+    const shifted = new Date(currentDate.getTime() + offset);
+    return isNaN(shifted.getTime()) ? null : shifted;
+  }
+
   rangeSummary(start: string, end: string): string {
     const startDate = this.parseDate(start);
     const endDate = this.parseDate(end);
@@ -1541,10 +1570,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const labels = this.prometRangeDays.map(day => {
-      const parsed = this.parseDate(day.datum);
-      return parsed ? this.formatDateForDisplay(parsed) : day.datum;
-    });
+    const labels = this.prometRangeDays.map(day => this.formatRangeTableDate(day.datum));
 
     const currentData = this.prometRangeDays.map(day => this.toNumberSafe(day.promet));
     const previousData = this.prometRangeDays.map(day => this.toNumberSafe(day.prometProslaGodina));
