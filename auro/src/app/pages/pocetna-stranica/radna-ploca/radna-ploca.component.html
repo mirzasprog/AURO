@@ -82,12 +82,12 @@
   </nb-card-header>
   <nb-card-body>
     <section class="store-rating" *ngIf="dashboardSummary">
-      <div class="rating-card" tabindex="0">
+      <div class="rating-card" tabindex="0" style="margin:15px;">
         <div class="rating-main">
           <p class="eyebrow">{{ ratingTitle }}</p>
           <div class="rating-value-row">
             <span class="rating-number">{{ storeRating | number:'1.1-1' }}</span>
-            <div class="rating-stars" aria-label="Grafička ocjena" title="Formula za ocjenu">
+            <div class="rating-stars" aria-label="Grafička ocjena">
               <i *ngFor="let star of ratingStars" [class]="star"></i>
               <div class="rating-tooltip">
                 <p><strong>Kako računamo ocjenu</strong></p>
@@ -414,11 +414,6 @@
           <nb-icon icon="refresh-outline"></nb-icon>
           Reset opsega
         </button>
-        <button nbButton size="small" status="success" appearance="ghost" (click)="exportRangeDays()"
-          [disabled]="!hasRangeDayData">
-          <nb-icon icon="download"></nb-icon>
-          Excel (opsezi)
-        </button>
         <nb-spinner *ngIf="isRangeLoading" size="small"></nb-spinner>
       </div>
     </div>
@@ -466,6 +461,7 @@
         </div>
       </div>
     </div>
+
   </div>
 
   <div class="filter-row" [class.is-disabled]="isManagementBootstrapLoading">
@@ -515,7 +511,6 @@
       <div>
         <p class="eyebrow">Sumarno po danu</p>
         <h3 class="section-title">Pregled po datumima</h3>
-        <p class="muted">Vidite ukupne promete i broj kupaca za svaki dan izabranog opsega.</p>
       </div>
       <div class="range-day-summary" *ngIf="prometRangeTotals">
         <div class="summary-chip">
@@ -592,6 +587,13 @@
           </div>
         </div>
       </div>
+      <div class="col" style="margin:8px;">
+          <button style="float:inline-end;" nbButton size="small" status="success" appearance="ghost" (click)="exportRangeDays()"
+          [disabled]="!hasRangeDayData">
+          <nb-icon icon="download"></nb-icon>
+          Excel 
+        </button>
+    </div>
     </div>
 
     <div class="range-table-paginator" *ngIf="hasRangeDayData">
@@ -614,7 +616,6 @@
         <div>
           <p class="eyebrow">Trend po danima</p>
           <h5 class="section-title">Vizualni prikaz kretanja prometa</h5>
-          <p class="muted">Brzo uočite rast ili pad dnevnog prometa u odnosu na prošlu godinu.</p>
         </div>
       </div>
       <div class="chart-body">

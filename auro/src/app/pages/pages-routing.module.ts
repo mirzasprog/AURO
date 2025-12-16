@@ -99,6 +99,8 @@ const routes: Routes = [{
     },
     {
       path: 'fakturisanje-usluga',
+      data: { roles: [Role.finansije] },
+      canActivate: [AuthGuard],
       loadChildren: () => import('./fakturisanje-usluga/fakturisanje-usluga.module')
       .then(m => m.FakturisanjeUslugaModule)
     },

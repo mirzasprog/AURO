@@ -1,5 +1,6 @@
 export enum Role {
   prodavnica = "prodavnica",
+  finansije = "finansije",
   interna = "interna",
   podrucni = "podrucni",
   regionalni= "regionalni",
