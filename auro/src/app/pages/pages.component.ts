@@ -102,7 +102,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
-          this.setMenuHidden(["Fakturisanje"], true);
+         // this.setMenuHidden(["Fakturisanje"], true);
         }
         else if (rola == "interna") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -117,7 +117,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
-          this.setMenuHidden(["Fakturisanje"], true);
+         // this.setMenuHidden(["Fakturisanje"], true);
         }
         else if (rola == "podrucni") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -132,7 +132,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
-          this.setMenuHidden(["Fakturisanje"], true);
+        //  this.setMenuHidden(["Fakturisanje"], true);
         }
         else if (rola == "regionalni") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -146,7 +146,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
-          this.setMenuHidden(["Fakturisanje"], true);
+        //  this.setMenuHidden(["Fakturisanje"], true);
         }
         else if (rola == "kontrola_kvaliteta") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -160,7 +160,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
-          this.setMenuHidden(["Fakturisanje"], true);
+         // this.setMenuHidden(["Fakturisanje"], true);
         }
         else if (rola == "uprava") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -174,7 +174,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
-          this.setMenuHidden(["Fakturisanje"], true);
+         // this.setMenuHidden(["Fakturisanje"], true);
         }
         else if(rola == "finansije") {
           this.setMenuHidden(["Dnevni zadaci"], false);
