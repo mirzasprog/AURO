@@ -1637,6 +1637,83 @@ body[data-theme='dark'] .table-wrapper::-webkit-scrollbar-thumb {
   flex-wrap: wrap;
 }
 
+.range-dual-table {
+  margin-top: 1.25rem;
+  overflow-x: auto;
+}
+
+.range-table-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  gap: 1rem;
+  min-width: 580px;
+}
+
+.range-table-card {
+  background: var(--background-basic-color-1);
+  border: 1px solid var(--border-basic-color-3);
+  border-radius: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+}
+
+.table-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.9rem 1.1rem;
+  border-bottom: 1px solid var(--border-basic-color-3);
+  gap: 0.75rem;
+
+  .eyebrow {
+    margin-bottom: 0.1rem;
+  }
+
+  .section-title {
+    margin: 0;
+  }
+}
+
+.table-count {
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.table-card-body {
+  padding: 0.5rem 1.1rem 1rem;
+  overflow-x: auto;
+}
+
+.simple-range-table {
+  min-width: 320px;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.range-table-paginator {
+  margin-top: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--border-basic-color-3);
+  border-radius: 0.75rem;
+  background: var(--background-basic-color-2);
+}
+
+.paginator-status {
+  font-weight: 600;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .summary-chip {
   display: grid;
   gap: 0.2rem;
