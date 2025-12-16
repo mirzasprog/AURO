@@ -148,6 +148,7 @@ namespace backend.Data
             if (currentStart <= today && today <= currentEnd)
             {
                 var todayEntries = _context.ResponsePrometiProdavnica
+                    .FromSqlInterpolated($"EXEC GetPrometSvihProdavnica")
                     .AsNoTracking()
                     .Select(p => new PrometRangeEntry
                     {

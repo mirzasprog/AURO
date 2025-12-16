@@ -1144,17 +1144,15 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     const areaSupportText = this.dashboardSummary.netoKvadraturaObjekta !== undefined
       ? `Neto površina: ${Number(this.dashboardSummary.netoKvadraturaObjekta).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²`
       : undefined;
-      cards.push(buildCard(
-        'turnoverPerArea',
-        'Promet po neto kvadraturi',
-        this.dashboardSummary.prometPoNetoKvadraturi ?? 0,
-        previousAreaTurnover,
-        areaUnit,
-        undefined,
-        areaSupportText
-      ));
-
-    this.updateStoreRating();
+    cards.push(buildCard(
+      'turnoverPerArea',
+      'Promet po neto kvadraturi',
+      this.dashboardSummary.prometPoNetoKvadraturi ?? 0,
+      previousAreaTurnover,
+      areaUnit,
+      undefined,
+      areaSupportText
+    ));
 
     return cards;
   }

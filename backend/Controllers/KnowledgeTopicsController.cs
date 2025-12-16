@@ -22,6 +22,7 @@ namespace backend.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<KnowledgeTopic>>> GetAllAsync(CancellationToken ct)
         {
             var topics = await _dbContext.KnowledgeTopics.AsNoTracking().OrderBy(t => t.Tema).ToListAsync(ct);
