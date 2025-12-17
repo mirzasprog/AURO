@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NbBadgeModule, NbButtonModule, NbCardModule, NbDialogModule, NbIconModule, NbInputModule, NbSpinnerModule, NbTooltipModule } from '@nebular/theme';
+import { NbBadgeModule, NbButtonModule, NbCardModule, NbDialogModule, NbIconModule, NbInputModule, NbSelectModule, NbSpinnerModule, NbTooltipModule } from '@nebular/theme';
 import { ThemeModule } from '../../@theme/theme.module';
 import { VikendAkcijeRoutingModule } from './vikend-akcije-routing.module';
 import { VikendAkcijeComponent } from './vikend-akcije.component';
@@ -19,6 +19,7 @@ import { VikendAkcijeStavkePregledComponent } from './vikend-akcije-stavke-pregl
     NbButtonModule,
     NbIconModule,
     NbInputModule,
+    NbSelectModule,
     NbSpinnerModule,
     NbBadgeModule,
     NbTooltipModule,

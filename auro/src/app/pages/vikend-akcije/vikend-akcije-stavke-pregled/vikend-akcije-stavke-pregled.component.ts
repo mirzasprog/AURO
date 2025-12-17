@@ -35,11 +35,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
     this.dataService.preuzmiStavkeVikendAkcije(this.vikendAkcijaId)
       .subscribe({
         next: (stavke) => {
-          this.stavke = this.filtrirajStavkePoProdavnici(stavke)
-            .map(stavka => ({
-              ...stavka,
-              zaliha: stavka.zaliha ?? 0
-            }));
+          this.stavke = this.pripremiStavkeZaPregled(stavke);
           this.loading = false;
         },
         error: (err) => {
@@ -83,12 +79,28 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
     FileSaver.saveAs(data, `vikend-akcija-${this.vikendAkcijaId}.xlsx`);
   }
 
-  private filtrirajStavkePoProdavnici(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
-    if (this.rola !== 'prodavnica' || !this.brojProdavnice) {
-      return stavke;
-    }
+  private pripremiStavkeZaPregled(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+    const mapa = new Map<string, VikendAkcijaStavka>();
+    const ciljanaProdavnica = this.rola === 'prodavnica' ? this.brojProdavnice : '';
 
-    return stavke.filter(stavka => (stavka.prodavnica ?? '').toString() === this.brojProdavnice);
+    stavke.forEach(stavka => {
+      const kljuc = (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
+      const postojeca = mapa.get(kljuc);
+      const jeCiljana = !!ciljanaProdavnica && (stavka.prodavnica ?? '').toString() === ciljanaProdavnica;
+
+      if (!postojeca || jeCiljana) {
+        mapa.set(kljuc, {
+          ...stavka,
+          prodavnica: jeCiljana ? ciljanaProdavnica : postojeca?.prodavnica ?? stavka.prodavnica,
+          kolicina: stavka.kolicina ?? 0,
+          zaliha: stavka.zaliha ?? postojeca?.zaliha ?? 0
+        });
+      }
+    });
+
+    return Array.from(mapa.values())
+      .map(stavka => ({ ...stavka, zaliha: stavka.zaliha ?? 0 }))
+      .sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
   }
 }
 
