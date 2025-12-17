@@ -17,11 +17,13 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   stavke: VikendAkcijaStavka[] = [];
   sveStavke: VikendAkcijaStavka[] = [];
   dostupneProdavnice: string[] = [];
+  neaktivneProdavnice: string[] = [];
   aktivnaProdavnica = '';
   originalneKolicine = new Map<string, number>();
   privatneKolicine = new Map<string, number>();
   filtriraneStavke: VikendAkcijaStavka[] = [];
   searchTerm = '';
+  prodavnicaFilter = '';
   filterStatus: 'sve' | 'naručeno' | 'nenaručeno' = 'sve';
   trenutnaStranica = 1;
   readonly pageSize = 5;
@@ -50,13 +52,23 @@ export class VikendAkcijeStavkeComponent implements OnInit {
         next: (podaci) => {
           this.sveStavke = podaci.map(stavka => ({
             ...stavka,
-            zaliha: stavka.zaliha ?? 0
+            zaliha: stavka.zaliha ?? 0,
+            prodavnica: (stavka.prodavnica ?? '').toString()
           }));
 
           this.dostupneProdavnice = this.izdvojiProdavnice(this.sveStavke);
           this.originalneKolicine = this.kreirajKolicineMapu(this.sveStavke);
-          this.aktivnaProdavnica = this.pocetnaProdavnica();
-          this.osvjeziPrikazZaProdavnicu();
+          this.filterStatus = this.rola === 'uprava' ? 'naručeno' : 'sve';
+
+          if (this.rola === 'prodavnica') {
+            this.aktivnaProdavnica = this.pocetnaProdavnica();
+            this.osvjeziPrikazZaProdavnicu();
+          } else {
+            this.stavke = this.pripremiSveNarudzbe(this.sveStavke);
+            this.postaviPrivatneKolicine(this.stavke);
+            this.osvjeziNeaktivneProdavnice();
+            this.primijeniFiltre();
+          }
           this.loading = false;
         },
         error: (err) => {
@@ -71,12 +83,11 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   }
 
   kolicinaPromijenjena(stavka: VikendAkcijaStavka): boolean {
-    const kljuc = this.kolicinaKljuc(stavka, this.trenutnaProdavnica());
+    const kljuc = this.kolicinaKljuc(stavka, this.brojProdavniceZaStavku(stavka));
     return (this.privatneKolicine.get(kljuc) ?? 0) !== Number(stavka.kolicina);
   }
 
   pripremiIzmjene(): VikendAkcijaStavkaUpdate[] {
-    const prodavnica = this.trenutnaProdavnica();
     return this.stavke
       .filter(stavka => this.kolicinaPromijenjena(stavka))
       .map(stavka => ({
@@ -85,8 +96,9 @@ export class VikendAkcijeStavkeComponent implements OnInit {
         sifraArtikla: stavka.sifra ?? '',
         nazivArtikla: stavka.naziv ?? '',
         kolicina: Number(stavka.kolicina),
-        brojProdavnice: prodavnica,
-      }));
+        brojProdavnice: this.brojProdavniceZaStavku(stavka),
+      }))
+      .filter(izmjena => !!izmjena.brojProdavnice);
   }
 
   mozeUrediti(): boolean {
@@ -95,7 +107,6 @@ export class VikendAkcijeStavkeComponent implements OnInit {
 
   mozeSpasiti(): boolean {
     return this.mozeUrediti()
-      && !!this.trenutnaProdavnica()
       && this.pripremiIzmjene().length > 0
       && !this.saving;
   }
@@ -140,22 +151,42 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.osvjeziPrikazZaProdavnicu();
   }
 
+  exportujProdavniceBezNarudzbi(): void {
+    if (!this.neaktivneProdavnice.length) {
+      return;
+    }
+
+    const worksheet = XLSX.utils.json_to_sheet(
+      this.neaktivneProdavnice.map(prodavnica => ({ prodavnica }))
+    );
+    const workbook: XLSX.WorkBook = { Sheets: { Prodavnice: worksheet }, SheetNames: ['Prodavnice'] };
+
+    const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
+    FileSaver.saveAs(data, `vikend-akcija-${this.vikendAkcijaId}-bez-narudzbi.xlsx`);
+  }
+
   private osvjeziPrikazZaProdavnicu(): void {
     const prodavnica = this.trenutnaProdavnica();
     this.stavke = this.pripremiStavkePoProdavnici(this.sveStavke, prodavnica);
-    this.privatneKolicine = new Map(
-      this.stavke.map(stavka => {
-        const kljuc = this.kolicinaKljuc(stavka, prodavnica);
-        const vrijednost = this.originalneKolicine.get(kljuc) ?? 0;
-        return [kljuc, vrijednost];
-      })
-    );
+    this.postaviPrivatneKolicine(this.stavke, prodavnica);
     this.primijeniFiltre();
   }
 
   promijeniFiltre(): void {
     this.trenutnaStranica = 1;
     this.primijeniFiltre();
+  }
+
+  private postaviPrivatneKolicine(stavke: VikendAkcijaStavka[], prodavnica?: string): void {
+    this.privatneKolicine = new Map(
+      stavke.map(stavka => {
+        const oznakaProdavnice = prodavnica ?? stavka.prodavnica ?? '';
+        const kljuc = this.kolicinaKljuc(stavka, oznakaProdavnice);
+        const vrijednost = this.originalneKolicine.get(kljuc) ?? 0;
+        return [kljuc, vrijednost];
+      })
+    );
   }
 
   promijeniStranicu(korak: number): void {
@@ -220,6 +251,24 @@ export class VikendAkcijeStavkeComponent implements OnInit {
       .sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
   }
 
+  private pripremiSveNarudzbe(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+    return [...stavke]
+      .map(stavka => ({
+        ...stavka,
+        kolicina: Number(stavka.kolicina) || 0,
+        zaliha: stavka.zaliha ?? 0,
+        prodavnica: (stavka.prodavnica ?? '').toString(),
+      }))
+      .sort((a, b) => {
+        const prodavnicaA = (a.prodavnica ?? '').toString();
+        const prodavnicaB = (b.prodavnica ?? '').toString();
+        if (prodavnicaA !== prodavnicaB) {
+          return prodavnicaA.localeCompare(prodavnicaB);
+        }
+        return (a.sifra ?? '').localeCompare(b.sifra ?? '');
+      });
+  }
+
   private izdvojiProdavnice(stavke: VikendAkcijaStavka[]): string[] {
     const set = new Set<string>();
     stavke
@@ -229,10 +278,28 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     return Array.from(set).sort();
   }
 
+  private osvjeziNeaktivneProdavnice(): void {
+    const sumaPoProdavnici = new Map<string, number>();
+
+    this.sveStavke.forEach(stavka => {
+      const prodavnica = (stavka.prodavnica ?? '').toString();
+      if (!prodavnica) {
+        return;
+      }
+      const trenutnaSuma = sumaPoProdavnici.get(prodavnica) ?? 0;
+      sumaPoProdavnici.set(prodavnica, trenutnaSuma + (Number(stavka.kolicina) || 0));
+    });
+
+    this.neaktivneProdavnice = Array.from(sumaPoProdavnici.entries())
+      .filter(([, kolicina]) => (kolicina ?? 0) <= 0)
+      .map(([prodavnica]) => prodavnica)
+      .sort();
+  }
+
   private kreirajKolicineMapu(stavke: VikendAkcijaStavka[]): Map<string, number> {
     const mapa = new Map<string, number>();
     stavke.forEach(stavka => {
-      const kljuc = this.kolicinaKljuc(stavka, stavka.prodavnica ?? this.trenutnaProdavnica());
+      const kljuc = this.kolicinaKljuc(stavka, (stavka.prodavnica ?? '').toString());
       mapa.set(kljuc, Number(stavka.kolicina) || 0);
     });
     return mapa;
@@ -254,6 +321,14 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     return this.rola === 'prodavnica' ? this.brojProdavnice : this.aktivnaProdavnica;
   }
 
+  private brojProdavniceZaStavku(stavka: VikendAkcijaStavka): string {
+    if (this.rola === 'prodavnica') {
+      return this.brojProdavnice || this.aktivnaProdavnica;
+    }
+
+    return (stavka.prodavnica ?? '').toString();
+  }
+
   private artikalKljuc(stavka: VikendAkcijaStavka): string {
     return (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
   }
@@ -265,25 +340,44 @@ export class VikendAkcijeStavkeComponent implements OnInit {
 
   private primijeniFiltre(): void {
     const trazeniTekst = this.searchTerm.trim().toLowerCase();
-    this.filtriraneStavke = this.stavke.filter(stavka => {
-      const kolicina = Number(stavka.kolicina) || 0;
-      const zadovoljavaStatus = this.filterStatus === 'sve'
-        || (this.filterStatus === 'naručeno' && kolicina > 0)
-        || (this.filterStatus === 'nenaručeno' && kolicina === 0);
+    const trazenaProdavnica = this.prodavnicaFilter.trim().toLowerCase();
 
-      if (!zadovoljavaStatus) {
-        return false;
-      }
+    this.filtriraneStavke = this.stavke
+      .filter(stavka => {
+        const kolicina = Number(stavka.kolicina) || 0;
+        const zadovoljavaStatus = this.filterStatus === 'sve'
+          || (this.filterStatus === 'naručeno' && kolicina > 0)
+          || (this.filterStatus === 'nenaručeno' && kolicina === 0);
 
-      if (!trazeniTekst) {
-        return true;
-      }
+        if (!zadovoljavaStatus) {
+          return false;
+        }
 
-      const sifra = (stavka.sifra ?? '').toString().toLowerCase();
-      const naziv = (stavka.naziv ?? '').toString().toLowerCase();
-      const opis = (stavka.opis ?? '').toString().toLowerCase();
-      return sifra.includes(trazeniTekst) || naziv.includes(trazeniTekst) || opis.includes(trazeniTekst);
-    });
+        const prodavnica = (stavka.prodavnica ?? '').toString().toLowerCase();
+        if (trazenaProdavnica && !prodavnica.includes(trazenaProdavnica)) {
+          return false;
+        }
+
+        if (!trazeniTekst) {
+          return true;
+        }
+
+        const sifra = (stavka.sifra ?? '').toString().toLowerCase();
+        const naziv = (stavka.naziv ?? '').toString().toLowerCase();
+        const opis = (stavka.opis ?? '').toString().toLowerCase();
+        return sifra.includes(trazeniTekst) || naziv.includes(trazeniTekst) || opis.includes(trazeniTekst);
+      })
+      .sort((a, b) => {
+        const prodavnicaA = (a.prodavnica ?? '').toString();
+        const prodavnicaB = (b.prodavnica ?? '').toString();
+        if (prodavnicaA !== prodavnicaB) {
+          return prodavnicaA.localeCompare(prodavnicaB);
+        }
+
+        const sifraA = (a.sifra ?? '').toString();
+        const sifraB = (b.sifra ?? '').toString();
+        return sifraA.localeCompare(sifraB);
+      });
 
     const ukupno = this.ukupnoStranica;
     if (this.trenutnaStranica > ukupno) {
@@ -291,3 +385,5 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     }
   }
 }
+
+const EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
