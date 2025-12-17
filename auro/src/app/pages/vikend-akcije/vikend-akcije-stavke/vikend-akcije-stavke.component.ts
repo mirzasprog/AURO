@@ -181,6 +181,11 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.primijeniFiltre();
   }
 
+  onKolicinaChange(): void {
+    this.osvjeziNeaktivneProdavnice(this.stavke);
+    this.primijeniFiltre();
+  }
+
   private postaviPrivatneKolicine(stavke: VikendAkcijaStavka[], prodavnica?: string): void {
     this.privatneKolicine = new Map(
       stavke.map(stavka => {
@@ -442,6 +447,8 @@ export class VikendAkcijeStavkeComponent implements OnInit {
         const sifraB = (b.sifra ?? '').toString();
         return sifraA.localeCompare(sifraB);
       });
+
+    this.osvjeziNeaktivneProdavnice(this.stavke);
 
     const ukupno = this.ukupnoStranica;
     if (this.trenutnaStranica > ukupno) {

@@ -97,6 +97,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         brojProdavnice: this.brojProdavnice,
       },
       closeOnBackdropClick: false,
+      dialogClass: 'vikend-akcije-dialog',
     });
   }
 
@@ -109,6 +110,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         brojProdavnice: this.brojProdavnice,
       },
       closeOnBackdropClick: false,
+      dialogClass: 'vikend-akcije-dialog',
     }).onClose
       .pipe(takeUntil(this.destroy$))
       .subscribe((azurirano: boolean) => {

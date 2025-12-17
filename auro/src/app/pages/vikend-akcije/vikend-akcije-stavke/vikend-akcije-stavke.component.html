@@ -55,7 +55,7 @@
       </div>
     </div>
 
-    <div class="table-responsive" *ngIf="!loading; else loadingStavke">
+    <div class="table-container" *ngIf="!loading; else loadingStavke">
       <table class="table table-sm table-hover">
         <thead>
           <tr>
@@ -93,7 +93,8 @@
             <td>{{ stavka.opis }}</td>
             <td class="text-end">{{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</td>
             <td class="kolicina-cell" [ngClass]="{ 'zero-order': (stavka.kolicina ?? 0) === 0 }">
-              <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina" [disabled]="!mozeUrediti()" />
+              <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina"
+                (ngModelChange)="onKolicinaChange()" [disabled]="!mozeUrediti()" />
             </td>
             <td class="text-center">
               <nb-icon *ngIf="!kolicinaPromijenjena(stavka)" icon="checkmark-circle-2-outline" status="success"></nb-icon>
@@ -118,8 +119,8 @@
     </ng-template>
   </nb-card-body>
   <nb-card-footer class="col">
-    <button nbButton style="float:inline-start;" status="danger" size="small" (click)="zatvori(false)" [disabled]="saving">Zatvori</button>
-    <button nbButton status="primary" size="small" style="margin-left:25px;" (click)="ucitajStavke()" [disabled]="saving">Osvježi</button>
-    <button nbButton status="success" style="float:inline-end;" size="small" (click)="sacuvaj()" [disabled]="!mozeSpasiti()">Sačuvaj</button>
+    <button nbButton status="danger" size="small" (click)="zatvori(false)" [disabled]="saving">Zatvori</button>
+    <button nbButton status="primary" size="small" (click)="ucitajStavke()" [disabled]="saving">Osvježi</button>
+    <button nbButton status="success" size="small" (click)="sacuvaj()" [disabled]="!mozeSpasiti()">Sačuvaj</button>
   </nb-card-footer>
 </nb-card>
