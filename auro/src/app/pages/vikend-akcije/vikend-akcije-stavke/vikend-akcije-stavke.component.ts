@@ -17,11 +17,14 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   stavke: VikendAkcijaStavka[] = [];
   sveStavke: VikendAkcijaStavka[] = [];
   dostupneProdavnice: string[] = [];
-  dostupniArtikli: VikendAkcijaStavka[] = [];
   aktivnaProdavnica = '';
-  odabranaSifraArtikla = '';
   originalneKolicine = new Map<string, number>();
   privatneKolicine = new Map<string, number>();
+  filtriraneStavke: VikendAkcijaStavka[] = [];
+  searchTerm = '';
+  filterStatus: 'sve' | 'naručeno' | 'nenaručeno' = 'sve';
+  trenutnaStranica = 1;
+  readonly pageSize = 5;
   loading = false;
   saving = false;
   greska = '';
@@ -51,7 +54,6 @@ export class VikendAkcijeStavkeComponent implements OnInit {
           }));
 
           this.dostupneProdavnice = this.izdvojiProdavnice(this.sveStavke);
-          this.dostupniArtikli = this.izdvojiArtikle(this.sveStavke);
           this.originalneKolicine = this.kreirajKolicineMapu(this.sveStavke);
           this.aktivnaProdavnica = this.pocetnaProdavnica();
           this.osvjeziPrikazZaProdavnicu();
@@ -138,43 +140,6 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.osvjeziPrikazZaProdavnicu();
   }
 
-  dodajArtikalZaProdavnicu(): void {
-    const prodavnica = this.trenutnaProdavnica();
-    if (!prodavnica) {
-      this.greska = 'Odaberite prodavnicu prije dodavanja artikala.';
-      return;
-    }
-
-    const artikal = this.dostupniArtikli.find(a => (a.sifra ?? '').toString() === this.odabranaSifraArtikla);
-    if (!artikal) {
-      this.greska = 'Odaberite artikal sa liste za dodavanje.';
-      return;
-    }
-
-    const kljuc = this.kolicinaKljuc(artikal, prodavnica);
-    if (this.stavke.some(s => this.kolicinaKljuc(s, prodavnica) === kljuc)) {
-      this.greska = 'Artikal je već prikazan za odabranu prodavnicu.';
-      return;
-    }
-
-    const novaStavka = {
-      ...artikal,
-      prodavnica,
-      kolicina: 0,
-      zaliha: artikal.zaliha ?? 0
-    } as VikendAkcijaStavka;
-
-    this.stavke = [...this.stavke, novaStavka].sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
-    this.privatneKolicine.set(kljuc, 0);
-    this.originalneKolicine.set(kljuc, 0);
-    this.sveStavke = [...this.sveStavke, novaStavka];
-    if (!this.dostupneProdavnice.includes(prodavnica)) {
-      this.dostupneProdavnice = [...this.dostupneProdavnice, prodavnica].sort();
-    }
-    this.odabranaSifraArtikla = '';
-    this.greska = '';
-  }
-
   private osvjeziPrikazZaProdavnicu(): void {
     const prodavnica = this.trenutnaProdavnica();
     this.stavke = this.pripremiStavkePoProdavnici(this.sveStavke, prodavnica);
@@ -185,6 +150,29 @@ export class VikendAkcijeStavkeComponent implements OnInit {
         return [kljuc, vrijednost];
       })
     );
+    this.primijeniFiltre();
+  }
+
+  promijeniFiltre(): void {
+    this.trenutnaStranica = 1;
+    this.primijeniFiltre();
+  }
+
+  promijeniStranicu(korak: number): void {
+    const novaStranica = this.trenutnaStranica + korak;
+    if (novaStranica < 1 || novaStranica > this.ukupnoStranica) {
+      return;
+    }
+    this.trenutnaStranica = novaStranica;
+  }
+
+  get prikazaneStavke(): VikendAkcijaStavka[] {
+    const pocetak = (this.trenutnaStranica - 1) * this.pageSize;
+    return this.filtriraneStavke.slice(pocetak, pocetak + this.pageSize);
+  }
+
+  get ukupnoStranica(): number {
+    return Math.max(1, Math.ceil(this.filtriraneStavke.length / this.pageSize) || 1);
   }
 
   private pripremiStavkePoProdavnici(stavke: VikendAkcijaStavka[], prodavnica: string): VikendAkcijaStavka[] {
@@ -241,23 +229,6 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     return Array.from(set).sort();
   }
 
-  private izdvojiArtikle(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
-    const mapa = new Map<string, VikendAkcijaStavka>();
-    stavke.forEach(stavka => {
-      const kljuc = this.artikalKljuc(stavka);
-      if (!mapa.has(kljuc)) {
-        mapa.set(kljuc, {
-          ...stavka,
-          prodavnica: '',
-          kolicina: 0,
-          zaliha: stavka.zaliha ?? 0
-        });
-      }
-    });
-
-    return Array.from(mapa.values()).sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
-  }
-
   private kreirajKolicineMapu(stavke: VikendAkcijaStavka[]): Map<string, number> {
     const mapa = new Map<string, number>();
     stavke.forEach(stavka => {
@@ -290,5 +261,33 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   private kolicinaKljuc(stavka: VikendAkcijaStavka, prodavnica?: string): string {
     const oznaka = prodavnica ?? stavka.prodavnica ?? '';
     return `${this.artikalKljuc(stavka)}|${oznaka.toString().trim()}`;
+  }
+
+  private primijeniFiltre(): void {
+    const trazeniTekst = this.searchTerm.trim().toLowerCase();
+    this.filtriraneStavke = this.stavke.filter(stavka => {
+      const kolicina = Number(stavka.kolicina) || 0;
+      const zadovoljavaStatus = this.filterStatus === 'sve'
+        || (this.filterStatus === 'naručeno' && kolicina > 0)
+        || (this.filterStatus === 'nenaručeno' && kolicina === 0);
+
+      if (!zadovoljavaStatus) {
+        return false;
+      }
+
+      if (!trazeniTekst) {
+        return true;
+      }
+
+      const sifra = (stavka.sifra ?? '').toString().toLowerCase();
+      const naziv = (stavka.naziv ?? '').toString().toLowerCase();
+      const opis = (stavka.opis ?? '').toString().toLowerCase();
+      return sifra.includes(trazeniTekst) || naziv.includes(trazeniTekst) || opis.includes(trazeniTekst);
+    });
+
+    const ukupno = this.ukupnoStranica;
+    if (this.trenutnaStranica > ukupno) {
+      this.trenutnaStranica = ukupno;
+    }
   }
 }

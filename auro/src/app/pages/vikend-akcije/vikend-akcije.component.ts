@@ -30,7 +30,6 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   importPoruka = '';
   odabraniFajl?: File;
   odabranaAkcijaId = '';
-  importUputstvoUrl = `${environment.apiUrl}/vikend-akcije-import-uputstvo.pdf`;
   importTemplateUrl = `${environment.apiUrl}/vikend-akcije-sablon.xlsx`;
   selektovanaAkcija?: VikendAkcija;
   selektovaneStavke: VikendAkcijaStavka[] = [];
@@ -237,14 +236,16 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {
-          if (!stavke.length) {
-            this.greska = 'Nema dostupnih stavki za odabranu akciju.';
+          const stavkeZaExport = stavke.filter(s => (Number(s.kolicina) || 0) > 0);
+
+          if (!stavkeZaExport.length) {
+            this.greska = 'Nema dostupnih stavki sa naručenom količinom za odabranu akciju.';
             this.preuzimanjeAkcijaId = '';
             return;
           }
 
-          const analitika = this.kreirajAnalitiku(stavke);
-          const sintetika = this.kreirajSintetiku(stavke, akcija);
+          const analitika = this.kreirajAnalitiku(stavkeZaExport);
+          const sintetika = this.kreirajSintetiku(stavkeZaExport, akcija);
 
           const workbook: XLSX.WorkBook = {
             Sheets: {

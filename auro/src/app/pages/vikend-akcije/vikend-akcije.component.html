@@ -31,18 +31,15 @@
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
           <div class="form-field file-field">
-            <label class="form-label">Import artikala (.xlsx)</label>
+            <div class="label-row">
+              <label class="form-label mb-0">Import artikala (.xlsx)</label>
+              <a nbButton size="tiny" status="primary" ghost [href]="importTemplateUrl" target="_blank" rel="noopener">
+                <nb-icon icon="download-outline"></nb-icon> Šablon
+              </a>
+            </div>
             <div class="file-row">
               <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
                 name="excelFile" required>
-              <div class="helper-buttons">
-                <a nbButton size="small" status="primary" ghost [href]="importTemplateUrl" target="_blank" rel="noopener">
-                  <nb-icon icon="download-outline"></nb-icon> Šablon
-                </a>
-                <a nbButton size="small" status="info" ghost [href]="importUputstvoUrl" target="_blank" rel="noopener">
-                  <nb-icon icon="book-open-outline"></nb-icon> Uputstvo
-                </a>
-              </div>
             </div>
             <small class="text-muted d-block mt-1">Dozvoljen je .xlsx format sa zaglavljima iz šablona.</small>
           </div>
