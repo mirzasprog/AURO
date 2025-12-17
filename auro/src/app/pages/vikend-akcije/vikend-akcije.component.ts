@@ -3,6 +3,7 @@ import { NbDialogService } from '@nebular/theme';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { Subject } from 'rxjs';
 import { switchMap, takeUntil } from 'rxjs/operators';
+import { environment } from '../../../environments/environment';
 import { DataService } from '../../@core/utils/data.service';
 import { VikendAkcija } from '../../@core/data/vikend-akcija';
 import { VikendAkcijeStavkeComponent } from './vikend-akcije-stavke/vikend-akcije-stavke.component';
@@ -29,6 +30,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   importPoruka = '';
   odabraniFajl?: File;
   odabranaAkcijaId = '';
+  importUputstvoUrl = `${environment.apiUrl}/vikend-akcije-import-uputstvo.pdf`;
+  importTemplateUrl = `${environment.apiUrl}/vikend-akcije-sablon.xlsx`;
   selektovanaAkcija?: VikendAkcija;
   selektovaneStavke: VikendAkcijaStavka[] = [];
   stavkeLoading = false;
@@ -206,7 +209,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {
-          this.selektovaneStavke = this.filtrirajStavkePoProdavnici(stavke);
+          this.selektovaneStavke = this.filtrirajStavkePoProdavnici(stavke)
+            .map(s => ({ ...s, zaliha: s.zaliha ?? 0 }));
           this.stavkeLoading = false;
         },
         error: (err) => {
@@ -259,7 +263,13 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   }
 
   private kreirajAnalitiku(stavke: VikendAkcijaStavka[]): any[] {
-    const mapa = new Map<string, { sifra: string; naziv: string; ukupnaKolicina: number; prodavnice: Set<string> }>();
+    const mapa = new Map<string, {
+      sifra: string;
+      naziv: string;
+      ukupnaKolicina: number;
+      prodavnice: Set<string>;
+      akcijskaMpc?: number;
+    }>();
 
     stavke.forEach(stavka => {
       const kljuc = `${stavka.sifra ?? stavka.naziv ?? stavka.id}`;
@@ -269,12 +279,18 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       if (postojeci) {
         postojeci.ukupnaKolicina += Number(stavka.kolicina) || 0;
         postojeci.prodavnice.add(prodavnica);
+        if (postojeci.akcijskaMpc === undefined && stavka.akcijskaMpc !== undefined && stavka.akcijskaMpc !== null) {
+          postojeci.akcijskaMpc = Number(stavka.akcijskaMpc);
+        }
       } else {
         mapa.set(kljuc, {
           sifra: stavka.sifra ?? 'N/A',
           naziv: stavka.naziv ?? 'Nepoznat artikal',
           ukupnaKolicina: Number(stavka.kolicina) || 0,
           prodavnice: new Set([prodavnica]),
+          akcijskaMpc: stavka.akcijskaMpc !== undefined && stavka.akcijskaMpc !== null
+            ? Number(stavka.akcijskaMpc)
+            : undefined
         });
       }
     });
@@ -284,6 +300,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       'Naziv artikla': zapis.naziv,
       'Broj prodavnice': zapis.prodavnice.size,
       'Ukupna količina': zapis.ukupnaKolicina,
+      'Akcijska MPC': zapis.akcijskaMpc ?? ''
     }));
   }
 
@@ -299,6 +316,15 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
           : String(stavka.prodavnica),
       'Šifra artikla': stavka.sifra ?? 'N/A',
       'Naziv artikla': stavka.naziv ?? 'Nepoznat artikal',
+      'Bar kod': stavka.barKod ?? '',
+      'Dobavljač': stavka.dobavljac ?? '',
+      'AS SA': stavka.asSa ?? 0,
+      'AS MO': stavka.asMo ?? 0,
+      'AS BL': stavka.asBl ?? 0,
+      'Status artikla': stavka.status ?? '',
+      'Opis': stavka.opis ?? '',
+      'Akcijska MPC': stavka.akcijskaMpc ?? 0,
+      'Zaliha': stavka.zaliha ?? 0,
       'Količina': Number(stavka.kolicina) || 0,
       Period: period,
     }));
@@ -384,16 +410,25 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       const postojeca = mapaStavki.get(kljuc);
 
       if ((stavka.prodavnica ?? '').toString() === this.brojProdavnice) {
-        mapaStavki.set(kljuc, { ...stavka, prodavnica: this.brojProdavnice });
+        mapaStavki.set(kljuc, { ...stavka, prodavnica: this.brojProdavnice, zaliha: stavka.zaliha ?? 0 });
         return;
       }
 
       if (!postojeca) {
-        mapaStavki.set(kljuc, { ...stavka, kolicina: 0, prodavnica: this.brojProdavnice });
+        mapaStavki.set(kljuc, {
+          ...stavka,
+          kolicina: 0,
+          prodavnica: this.brojProdavnice,
+          zaliha: stavka.zaliha ?? 0
+        });
       }
     });
 
     return Array.from(mapaStavki.values());
+  }
+
+  otvoriStavke(akcija: VikendAkcija): void {
+    this.otvoriAzuriranjeStavki(akcija);
   }
 }
 

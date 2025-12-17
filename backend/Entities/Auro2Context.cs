@@ -1220,6 +1220,33 @@ namespace backend.Entities
 
                 entity.Property(e => e.SifraArtk)
                     .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.BarKod)
+                    .HasColumnType("nvarchar(128)");
+
+                entity.Property(e => e.Dobavljac)
+                    .HasColumnType("nvarchar(256)");
+
+                entity.Property(e => e.AsSa)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.AsMo)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.AsBl)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Opis)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.Status)
+                    .HasColumnType("nvarchar(128)");
+
+                entity.Property(e => e.AkcijskaMpc)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Zaliha)
+                    .HasColumnType("decimal(18, 2)");
             });
 
             modelBuilder.Entity<PrometHistorija>(entity =>

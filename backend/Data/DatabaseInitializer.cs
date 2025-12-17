@@ -153,8 +153,58 @@ BEGIN
         [IDAkcije] NVARCHAR(64) NOT NULL,
         [NazivArtk] NVARCHAR(MAX) NULL,
         [SifraArtk] NVARCHAR(MAX) NULL,
+        [BarKod] NVARCHAR(128) NULL,
+        [Dobavljac] NVARCHAR(256) NULL,
+        [AsSa] DECIMAL(18, 2) NULL,
+        [AsMo] DECIMAL(18, 2) NULL,
+        [AsBl] DECIMAL(18, 2) NULL,
+        [Opis] NVARCHAR(MAX) NULL,
+        [Status] NVARCHAR(128) NULL,
+        [AkcijskaMpc] DECIMAL(18, 2) NULL,
+        [Zaliha] DECIMAL(18, 2) NULL,
         CONSTRAINT [PK_VIPArtikli] PRIMARY KEY CLUSTERED ([Id] ASC)
     );
+END";
+
+        private const string EnsureVipArtikliExtendedColumnsSql = @"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'VIPArtikli' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'BarKod' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [BarKod] NVARCHAR(128) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'Dobavljac' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [Dobavljac] NVARCHAR(256) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AsSa' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [AsSa] DECIMAL(18, 2) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AsMo' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [AsMo] DECIMAL(18, 2) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AsBl' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [AsBl] DECIMAL(18, 2) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'Opis' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [Opis] NVARCHAR(MAX) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'Status' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [Status] NVARCHAR(128) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'AkcijskaMpc' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [AkcijskaMpc] DECIMAL(18, 2) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'Zaliha' AND Object_ID = OBJECT_ID('dbo.VIPArtikli'))
+    BEGIN
+        ALTER TABLE [dbo].[VIPArtikli] ADD [Zaliha] DECIMAL(18, 2) NULL;
+    END
 END";
 
         private const string EnsureServiceInvoicesTableSql = @"
@@ -238,6 +288,7 @@ END";
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdColumnSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdIndexSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliTableSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliExtendedColumnsSql);
         }
 
         public static async Task EnsureServiceInvoiceTablesAsync(IServiceProvider services)
@@ -251,4 +302,3 @@ END";
         }
     }
 }
-

@@ -35,7 +35,11 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
     this.dataService.preuzmiStavkeVikendAkcije(this.vikendAkcijaId)
       .subscribe({
         next: (stavke) => {
-          this.stavke = this.filtrirajStavkePoProdavnici(stavke);
+          this.stavke = this.filtrirajStavkePoProdavnici(stavke)
+            .map(stavka => ({
+              ...stavka,
+              zaliha: stavka.zaliha ?? 0
+            }));
           this.loading = false;
         },
         error: (err) => {
@@ -58,6 +62,17 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
       idAkcije: this.vikendAkcijaId,
       sifraArtikla: stavka.sifra ?? '',
       nazivArtikla: stavka.naziv ?? '',
+      barKod: stavka.barKod ?? '',
+      dobavljac: stavka.dobavljac ?? '',
+      akcijskaMpc: stavka.akcijskaMpc ?? 0,
+      asSa: stavka.asSa ?? 0,
+      asMo: stavka.asMo ?? 0,
+      asBl: stavka.asBl ?? 0,
+      status: stavka.status ?? '',
+      opis: stavka.opis ?? '',
+      zaliha: stavka.zaliha ?? 0,
+      prodavnica: stavka.prodavnica ?? '',
+      narucenaKolicina: stavka.kolicina ?? 0,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(podaci);

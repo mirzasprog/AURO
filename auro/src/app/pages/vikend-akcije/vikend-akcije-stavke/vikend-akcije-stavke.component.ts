@@ -39,7 +39,11 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.dataService.preuzmiStavkeVikendAkcije(this.vikendAkcijaId)
       .subscribe({
         next: (podaci) => {
-          this.stavke = this.filtrirajStavkePoProdavnici(podaci);
+          this.stavke = this.filtrirajStavkePoProdavnici(podaci)
+            .map(stavka => ({
+              ...stavka,
+              zaliha: stavka.zaliha ?? 0
+            }));
           this.privatneKolicine = new Map(this.stavke.map(s => [s.id, s.kolicina]));
           this.loading = false;
         },
@@ -116,12 +120,17 @@ export class VikendAkcijeStavkeComponent implements OnInit {
       const postojeca = mapaStavki.get(kljuc);
 
       if ((stavka.prodavnica ?? '').toString() === this.brojProdavnice) {
-        mapaStavki.set(kljuc, { ...stavka, prodavnica: this.brojProdavnice });
+        mapaStavki.set(kljuc, { ...stavka, prodavnica: this.brojProdavnice, zaliha: stavka.zaliha ?? 0 });
         return;
       }
 
       if (!postojeca) {
-        mapaStavki.set(kljuc, { ...stavka, kolicina: 0, prodavnica: this.brojProdavnice });
+        mapaStavki.set(kljuc, {
+          ...stavka,
+          kolicina: 0,
+          prodavnica: this.brojProdavnice,
+          zaliha: stavka.zaliha ?? 0
+        });
       }
     });
 
