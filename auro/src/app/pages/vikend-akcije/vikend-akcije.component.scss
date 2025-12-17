@@ -35,6 +35,25 @@
   align-items: end;
 }
 
+.inline-controls-row {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 1rem;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.inline-controls-row > .form-field {
+  flex: 1 1 320px;
+}
+
+.inline-controls-row .inline-actions {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: stretch;
+  gap: 0.75rem;
+}
+
 .form-field input,
 .form-field select,
 .form-field nb-select,
@@ -77,6 +96,7 @@
 
 .inline-file-row {
   flex-wrap: nowrap;
+  align-items: stretch;
 }
 
 @media (max-width: 768px) {
@@ -89,6 +109,16 @@
   height: 42px;
   display: inline-flex;
   align-items: center;
+}
+
+.inline-file-row input[type="file"],
+.inline-file-row .template-button,
+.inline-actions .action-button {
+  height: 100%;
+}
+
+.compact-file-field {
+  min-width: 280px;
 }
 
 .label-row {

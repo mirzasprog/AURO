@@ -93,8 +93,6 @@
 }
 
 .stavke-modal nb-card-body {
-  max-height: 65vh;
-  overflow: auto;
 }
 
 .table {
@@ -104,6 +102,12 @@
 .kolicina-cell input {
   max-width: 120px;
   margin: 0 auto;
+}
+
+.kolicina-cell.zero-order input {
+  border-color: var(--status-danger-border);
+  background: rgba(244, 67, 54, 0.08);
+  color: var(--status-danger-text);
 }
 
 .table td,
