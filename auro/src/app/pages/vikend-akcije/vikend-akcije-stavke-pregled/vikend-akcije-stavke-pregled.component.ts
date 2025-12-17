@@ -50,26 +50,28 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
   }
 
   exportujStavke(): void {
-    if (!this.stavke.length) {
+    const podaci = this.stavke
+      .filter(stavka => (Number(stavka.kolicina) || 0) > 0)
+      .map(stavka => ({
+        idAkcije: this.vikendAkcijaId,
+        sifraArtikla: stavka.sifra ?? '',
+        nazivArtikla: stavka.naziv ?? '',
+        barKod: stavka.barKod ?? '',
+        dobavljac: stavka.dobavljac ?? '',
+        akcijskaMpc: stavka.akcijskaMpc ?? 0,
+        asSa: stavka.asSa ?? 0,
+        asMo: stavka.asMo ?? 0,
+        asBl: stavka.asBl ?? 0,
+        status: stavka.status ?? '',
+        opis: stavka.opis ?? '',
+        zaliha: stavka.zaliha ?? 0,
+        prodavnica: stavka.prodavnica ?? '',
+        narucenaKolicina: stavka.kolicina ?? 0,
+      }));
+
+    if (!podaci.length) {
       return;
     }
-
-    const podaci = this.stavke.map(stavka => ({
-      idAkcije: this.vikendAkcijaId,
-      sifraArtikla: stavka.sifra ?? '',
-      nazivArtikla: stavka.naziv ?? '',
-      barKod: stavka.barKod ?? '',
-      dobavljac: stavka.dobavljac ?? '',
-      akcijskaMpc: stavka.akcijskaMpc ?? 0,
-      asSa: stavka.asSa ?? 0,
-      asMo: stavka.asMo ?? 0,
-      asBl: stavka.asBl ?? 0,
-      status: stavka.status ?? '',
-      opis: stavka.opis ?? '',
-      zaliha: stavka.zaliha ?? 0,
-      prodavnica: stavka.prodavnica ?? '',
-      narucenaKolicina: stavka.kolicina ?? 0,
-    }));
 
     const worksheet = XLSX.utils.json_to_sheet(podaci);
     const workbook: XLSX.WorkBook = { Sheets: { Stavke: worksheet }, SheetNames: ['Stavke'] };

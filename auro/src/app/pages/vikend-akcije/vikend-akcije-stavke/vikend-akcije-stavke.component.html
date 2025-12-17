@@ -21,17 +21,21 @@
           <div class="pill">Prodavnica #{{ brojProdavnice }}</div>
         </ng-template>
       </div>
-      <div class="editor-field" *ngIf="rola === 'uprava'">
-        <label>Dodaj artikal u narudžbu</label>
-        <div class="add-row">
-          <nb-select fullWidth placeholder="Artikal" [(selected)]="odabranaSifraArtikla">
-            <nb-option *ngFor="let artikal of dostupniArtikli" [value]="artikal.sifra">
-              {{ artikal.sifra }} — {{ artikal.naziv }}
-            </nb-option>
-          </nb-select>
-          <button nbButton size="small" status="primary" (click)="dodajArtikalZaProdavnicu()"
-            [disabled]="!dostupniArtikli.length">Dodaj</button>
-        </div>
+    </div>
+
+    <div class="filter-bar">
+      <div class="filter-field">
+        <label>Pretraga</label>
+        <input nbInput fullWidth placeholder="Šifra, naziv ili opis" [(ngModel)]="searchTerm"
+          (ngModelChange)="promijeniFiltre()">
+      </div>
+      <div class="filter-field">
+        <label>Status narudžbe</label>
+        <nb-select fullWidth [(selected)]="filterStatus" (selectedChange)="promijeniFiltre()">
+          <nb-option value="sve">Sve stavke</nb-option>
+          <nb-option value="naručeno">Samo naručeno</nb-option>
+          <nb-option value="nenaručeno">Bez narudžbe</nb-option>
+        </nb-select>
       </div>
     </div>
 
@@ -56,7 +60,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let stavka of stavke">
+          <tr *ngFor="let stavka of prikazaneStavke" [ngClass]="{
+              'ordered-row': (stavka.kolicina ?? 0) > 0,
+              'not-ordered-row': (stavka.kolicina ?? 0) === 0
+            }">
             <td>{{ stavka.sifra }}</td>
             <td>{{ stavka.naziv }}</td>
             <td>{{ stavka.barKod }}</td>
@@ -79,6 +86,14 @@
           </tr>
         </tbody>
       </table>
+      <div class="paginator" *ngIf="filtriraneStavke.length">
+        <button nbButton size="tiny" status="basic" (click)="promijeniStranicu(-1)"
+          [disabled]="trenutnaStranica === 1">Prethodna</button>
+        <span>Stranica {{ trenutnaStranica }} / {{ ukupnoStranica }}</span>
+        <button nbButton size="tiny" status="basic" (click)="promijeniStranicu(1)"
+          [disabled]="trenutnaStranica >= ukupnoStranica">Sljedeća</button>
+      </div>
+      <div class="text-center text-muted" *ngIf="!filtriraneStavke.length">Nema stavki za prikaz.</div>
     </div>
     <ng-template #loadingStavke>
       <div class="d-flex justify-content-center">
