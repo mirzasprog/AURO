@@ -8,16 +8,36 @@
       <table class="table table-sm table-hover">
         <thead>
           <tr>
-            <th>ID akcije</th>
             <th>Šifra artikla</th>
             <th>Naziv artikla</th>
+            <th>Bar kod</th>
+            <th>Dobavljač</th>
+            <th class="text-end">Akcijska MPC</th>
+            <th class="text-end">AS SA</th>
+            <th class="text-end">AS MO</th>
+            <th class="text-end">AS BL</th>
+            <th>Status</th>
+            <th>Opis</th>
+            <th class="text-end">Zaliha</th>
+            <th>Prodavnica</th>
+            <th class="text-end">Naručena količina</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let stavka of stavke">
-            <td>{{ vikendAkcijaId }}</td>
             <td>{{ stavka.sifra }}</td>
             <td>{{ stavka.naziv }}</td>
+            <td>{{ stavka.barKod }}</td>
+            <td>{{ stavka.dobavljac }}</td>
+            <td class="text-end">{{ stavka.akcijskaMpc | number: '1.2-2' }}</td>
+            <td class="text-end">{{ stavka.asSa | number: '1.0-2' }}</td>
+            <td class="text-end">{{ stavka.asMo | number: '1.0-2' }}</td>
+            <td class="text-end">{{ stavka.asBl | number: '1.0-2' }}</td>
+            <td>{{ stavka.status }}</td>
+            <td>{{ stavka.opis }}</td>
+            <td class="text-end">{{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</td>
+            <td>{{ stavka.prodavnica }}</td>
+            <td class="text-end">{{ stavka.kolicina }}</td>
           </tr>
         </tbody>
       </table>

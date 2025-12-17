@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using backend.Entities;
@@ -51,38 +53,40 @@ namespace backend.Data
                 return Enumerable.Empty<VikendAkcijaStavkaDto>();
             }
 
+            var artikli = await _context.VipArtiklis
+                .AsNoTracking()
+                .Where(a => a.Idakcije == vikendAkcijaId)
+                .ToListAsync();
+
+            var artikliMapa = artikli
+                .Where(a => !string.IsNullOrWhiteSpace(a.SifraArtk))
+                .GroupBy(a => a.SifraArtk!.Trim(), StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(g => g.Key, g => g.First(), StringComparer.OrdinalIgnoreCase);
+
             var stavke = await _context.VipStavkes
                 .AsNoTracking()
                 .Where(s => s.VipZaglavljeId == zaglavljeId)
                 .OrderBy(s => s.SifraArtikla)
-                .Select(s => new VikendAkcijaStavkaDto
-                {
-                    Id = s.Id.ToString(),
-                    Sifra = s.SifraArtikla,
-                    Naziv = s.NazivArtikla,
-                    Kolicina = s.Kolicina,
-                    Prodavnica = s.Prodavnica
-                })
+                .Select(s => new { Stavka = s, ArtikalKey = s.SifraArtikla })
                 .ToListAsync();
 
-            if (stavke.Any())
+            var rezultat = stavke
+                .Select(s =>
+                {
+                    artikliMapa.TryGetValue((s.ArtikalKey ?? string.Empty).Trim(), out var artikal);
+                    return MapirajStavku(s.Stavka, artikal);
+                })
+                .ToList();
+
+            if (rezultat.Any())
             {
-                return stavke;
+                return rezultat;
             }
 
-            return await _context.VipArtiklis
-                .AsNoTracking()
-                .Where(a => a.Idakcije == vikendAkcijaId)
-                .OrderBy(a => a.NazivArtk)
-                .Select(a => new VikendAkcijaStavkaDto
-                {
-                    Id = a.Id.ToString(),
-                    Sifra = a.SifraArtk,
-                    Naziv = a.NazivArtk,
-                    Kolicina = 0,
-                    Prodavnica = null
-                })
-                .ToListAsync();
+            return artikli
+                .OrderBy(a => a.NazivArtk ?? a.SifraArtk)
+                .Select(MapirajArtikal)
+                .ToList();
         }
 
         public async Task<IEnumerable<VipArtikalDto>> GetVipArtikliAsync(string akcijaId)
@@ -96,7 +100,16 @@ namespace backend.Data
                     Id = a.Id,
                     IdAkcije = a.Idakcije,
                     NazivArtk = a.NazivArtk,
-                    SifraArtk = a.SifraArtk
+                    SifraArtk = a.SifraArtk,
+                    BarKod = a.BarKod,
+                    Dobavljac = a.Dobavljac,
+                    AsSa = a.AsSa,
+                    AsMo = a.AsMo,
+                    AsBl = a.AsBl,
+                    Opis = a.Opis,
+                    Status = a.Status,
+                    AkcijskaMpc = a.AkcijskaMpc,
+                    Zaliha = a.Zaliha
                 })
                 .ToListAsync();
         }
@@ -236,30 +249,102 @@ namespace backend.Data
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             var uneseniRedovi = new List<VipArtikli>();
+            var greske = new List<string>();
+            var obavezneKolone = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["SIFRAARTIKLA"] = "ŠIFRA ARTIKLA",
+                ["NAZIV"] = "NAZIV",
+                ["BARKOD"] = "BAR KOD",
+                ["DOBAVLJAC"] = "DOBAVLJAČ",
+                ["ASSA"] = "AS SA",
+                ["ASMO"] = "AS MO",
+                ["ASBL"] = "AS BL",
+                ["OPIS"] = "OPIS",
+                ["STATUS"] = "STATUS",
+                ["AKCIJSKAMPC"] = "AKCIJSKA MPC"
+            };
+
+            var postojeceSifre = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             using (var stream = file.OpenReadStream())
             using (var reader = ExcelReaderFactory.CreateReader(stream))
             {
-                var dataSet = reader.AsDataSet();
+                var dataSet = reader.AsDataSet(new ExcelDataSetConfiguration
+                {
+                    ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                    {
+                        UseHeaderRow = true
+                    }
+                });
+
                 if (dataSet.Tables.Count == 0)
                 {
                     throw new InvalidOperationException("Excel fajl ne sadrži podatke.");
                 }
 
                 var table = dataSet.Tables[0];
+                var koloneMapa = table.Columns
+                    .Cast<System.Data.DataColumn>()
+                    .ToDictionary(c => NormalizujKolonu(c.ColumnName), c => c.Ordinal, StringComparer.OrdinalIgnoreCase);
+
+                var nedostajuKolone = obavezneKolone
+                    .Where(k => !koloneMapa.ContainsKey(k.Key))
+                    .Select(k => k.Value)
+                    .ToList();
+
+                if (nedostajuKolone.Any())
+                {
+                    throw new InvalidOperationException($"Excel fajl ne sadrži sve obavezne kolone: {string.Join(", ", nedostajuKolone)}.");
+                }
+
                 for (var i = 0; i < table.Rows.Count; i++)
                 {
                     var row = table.Rows[i];
-                    var naziv = row[0]?.ToString()?.Trim();
-                    var sifra = row[1]?.ToString()?.Trim();
+                    var redniBroj = i + 2; // zbog header-a
+                    var rowErrors = new List<string>();
 
-                    if (i == 0 && (string.Equals(naziv, "NazivArtk", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(naziv, "NazivArtikla", StringComparison.OrdinalIgnoreCase)))
+                    var sifra = ProcitajTekst(row, koloneMapa, "SIFRAARTIKLA");
+                    var naziv = ProcitajTekst(row, koloneMapa, "NAZIV");
+                    var barKod = ProcitajTekst(row, koloneMapa, "BARKOD");
+                    var dobavljac = ProcitajTekst(row, koloneMapa, "DOBAVLJAC");
+                    var asSa = ProcitajDecimal(row, koloneMapa, "ASSA", false, rowErrors, redniBroj, "AS SA");
+                    var asMo = ProcitajDecimal(row, koloneMapa, "ASMO", false, rowErrors, redniBroj, "AS MO");
+                    var asBl = ProcitajDecimal(row, koloneMapa, "ASBL", false, rowErrors, redniBroj, "AS BL");
+                    var opis = ProcitajTekst(row, koloneMapa, "OPIS");
+                    var status = ProcitajTekst(row, koloneMapa, "STATUS");
+                    var akcijskaMpc = ProcitajDecimal(row, koloneMapa, "AKCIJSKAMPC", true, rowErrors, redniBroj, "AKCIJSKA MPC");
+
+                    if (JePrazanRed(sifra, naziv, barKod, dobavljac, opis, status, akcijskaMpc?.ToString(), asSa?.ToString(), asMo?.ToString(), asBl?.ToString()))
                     {
-                        continue; // preskoči header
+                        continue;
                     }
 
-                    if (string.IsNullOrWhiteSpace(naziv) && string.IsNullOrWhiteSpace(sifra))
+                    if (string.IsNullOrWhiteSpace(sifra))
                     {
+                        rowErrors.Add($"Red {redniBroj}: kolona 'ŠIFRA ARTIKLA' je obavezna.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(naziv))
+                    {
+                        rowErrors.Add($"Red {redniBroj}: kolona 'NAZIV' je obavezna.");
+                    }
+
+                    if (string.IsNullOrWhiteSpace(status))
+                    {
+                        rowErrors.Add($"Red {redniBroj}: kolona 'STATUS' je obavezna.");
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(sifra))
+                    {
+                        var normalizovanaSifra = sifra.Trim();
+                        if (!postojeceSifre.Add(normalizovanaSifra))
+                        {
+                            rowErrors.Add($"Red {redniBroj}: pronađena duplirana šifra artikla '{normalizovanaSifra}'.");
+                        }
+                    }
+
+                    if (rowErrors.Any())
+                    {
+                        greske.AddRange(rowErrors);
                         continue;
                     }
 
@@ -267,14 +352,38 @@ namespace backend.Data
                     {
                         Idakcije = akcijaId,
                         NazivArtk = naziv,
-                        SifraArtk = sifra
+                        SifraArtk = sifra,
+                        BarKod = barKod,
+                        Dobavljac = dobavljac,
+                        AsSa = asSa,
+                        AsMo = asMo,
+                        AsBl = asBl,
+                        Opis = opis,
+                        Status = status,
+                        AkcijskaMpc = akcijskaMpc,
+                        Zaliha = 0
                     });
                 }
+            }
+
+            if (greske.Any())
+            {
+                throw new InvalidOperationException($"Excel fajl sadrži greške: {string.Join(" | ", greske)}");
             }
 
             if (uneseniRedovi.Count == 0)
             {
                 throw new InvalidOperationException("Nema validnih redova za import.");
+            }
+
+            var postojeciArtikli = await _context.VipArtiklis
+                .Where(a => a.Idakcije == akcijaId)
+                .ToListAsync();
+
+            if (postojeciArtikli.Any())
+            {
+                _context.VipArtiklis.RemoveRange(postojeciArtikli);
+                await _context.SaveChangesAsync();
             }
 
             await _context.VipArtiklis.AddRangeAsync(uneseniRedovi);
@@ -285,6 +394,120 @@ namespace backend.Data
                 BrojRedova = uneseniRedovi.Count,
                 Poruka = $"Uspješno importovano {uneseniRedovi.Count} artikala."
             };
+        }
+
+        private static VikendAkcijaStavkaDto MapirajStavku(VipStavke stavka, VipArtikli? artikal)
+        {
+            return new VikendAkcijaStavkaDto
+            {
+                Id = stavka.Id.ToString(),
+                Sifra = artikal?.SifraArtk ?? stavka.SifraArtikla,
+                Naziv = artikal?.NazivArtk ?? stavka.NazivArtikla,
+                Kolicina = stavka.Kolicina,
+                Prodavnica = stavka.Prodavnica,
+                BarKod = artikal?.BarKod,
+                Dobavljac = artikal?.Dobavljac,
+                AsSa = artikal?.AsSa,
+                AsMo = artikal?.AsMo,
+                AsBl = artikal?.AsBl,
+                Opis = artikal?.Opis,
+                Status = artikal?.Status,
+                AkcijskaMpc = artikal?.AkcijskaMpc,
+                Zaliha = artikal?.Zaliha ?? 0
+            };
+        }
+
+        private static VikendAkcijaStavkaDto MapirajArtikal(VipArtikli artikal)
+        {
+            return new VikendAkcijaStavkaDto
+            {
+                Id = artikal.Id.ToString(),
+                Sifra = artikal.SifraArtk,
+                Naziv = artikal.NazivArtk,
+                Kolicina = 0,
+                Prodavnica = null,
+                BarKod = artikal.BarKod,
+                Dobavljac = artikal.Dobavljac,
+                AsSa = artikal.AsSa,
+                AsMo = artikal.AsMo,
+                AsBl = artikal.AsBl,
+                Opis = artikal.Opis,
+                Status = artikal.Status,
+                AkcijskaMpc = artikal.AkcijskaMpc,
+                Zaliha = artikal.Zaliha ?? 0
+            };
+        }
+
+        private static string NormalizujKolonu(string? naziv)
+        {
+            if (string.IsNullOrWhiteSpace(naziv))
+            {
+                return string.Empty;
+            }
+
+            var normalizovano = naziv.Trim().Normalize(NormalizationForm.FormD);
+            var builder = new StringBuilder();
+
+            foreach (var znak in normalizovano)
+            {
+                var kategorija = CharUnicodeInfo.GetUnicodeCategory(znak);
+                if (kategorija == UnicodeCategory.NonSpacingMark)
+                {
+                    continue;
+                }
+
+                if (char.IsWhiteSpace(znak) || znak == '_' || znak == '-')
+                {
+                    continue;
+                }
+
+                builder.Append(char.ToUpperInvariant(znak));
+            }
+
+            return builder.ToString();
+        }
+
+        private static string ProcitajTekst(DataRow row, IDictionary<string, int> koloneMapa, string kljuc)
+        {
+            if (!koloneMapa.TryGetValue(kljuc, out var indeks))
+            {
+                return string.Empty;
+            }
+
+            var vrijednost = row[indeks];
+            if (vrijednost == null || vrijednost == DBNull.Value)
+            {
+                return string.Empty;
+            }
+
+            return vrijednost.ToString()?.Trim() ?? string.Empty;
+        }
+
+        private static decimal? ProcitajDecimal(DataRow row, IDictionary<string, int> koloneMapa, string kljuc, bool obavezno, ICollection<string> greske, int redniBroj, string nazivKolone)
+        {
+            var tekst = ProcitajTekst(row, koloneMapa, kljuc);
+            if (string.IsNullOrWhiteSpace(tekst))
+            {
+                if (obavezno)
+                {
+                    greske.Add($"Red {redniBroj}: kolona '{nazivKolone}' je obavezna.");
+                }
+                return null;
+            }
+
+            if (decimal.TryParse(tekst, NumberStyles.Any, CultureInfo.InvariantCulture, out var rezultat)
+                || decimal.TryParse(tekst, NumberStyles.Any, new CultureInfo("bs-Latn-BA"), out rezultat))
+            {
+                return rezultat;
+            }
+
+            greske.Add($"Red {redniBroj}: vrijednost '{tekst}' u koloni '{nazivKolone}' nije validan broj.");
+            return null;
+        }
+
+        private static bool JePrazanRed(params string?[] vrijednosti)
+        {
+            return vrijednosti.All(string.IsNullOrWhiteSpace);
         }
 
         private static string GenerisiId()

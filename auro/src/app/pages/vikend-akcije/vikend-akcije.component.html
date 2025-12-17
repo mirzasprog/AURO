@@ -34,6 +34,11 @@
             <label class="form-label">Import artikala (.xlsx)</label>
             <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
               name="excelFile" required>
+            <small class="text-muted d-block mt-1">
+              <a [href]="importTemplateUrl" target="_blank" rel="noopener">Preuzmi Excel šablon</a>
+              <span class="mx-1">•</span>
+              <a [href]="importUputstvoUrl" target="_blank" rel="noopener">Uputstvo (PDF)</a>
+            </small>
           </div>
           <div class="col">
             <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small"
@@ -143,9 +148,11 @@
       <div *ngIf="stavkeGreska" class="alert alert-danger mb-3">{{ stavkeGreska }}</div>
       <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length" class="stavke-grid">
         <div class="stavka" *ngFor="let stavka of selektovaneStavke">
-          <div class="stavka-title">{{ stavka.nazivArtk }}</div>
-          <div class="muted">Šifra: {{ stavka.sifraArtk }}</div>
-          <div class="badge">Količina: {{ stavka.kolicina }}</div>
+          <div class="stavka-title">{{ stavka.naziv || 'N/A' }}</div>
+          <div class="muted">Šifra: {{ stavka.sifra }}</div>
+          <div class="muted">Bar kod: {{ stavka.barKod || '—' }}</div>
+          <div class="badge">Količina: {{ stavka.kolicina }} | MPC: {{ stavka.akcijskaMpc | number: '1.2-2' }}</div>
+          <div class="badge">Zaliha: {{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</div>
         </div>
       </div>
       <div *ngIf="!stavkeLoading && !stavkeGreska && selektovaneStavke.length === 0"

@@ -9,19 +9,35 @@
       <table class="table table-sm table-hover">
         <thead>
           <tr>
-            <th>Id</th>
-            <th>Sifra</th>
+            <th>Šifra</th>
             <th>Naziv</th>
-            <th class="text-center">Kolicina</th>
+            <th>Bar kod</th>
+            <th>Dobavljač</th>
+            <th class="text-end">Akcijska MPC</th>
+            <th class="text-end">AS SA</th>
+            <th class="text-end">AS MO</th>
+            <th class="text-end">AS BL</th>
+            <th>Status</th>
+            <th>Opis</th>
+            <th class="text-end">Zaliha</th>
+            <th class="text-center">Naručena količina</th>
             <th>Prodavnica</th>
             <th class="text-center">***</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let stavka of stavke">
-            <td>{{ stavka.id }}</td>
             <td>{{ stavka.sifra }}</td>
             <td>{{ stavka.naziv }}</td>
+            <td>{{ stavka.barKod }}</td>
+            <td>{{ stavka.dobavljac }}</td>
+            <td class="text-end">{{ stavka.akcijskaMpc | number: '1.2-2' }}</td>
+            <td class="text-end">{{ stavka.asSa | number: '1.0-2' }}</td>
+            <td class="text-end">{{ stavka.asMo | number: '1.0-2' }}</td>
+            <td class="text-end">{{ stavka.asBl | number: '1.0-2' }}</td>
+            <td>{{ stavka.status }}</td>
+            <td>{{ stavka.opis }}</td>
+            <td class="text-end">{{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</td>
             <td class="kolicina-cell">
               <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina" [disabled]="!mozeUrediti()" />
             </td>
