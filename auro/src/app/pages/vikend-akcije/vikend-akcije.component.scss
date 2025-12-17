@@ -75,6 +75,22 @@
   flex-wrap: wrap;
 }
 
+.inline-file-row {
+  flex-wrap: nowrap;
+}
+
+@media (max-width: 768px) {
+  .inline-file-row {
+    flex-wrap: wrap;
+  }
+}
+
+.template-button {
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+}
+
 .label-row {
   display: flex;
   align-items: center;
@@ -93,6 +109,15 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
+}
+
+.even-actions {
+  align-items: stretch;
+}
+
+.action-button {
+  height: 42px;
+  min-width: 88px;
 }
 
 .eyebrow {

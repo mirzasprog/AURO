@@ -34,15 +34,30 @@
   margin-bottom: 0.35rem;
 }
 
-.store-row,
 .add-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.store-row input {
-  max-width: 180px;
+.input-with-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.full-width {
+  grid-column: span 2;
+}
+
+@media (max-width: 768px) {
+  .full-width {
+    grid-column: span 1;
+  }
+
+  .input-with-actions {
+    flex-wrap: wrap;
+  }
 }
 
 .pill {
@@ -55,6 +70,18 @@
   border: 1px solid var(--pill-border);
   color: var(--pill-text);
   font-weight: 600;
+}
+
+.editor-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.helper-text {
+  margin: 0;
 }
 
 .stavke-modal nb-card-header,

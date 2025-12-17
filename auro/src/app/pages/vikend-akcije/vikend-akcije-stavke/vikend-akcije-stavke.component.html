@@ -7,21 +7,37 @@
     <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
 
     <div class="editor-bar" *ngIf="mozeUrediti()">
-      <div class="editor-field">
-        <label>Prodavnica</label>
-        <div class="store-row" *ngIf="rola === 'uprava'; else prodavnicaBadge">
-          <input nbInput fullWidth placeholder="Broj prodavnice" [(ngModel)]="aktivnaProdavnica"
-            (keyup.enter)="promijeniProdavnicu()" (blur)="promijeniProdavnicu()" list="prodavnice-list">
-          <datalist id="prodavnice-list">
-            <option *ngFor="let prod of dostupneProdavnice" [value]="prod"></option>
-          </datalist>
-          <button nbButton size="small" status="info" (click)="promijeniProdavnicu()">Primijeni</button>
-        </div>
-        <ng-template #prodavnicaBadge>
+      <ng-container *ngIf="rola === 'prodavnica'; else upravaControls">
+        <div class="editor-field">
+          <label>Prodavnica</label>
           <div class="pill">Prodavnica #{{ brojProdavnice }}</div>
-        </ng-template>
-      </div>
+        </div>
+      </ng-container>
+      <ng-template #upravaControls>
+        <div class="editor-field full-width">
+          <label>Prodavnica</label>
+          <div class="input-with-actions">
+            <input nbInput fullWidth placeholder="Brzi filter prodavnice" [(ngModel)]="prodavnicaFilter"
+              (ngModelChange)="promijeniFiltre()" list="prodavnice-list">
+            <button nbButton size="tiny" status="basic" (click)="prodavnicaFilter=''; promijeniFiltre()"
+              [disabled]="!prodavnicaFilter">Reset</button>
+          </div>
+          <small class="text-muted">Ne mijenja podatke, već filtrira tabelu po prodavnici.</small>
+        </div>
+        <div class="editor-actions">
+          <button nbButton size="small" status="success" (click)="exportujProdavniceBezNarudzbi()"
+            [disabled]="!neaktivneProdavnice.length">
+            <nb-icon icon="download-outline"></nb-icon> Prodavnice bez narudžbi
+          </button>
+          <small class="text-muted helper-text" *ngIf="!neaktivneProdavnice.length && !loading">
+            Sve prodavnice imaju kreirane narudžbe.
+          </small>
+        </div>
+      </ng-template>
     </div>
+    <datalist id="prodavnice-list">
+      <option *ngFor="let prod of dostupneProdavnice" [value]="prod"></option>
+    </datalist>
 
     <div class="filter-bar">
       <div class="filter-field">
@@ -43,6 +59,7 @@
       <table class="table table-sm table-hover">
         <thead>
           <tr>
+            <th>Prodavnica</th>
             <th>Šifra</th>
             <th>Naziv</th>
             <th>Bar kod</th>
@@ -55,7 +72,6 @@
             <th>Opis</th>
             <th class="text-end">Zaliha</th>
             <th class="text-center">Naručena količina</th>
-            <th *ngIf="rola === 'uprava'">Prodavnica</th>
             <th class="text-center">***</th>
           </tr>
         </thead>
@@ -64,6 +80,7 @@
               'ordered-row': (stavka.kolicina ?? 0) > 0,
               'not-ordered-row': (stavka.kolicina ?? 0) === 0
             }">
+            <td class="text-nowrap">{{ stavka.prodavnica || 'N/A' }}</td>
             <td>{{ stavka.sifra }}</td>
             <td>{{ stavka.naziv }}</td>
             <td>{{ stavka.barKod }}</td>
@@ -78,7 +95,6 @@
             <td class="kolicina-cell">
               <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina" [disabled]="!mozeUrediti()" />
             </td>
-            <td *ngIf="rola === 'uprava'">{{ stavka.prodavnica }}</td>
             <td class="text-center">
               <nb-icon *ngIf="!kolicinaPromijenjena(stavka)" icon="checkmark-circle-2-outline" status="success"></nb-icon>
               <nb-icon *ngIf="kolicinaPromijenjena(stavka)" icon="alert-circle-outline" status="warning"></nb-icon>

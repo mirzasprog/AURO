@@ -31,24 +31,24 @@
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
           <div class="form-field file-field">
-            <div class="label-row">
-              <label class="form-label mb-0">Import artikala (.xlsx)</label>
-              <a nbButton size="tiny" status="primary" ghost [href]="importTemplateUrl" target="_blank" rel="noopener">
+            <label class="form-label mb-1">Import artikala (.xlsx)</label>
+            <div class="file-row inline-file-row">
+              <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
+                name="excelFile" required>
+              <a nbButton size="small" status="primary" ghost [href]="importTemplateUrl" target="_blank"
+                rel="noopener" class="template-button">
                 <nb-icon icon="download-outline"></nb-icon> Šablon
               </a>
             </div>
-            <div class="file-row">
-              <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
-                name="excelFile" required>
-            </div>
             <small class="text-muted d-block mt-1">Dozvoljen je .xlsx format sa zaglavljima iz šablona.</small>
           </div>
-          <div class="form-actions stacked-actions">
+          <div class="form-actions stacked-actions even-actions">
             <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small"
-              (click)="ocistiFormu()">
+              (click)="ocistiFormu()" class="action-button">
               <nb-icon icon="refresh"></nb-icon>
             </button>
-            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small">
+            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small"
+              class="action-button">
               <nb-spinner size="small" *ngIf="kreiranjeLoading"></nb-spinner>
               <span *ngIf="!kreiranjeLoading">
                 <nb-icon icon="save"></nb-icon> Spremi
