@@ -15,7 +15,7 @@
 
     <div class="admin-zone" *ngIf="prikaziAdminZonu()" #adminZone>
       <div class="admin-card">
-        <form (ngSubmit)="kreirajAkciju()" class="form-grid" enctype="multipart/form-data">
+        <form (ngSubmit)="kreirajAkciju()" class="form-grid admin-form" enctype="multipart/form-data">
           <div class="form-field">
             <label class="form-label">Opis</label>
             <input nbInput fullWidth placeholder="Naziv ili opis" autocomplete="off"
@@ -30,22 +30,28 @@
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
-          <div class="form-field">
+          <div class="form-field file-field">
             <label class="form-label">Import artikala (.xlsx)</label>
-            <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
-              name="excelFile" required>
-            <small class="text-muted d-block mt-1">
-              <a [href]="importTemplateUrl" target="_blank" rel="noopener">Preuzmi Excel šablon</a>
-              <span class="mx-1">•</span>
-              <a [href]="importUputstvoUrl" target="_blank" rel="noopener">Uputstvo (PDF)</a>
-            </small>
+            <div class="file-row">
+              <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
+                name="excelFile" required>
+              <div class="helper-buttons">
+                <a nbButton size="small" status="primary" ghost [href]="importTemplateUrl" target="_blank" rel="noopener">
+                  <nb-icon icon="download-outline"></nb-icon> Šablon
+                </a>
+                <a nbButton size="small" status="info" ghost [href]="importUputstvoUrl" target="_blank" rel="noopener">
+                  <nb-icon icon="book-open-outline"></nb-icon> Uputstvo
+                </a>
+              </div>
+            </div>
+            <small class="text-muted d-block mt-1">Dozvoljen je .xlsx format sa zaglavljima iz šablona.</small>
           </div>
-          <div class="col">
+          <div class="form-actions stacked-actions">
             <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small"
               (click)="ocistiFormu()">
               <nb-icon icon="refresh"></nb-icon>
             </button>
-            <button style="float:inline-end;" nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small">
+            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small">
               <nb-spinner size="small" *ngIf="kreiranjeLoading"></nb-spinner>
               <span *ngIf="!kreiranjeLoading">
                 <nb-icon icon="save"></nb-icon> Spremi
@@ -95,7 +101,7 @@
               </td>
               <td class="text-center">
                 <button nbButton size="small" status="info" (click)="otvoriPregledStavki(akcija)" nbTooltip="Prikaz stavki">
-                  <nb-icon icon="attach-2-outline"></nb-icon>
+                  <nb-icon icon="attach-2-outline"></nb-icon> Stavke
                 </button>
               </td>
               <td>
@@ -113,13 +119,19 @@
                     (click)="otvoriAzuriranjeStavki(akcija)" [disabled]="!jeAkcijaAktivna(akcija)">
                     <nb-icon icon="edit-2"></nb-icon> Otvori
                   </button>
-                  <button *ngSwitchCase="'uprava'" nbButton size="small" status="info"
-                    (click)="preuzmiIzvjestaj(akcija)" [disabled]="preuzimanjeAkcijaId === akcija.uniqueId">
-                    <nb-spinner *ngIf="preuzimanjeAkcijaId === akcija.uniqueId" size="tiny"></nb-spinner>
-                    <span *ngIf="preuzimanjeAkcijaId !== akcija.uniqueId">
-                      <nb-icon icon="download-outline"></nb-icon> Preuzmi izvještaj
-                    </span>
-                  </button>
+                  <div *ngSwitchCase="'uprava'" class="btn-group">
+                    <button nbButton size="small" status="primary"
+                      (click)="otvoriNarudzbe(akcija)" [disabled]="!jeAkcijaAktivna(akcija)">
+                      <nb-icon icon="edit-2"></nb-icon> Narudžbe
+                    </button>
+                    <button nbButton size="small" status="info"
+                      (click)="preuzmiIzvjestaj(akcija)" [disabled]="preuzimanjeAkcijaId === akcija.uniqueId">
+                      <nb-spinner *ngIf="preuzimanjeAkcijaId === akcija.uniqueId" size="tiny"></nb-spinner>
+                      <span *ngIf="preuzimanjeAkcijaId !== akcija.uniqueId">
+                        <nb-icon icon="download-outline"></nb-icon> Preuzmi izvještaj
+                      </span>
+                    </button>
+                  </div>
                 </ng-container>
               </td>
             </tr>

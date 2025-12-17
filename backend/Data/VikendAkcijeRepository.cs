@@ -78,14 +78,24 @@ namespace backend.Data
                 })
                 .ToList();
 
-            if (rezultat.Any())
+            var postojeciKljuc = new HashSet<string>(rezultat
+                .Select(r => NormalizujSifru(r.Sifra)), StringComparer.OrdinalIgnoreCase);
+
+            foreach (var artikal in artikli)
             {
-                return rezultat;
+                var kljuc = NormalizujSifru(artikal.SifraArtk);
+                if (postojeciKljuc.Contains(kljuc))
+                {
+                    continue;
+                }
+
+                rezultat.Add(MapirajArtikal(artikal));
+                postojeciKljuc.Add(kljuc);
             }
 
-            return artikli
-                .OrderBy(a => a.NazivArtk ?? a.SifraArtk)
-                .Select(MapirajArtikal)
+            return rezultat
+                .OrderBy(r => r.Sifra ?? r.Naziv)
+                .ThenBy(r => r.Prodavnica)
                 .ToList();
         }
 
@@ -508,6 +518,13 @@ namespace backend.Data
         private static bool JePrazanRed(params string?[] vrijednosti)
         {
             return vrijednosti.All(string.IsNullOrWhiteSpace);
+        }
+
+        private static string NormalizujSifru(string? sifra)
+        {
+            return string.IsNullOrWhiteSpace(sifra)
+                ? string.Empty
+                : sifra.Trim().ToUpperInvariant();
         }
 
         private static string GenerisiId()

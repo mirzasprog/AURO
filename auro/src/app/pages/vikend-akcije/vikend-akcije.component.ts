@@ -119,6 +119,10 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       });
   }
 
+  otvoriNarudzbe(akcija: VikendAkcija): void {
+    this.otvoriAzuriranjeStavki(akcija);
+  }
+
   prikaziAdminZonu(): boolean {
     return this.rola === 'uprava';
   }
@@ -209,7 +213,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {
-          this.selektovaneStavke = this.filtrirajStavkePoProdavnici(stavke)
+          this.selektovaneStavke = this.pripremiStavkeZaProdavnicu(stavke)
             .map(s => ({ ...s, zaliha: s.zaliha ?? 0 }));
           this.stavkeLoading = false;
         },
@@ -269,10 +273,18 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       ukupnaKolicina: number;
       prodavnice: Set<string>;
       akcijskaMpc?: number;
+      zaliha?: number;
+      barKod?: string;
+      dobavljac?: string;
+      asSa?: number;
+      asMo?: number;
+      asBl?: number;
+      status?: string;
+      opis?: string;
     }>();
 
     stavke.forEach(stavka => {
-      const kljuc = `${stavka.sifra ?? stavka.naziv ?? stavka.id}`;
+      const kljuc = this.artikalKljuc(stavka);
       const postojeci = mapa.get(kljuc);
       const prodavnica = stavka.prodavnica ?? 'Nepoznata prodavnica';
 
@@ -282,6 +294,14 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         if (postojeci.akcijskaMpc === undefined && stavka.akcijskaMpc !== undefined && stavka.akcijskaMpc !== null) {
           postojeci.akcijskaMpc = Number(stavka.akcijskaMpc);
         }
+        postojeci.zaliha = postojeci.zaliha ?? stavka.zaliha ?? undefined;
+        postojeci.barKod = postojeci.barKod ?? stavka.barKod ?? undefined;
+        postojeci.dobavljac = postojeci.dobavljac ?? stavka.dobavljac ?? undefined;
+        postojeci.asSa = postojeci.asSa ?? stavka.asSa ?? undefined;
+        postojeci.asMo = postojeci.asMo ?? stavka.asMo ?? undefined;
+        postojeci.asBl = postojeci.asBl ?? stavka.asBl ?? undefined;
+        postojeci.status = postojeci.status ?? stavka.status ?? undefined;
+        postojeci.opis = postojeci.opis ?? stavka.opis ?? undefined;
       } else {
         mapa.set(kljuc, {
           sifra: stavka.sifra ?? 'N/A',
@@ -290,7 +310,15 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
           prodavnice: new Set([prodavnica]),
           akcijskaMpc: stavka.akcijskaMpc !== undefined && stavka.akcijskaMpc !== null
             ? Number(stavka.akcijskaMpc)
-            : undefined
+            : undefined,
+          zaliha: stavka.zaliha ?? undefined,
+          barKod: stavka.barKod ?? undefined,
+          dobavljac: stavka.dobavljac ?? undefined,
+          asSa: stavka.asSa ?? undefined,
+          asMo: stavka.asMo ?? undefined,
+          asBl: stavka.asBl ?? undefined,
+          status: stavka.status ?? undefined,
+          opis: stavka.opis ?? undefined
         });
       }
     });
@@ -300,7 +328,15 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       'Naziv artikla': zapis.naziv,
       'Broj prodavnice': zapis.prodavnice.size,
       'Ukupna količina': zapis.ukupnaKolicina,
-      'Akcijska MPC': zapis.akcijskaMpc ?? ''
+      'Akcijska MPC': zapis.akcijskaMpc ?? '',
+      'Zaliha': zapis.zaliha ?? '',
+      'Bar kod': zapis.barKod ?? '',
+      'Dobavljač': zapis.dobavljac ?? '',
+      'AS SA': zapis.asSa ?? '',
+      'AS MO': zapis.asMo ?? '',
+      'AS BL': zapis.asBl ?? '',
+      'Status artikla': zapis.status ?? '',
+      'Opis': zapis.opis ?? ''
     }));
   }
 
@@ -398,33 +434,56 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     this.odabranaAkcijaId = najnovija?.uniqueId ?? '';
   }
 
-  private filtrirajStavkePoProdavnici(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
-    if (this.rola !== 'prodavnica' || !this.brojProdavnice) {
-      return stavke;
+  private pripremiStavkeZaProdavnicu(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+    if (!stavke.length) {
+      return [];
     }
 
-    const mapaStavki = new Map<string, VikendAkcijaStavka>();
+    const prodavnica = this.rola === 'prodavnica' ? this.brojProdavnice : '';
+    const baza = new Map<string, VikendAkcijaStavka>();
 
     stavke.forEach(stavka => {
-      const kljuc = stavka.sifra ?? stavka.naziv ?? stavka.id;
-      const postojeca = mapaStavki.get(kljuc);
-
-      if ((stavka.prodavnica ?? '').toString() === this.brojProdavnice) {
-        mapaStavki.set(kljuc, { ...stavka, prodavnica: this.brojProdavnice, zaliha: stavka.zaliha ?? 0 });
-        return;
-      }
-
-      if (!postojeca) {
-        mapaStavki.set(kljuc, {
+      const kljuc = this.artikalKljuc(stavka);
+      if (!baza.has(kljuc)) {
+        baza.set(kljuc, {
           ...stavka,
+          prodavnica: prodavnica || stavka.prodavnica || '',
           kolicina: 0,
-          prodavnica: this.brojProdavnice,
           zaliha: stavka.zaliha ?? 0
         });
       }
     });
 
-    return Array.from(mapaStavki.values());
+    const rezultat = new Map<string, VikendAkcijaStavka>();
+
+    stavke.forEach(stavka => {
+      const kljuc = this.artikalKljuc(stavka);
+      const bazna = baza.get(kljuc)!;
+      const ciljana = prodavnica && (stavka.prodavnica ?? '').toString() === prodavnica;
+
+      if (ciljana || (!prodavnica && !rezultat.has(kljuc))) {
+        rezultat.set(kljuc, {
+          ...bazna,
+          ...stavka,
+          prodavnica: prodavnica || stavka.prodavnica || '',
+          kolicina: Number(stavka.kolicina) || 0,
+          zaliha: stavka.zaliha ?? bazna.zaliha ?? 0
+        });
+        return;
+      }
+
+      if (!rezultat.has(kljuc)) {
+        rezultat.set(kljuc, bazna);
+      }
+    });
+
+    return Array.from(rezultat.values())
+      .map(stavka => ({ ...stavka, zaliha: stavka.zaliha ?? 0 }))
+      .sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
+  }
+
+  private artikalKljuc(stavka: VikendAkcijaStavka): string {
+    return (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
   }
 
   otvoriStavke(akcija: VikendAkcija): void {
