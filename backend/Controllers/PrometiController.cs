@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using backend.Models;
 using System;
 using System.Linq;
+using backend.Models.Prometi;
 
 namespace backend.Controllers
 {
@@ -96,7 +97,7 @@ namespace backend.Controllers
                 PrometPoUposleniku = prometPoZaposlenom
             });
         }
-        
+
         [HttpGet("sviPrometi")]
         public IActionResult PreuzmiSvePromete()
         {
@@ -163,6 +164,27 @@ namespace backend.Controllers
             var response = _repo.PreuzmiPrometePoOpsegu(currentStart, currentEnd, previousStart, previousEnd);
             return Ok(response);
         }
+
+        [HttpGet("{brojProdavnice}/kategorije")]
+        public async Task<ActionResult<IEnumerable<KategorijaPrometResponse>>> GetPrometPoKategoriji(string brojProdavnice)
+        {
+            if (string.IsNullOrWhiteSpace(brojProdavnice))
+                return BadRequest("brojProdavnice ne smije biti prazan.");
+
+            var data = await _repo.GetPrometProdavnicePoKategorijiAsync(brojProdavnice);
+            return Ok(data);
+        }
+
+        [HttpGet("{brojProdavnice}/artikli")]
+        public async Task<ActionResult<IEnumerable<ArtikliNaRacunuResponse>>> GetArtikliNaRacunu(string brojProdavnice, [FromQuery] string kategorija)
+        {
+            if (string.IsNullOrWhiteSpace(brojProdavnice) || string.IsNullOrWhiteSpace(kategorija))
+                return BadRequest("Obavezni parametri: brojProdavnice i kategorija.");
+
+            var data = await _repo.GetArtikliNaRacunuPoKategorijiAsync(brojProdavnice, kategorija);
+            return Ok(data);
+        }
+
 
     }
 }

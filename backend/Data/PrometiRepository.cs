@@ -1,5 +1,6 @@
 using backend.Entities;
 using backend.Models;
+using backend.Models.Prometi;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -363,6 +364,30 @@ namespace backend.Data
         {
             return value?.Trim()?.TrimStart('0') ?? string.Empty;
         }
+
+
+        public async Task<IEnumerable<KategorijaPrometResponse>> GetPrometProdavnicePoKategorijiAsync(string brojProdavnice)
+        {
+            // FromSqlInterpolated parametrizira input i izvršava stored proceduru
+            var result = await _context.PrometPoKategoriji
+                .FromSqlInterpolated($"EXEC Prometi.PrometProdavnicePoKategoriji @brojProdavnice = {brojProdavnice}")
+                .AsNoTracking()
+                .ToListAsync();
+
+            return result;
+        }
+
+        public async Task<IEnumerable<ArtikliNaRacunuResponse>> GetArtikliNaRacunuPoKategorijiAsync(string brojProdavnice, string kategorija)
+        {
+            var result = await _context.ArtikliNaRacunu
+                .FromSqlInterpolated($"EXEC Prometi.ArtikliNaRacunuPoKategoriji @brojProdavnice = {brojProdavnice}, @kategorija = {kategorija}")
+                .AsNoTracking()
+                .ToListAsync();
+
+            return result;
+        }
+
+        
 
     }
 }

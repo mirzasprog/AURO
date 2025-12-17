@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using backend.Models;
+using backend.Models.Prometi;
 
 namespace backend.Entities
 {
@@ -104,6 +105,8 @@ namespace backend.Entities
         public virtual DbSet<VipZaglavlje> VipZaglavljes { get; set; } = null!;
         public virtual DbSet<VipStavke> VipStavkes { get; set; } = null!;
         public virtual DbSet<VipArtikli> VipArtiklis { get; set; } = null!;
+        public DbSet<KategorijaPrometResponse> PrometPoKategoriji { get; set; } = null!;
+        public DbSet<ArtikliNaRacunuResponse> ArtikliNaRacunu { get; set; } = null!;
 
         
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -1269,7 +1272,11 @@ namespace backend.Entities
 
                 entity.Property(e => e.UkupniPromet)
                     .HasColumnType("decimal(18, 2)");
+
             });
+
+             modelBuilder.Entity<KategorijaPrometResponse>().HasNoKey();
+              modelBuilder.Entity<ArtikliNaRacunuResponse>().HasNoKey();
 
             OnModelCreatingPartial(modelBuilder);
         }

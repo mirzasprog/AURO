@@ -1,4 +1,5 @@
 using backend.Models;
+using backend.Models.Prometi;
 
 namespace backend.Data {
     public interface IPrometiRepository
@@ -8,5 +9,7 @@ namespace backend.Data {
         List<ResponsePrometiProdavnica>? PreuzmiSvePromete();
         List<PrometHistoryComparison> PreuzmiPrometDetaljeZaMjesec();
         PrometRangeResponse PreuzmiPrometePoOpsegu(DateTime currentStart, DateTime currentEnd, DateTime previousStart, DateTime previousEnd);
+         Task<IEnumerable<KategorijaPrometResponse>> GetPrometProdavnicePoKategorijiAsync(string brojProdavnice);
+        Task<IEnumerable<ArtikliNaRacunuResponse>> GetArtikliNaRacunuPoKategorijiAsync(string brojProdavnice, string kategorija);
     }
 }
