@@ -59,16 +59,16 @@ export class VikendAkcijeStavkeComponent implements OnInit {
           }));
 
           this.dostupneProdavnice = this.izdvojiProdavnice(this.sveStavke);
-          this.originalneKolicine = this.kreirajKolicineMapu(this.sveStavke);
-          this.filterStatus = this.rola === 'uprava' ? 'naručeno' : 'sve';
+          this.filterStatus = 'sve';
 
           if (this.rola === 'prodavnica') {
             this.aktivnaProdavnica = this.pocetnaProdavnica();
             this.osvjeziPrikazZaProdavnicu();
           } else {
             this.stavke = this.pripremiSveNarudzbe(this.sveStavke);
+            this.originalneKolicine = this.kreirajKolicineMapu(this.stavke);
             this.postaviPrivatneKolicine(this.stavke);
-            this.osvjeziNeaktivneProdavnice();
+            this.osvjeziNeaktivneProdavnice(this.stavke);
             this.primijeniFiltre();
           }
           this.loading = false;
@@ -171,6 +171,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   private osvjeziPrikazZaProdavnicu(): void {
     const prodavnica = this.trenutnaProdavnica();
     this.stavke = this.pripremiStavkePoProdavnici(this.sveStavke, prodavnica);
+    this.originalneKolicine = this.kreirajKolicineMapu(this.stavke);
     this.postaviPrivatneKolicine(this.stavke, prodavnica);
     this.primijeniFiltre();
   }
@@ -217,14 +218,15 @@ export class VikendAkcijeStavkeComponent implements OnInit {
 
     stavke.forEach(stavka => {
       const kljuc = this.artikalKljuc(stavka);
-      if (!bazaPoArtiklu.has(kljuc)) {
-        bazaPoArtiklu.set(kljuc, {
-          ...stavka,
-          prodavnica,
-          kolicina: 0,
-          zaliha: stavka.zaliha ?? 0
-        });
-      }
+      const postojeca = bazaPoArtiklu.get(kljuc);
+      const bazna = {
+        ...stavka,
+        prodavnica,
+        kolicina: 0,
+        zaliha: stavka.zaliha ?? 0
+      };
+
+      bazaPoArtiklu.set(kljuc, postojeca ? this.spojiMetaPodatke(postojeca, bazna) : bazna);
     });
 
     const rezultat = new Map<string, VikendAkcijaStavka>();
@@ -254,13 +256,57 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   }
 
   private pripremiSveNarudzbe(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
-    return [...stavke]
-      .map(stavka => ({
+    if (!stavke.length) {
+      return [];
+    }
+
+    const prodavnice = this.izdvojiProdavnice(stavke);
+    const artikli = new Map<string, VikendAkcijaStavka>();
+    const postojeciZapisi = new Map<string, VikendAkcijaStavka>();
+
+    stavke.forEach(stavka => {
+      const kljuc = this.artikalKljuc(stavka);
+      const zapis = {
         ...stavka,
         kolicina: Number(stavka.kolicina) || 0,
         zaliha: stavka.zaliha ?? 0,
         prodavnica: (stavka.prodavnica ?? '').toString(),
-      }))
+      };
+
+      const osnovni = artikli.get(kljuc);
+      const bazniZapis = this.spojiMetaPodatke(
+        osnovni ?? { ...zapis, prodavnica: '', kolicina: 0 },
+        { ...zapis, prodavnica: '', kolicina: 0 }
+      );
+      artikli.set(kljuc, bazniZapis);
+
+      if (zapis.prodavnica) {
+        postojeciZapisi.set(`${kljuc}|${zapis.prodavnica}`, zapis);
+      }
+    });
+
+    const rezultat: VikendAkcijaStavka[] = [];
+
+    prodavnice.forEach(prodavnica => {
+      artikli.forEach((osnova, kljuc) => {
+        const mapKljuc = `${kljuc}|${prodavnica}`;
+        const postojeca = postojeciZapisi.get(mapKljuc);
+
+        if (postojeca) {
+          rezultat.push(postojeca);
+          return;
+        }
+
+        rezultat.push({
+          ...osnova,
+          prodavnica,
+          kolicina: 0,
+          zaliha: osnova.zaliha ?? 0
+        });
+      });
+    });
+
+    return rezultat
       .sort((a, b) => {
         const prodavnicaA = (a.prodavnica ?? '').toString();
         const prodavnicaB = (b.prodavnica ?? '').toString();
@@ -280,10 +326,10 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     return Array.from(set).sort();
   }
 
-  private osvjeziNeaktivneProdavnice(): void {
+  private osvjeziNeaktivneProdavnice(stavke: VikendAkcijaStavka[] = this.sveStavke): void {
     const sumaPoProdavnici = new Map<string, number>();
 
-    this.sveStavke.forEach(stavka => {
+    stavke.forEach(stavka => {
       const prodavnica = (stavka.prodavnica ?? '').toString();
       if (!prodavnica) {
         return;
@@ -329,6 +375,22 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     }
 
     return (stavka.prodavnica ?? '').toString();
+  }
+
+  private spojiMetaPodatke(osnova: VikendAkcijaStavka, noviPodaci: VikendAkcijaStavka): VikendAkcijaStavka {
+    return {
+      ...osnova,
+      naziv: osnova.naziv || noviPodaci.naziv,
+      barKod: osnova.barKod || noviPodaci.barKod,
+      dobavljac: osnova.dobavljac || noviPodaci.dobavljac,
+      asSa: osnova.asSa ?? noviPodaci.asSa,
+      asMo: osnova.asMo ?? noviPodaci.asMo,
+      asBl: osnova.asBl ?? noviPodaci.asBl,
+      status: osnova.status || noviPodaci.status,
+      opis: osnova.opis || noviPodaci.opis,
+      akcijskaMpc: osnova.akcijskaMpc ?? noviPodaci.akcijskaMpc,
+      zaliha: osnova.zaliha ?? noviPodaci.zaliha
+    };
   }
 
   private artikalKljuc(stavka: VikendAkcijaStavka): string {

@@ -30,30 +30,32 @@
             <label class="form-label">Kraj</label>
             <input nbInput fullWidth type="datetime-local" [(ngModel)]="novaAkcija.kraj" name="krajAkcije" required>
           </div>
-          <div class="form-field file-field">
-            <label class="form-label mb-1">Import artikala (.xlsx)</label>
-            <div class="file-row inline-file-row">
-              <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
-                name="excelFile" required>
-              <a nbButton size="small" status="primary" ghost [href]="importTemplateUrl" target="_blank"
-                rel="noopener" class="template-button">
-                <nb-icon icon="download-outline"></nb-icon> Šablon
-              </a>
+          <div class="inline-controls-row">
+            <div class="form-field file-field compact-file-field">
+              <label class="form-label mb-1">Import artikala (.xlsx)</label>
+              <div class="file-row inline-file-row">
+                <input nbInput fullWidth type="file" accept=".xlsx" #excelInput (change)="zapamtiFajl($event)"
+                  name="excelFile" required>
+                <a nbButton size="small" status="primary" ghost [href]="importTemplateUrl" target="_blank"
+                  rel="noopener" class="template-button">
+                  <nb-icon icon="download-outline"></nb-icon> Šablon
+                </a>
+              </div>
+              <small class="text-muted d-block mt-1">Dozvoljen je .xlsx format sa zaglavljima iz šablona.</small>
             </div>
-            <small class="text-muted d-block mt-1">Dozvoljen je .xlsx format sa zaglavljima iz šablona.</small>
-          </div>
-          <div class="form-actions stacked-actions even-actions">
-            <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small"
-              (click)="ocistiFormu()" class="action-button">
-              <nb-icon icon="refresh"></nb-icon>
-            </button>
-            <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small"
-              class="action-button">
-              <nb-spinner size="small" *ngIf="kreiranjeLoading"></nb-spinner>
-              <span *ngIf="!kreiranjeLoading">
-                <nb-icon icon="save"></nb-icon> Spremi
-              </span>
-            </button>
+            <div class="form-actions even-actions inline-actions">
+              <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small"
+                (click)="ocistiFormu()" class="action-button">
+                <nb-icon icon="refresh"></nb-icon>
+              </button>
+              <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small"
+                class="action-button">
+                <nb-spinner size="small" *ngIf="kreiranjeLoading"></nb-spinner>
+                <span *ngIf="!kreiranjeLoading">
+                  <nb-icon icon="save"></nb-icon> Spremi
+                </span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -118,7 +120,7 @@
                   </button>
                   <div *ngSwitchCase="'uprava'" class="btn-group">
                     <button nbButton size="small" status="primary"
-                      (click)="otvoriNarudzbe(akcija)" [disabled]="!jeAkcijaAktivna(akcija)">
+                      (click)="otvoriNarudzbe(akcija)">
                       <nb-icon icon="edit-2"></nb-icon> Narudžbe
                     </button>
                     <button nbButton size="small" status="info"
