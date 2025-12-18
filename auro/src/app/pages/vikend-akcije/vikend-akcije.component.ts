@@ -122,6 +122,10 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   }
 
   otvoriNarudzbe(akcija: VikendAkcija): void {
+    if (!this.jeAkcijaAktivna(akcija)) {
+      this.greska = 'Akcija je istekla. Pregled i izmjena narudžbi nisu dostupni.';
+      return;
+    }
     this.otvoriAzuriranjeStavki(akcija);
   }
 

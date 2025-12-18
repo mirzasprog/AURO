@@ -120,7 +120,9 @@
                   </button>
                   <div *ngSwitchCase="'uprava'" class="btn-group">
                     <button nbButton size="small" status="primary"
-                      (click)="otvoriNarudzbe(akcija)">
+                      (click)="otvoriNarudzbe(akcija)"
+                      [disabled]="!jeAkcijaAktivna(akcija)"
+                      nbTooltip="Pregled narudžbi je dostupan samo za aktivne akcije.">
                       <nb-icon icon="edit-2"></nb-icon> Narudžbe
                     </button>
                     <button nbButton size="small" status="info"
