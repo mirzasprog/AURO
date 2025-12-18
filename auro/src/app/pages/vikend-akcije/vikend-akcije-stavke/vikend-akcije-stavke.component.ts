@@ -16,6 +16,8 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   @Input() rola = '';
   @Input() brojProdavnice = '';
   @Input() prodavnicaMozeNarucivati = false;
+  @Input() prikaziFiltre = true;
+  @Input() prikaziSamoNarucene = false;
 
   stavke: VikendAkcijaStavka[] = [];
   sveStavke: VikendAkcijaStavka[] = [];
@@ -47,6 +49,12 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   ucitajStavke(ocistiPoruke: boolean = true): void {
     this.loading = true;
     this.greska = '';
+    this.prikaziFiltre = this.rola === 'uprava' ? this.prikaziFiltre : false;
+    if (!this.prikaziFiltre) {
+      this.searchTerm = '';
+      this.filterStatus = 'sve';
+      this.prodavnicaFilter = '';
+    }
     if (ocistiPoruke) {
       this.uspjeh = '';
     }
@@ -66,10 +74,10 @@ export class VikendAkcijeStavkeComponent implements OnInit {
             this.aktivnaProdavnica = this.pocetnaProdavnica();
             this.osvjeziPrikazZaProdavnicu();
           } else {
-            this.stavke = this.pripremiSveNarudzbe(this.sveStavke);
+            this.stavke = this.pripremiSveNarudzbe(this.sveStavke, this.prikaziSamoNarucene);
             this.originalneKolicine = this.kreirajKolicineMapu(this.stavke);
             this.postaviPrivatneKolicine(this.stavke);
-            this.osvjeziNeaktivneProdavnice(this.stavke);
+            this.osvjeziNeaktivneProdavnice(this.sveStavke);
             this.primijeniFiltre();
           }
           this.loading = false;
@@ -174,6 +182,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     this.stavke = this.pripremiStavkePoProdavnici(this.sveStavke, prodavnica);
     this.originalneKolicine = this.kreirajKolicineMapu(this.stavke);
     this.postaviPrivatneKolicine(this.stavke, prodavnica);
+    this.trenutnaStranica = 1;
     this.primijeniFiltre();
   }
 
@@ -183,7 +192,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   }
 
   onKolicinaChange(): void {
-    this.osvjeziNeaktivneProdavnice(this.stavke);
+    this.osvjeziNeaktivneProdavnice(this.sveStavke);
     this.primijeniFiltre();
   }
 
@@ -261,7 +270,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
       .sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
   }
 
-  private pripremiSveNarudzbe(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
+  private pripremiSveNarudzbe(stavke: VikendAkcijaStavka[], samoNarucene: boolean = false): VikendAkcijaStavka[] {
     if (!stavke.length) {
       return [];
     }
@@ -299,7 +308,14 @@ export class VikendAkcijeStavkeComponent implements OnInit {
         const postojeca = postojeciZapisi.get(mapKljuc);
 
         if (postojeca) {
+          if (samoNarucene && (Number(postojeca.kolicina) || 0) <= 0) {
+            return;
+          }
           rezultat.push(postojeca);
+          return;
+        }
+
+        if (samoNarucene) {
           return;
         }
 
@@ -409,6 +425,15 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   }
 
   private primijeniFiltre(): void {
+    if (!this.prikaziFiltre) {
+      this.filtriraneStavke = [...this.stavke];
+      const ukupnoStranica = this.ukupnoStranica;
+      if (this.trenutnaStranica > ukupnoStranica) {
+        this.trenutnaStranica = ukupnoStranica;
+      }
+      return;
+    }
+
     const trazeniTekst = this.searchTerm.trim().toLowerCase();
     const trazenaProdavnica = this.prodavnicaFilter.trim().toLowerCase();
 
@@ -449,7 +474,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
         return sifraA.localeCompare(sifraB);
       });
 
-    this.osvjeziNeaktivneProdavnice(this.stavke);
+    this.osvjeziNeaktivneProdavnice(this.sveStavke);
 
     const ukupno = this.ukupnoStranica;
     if (this.trenutnaStranica > ukupno) {

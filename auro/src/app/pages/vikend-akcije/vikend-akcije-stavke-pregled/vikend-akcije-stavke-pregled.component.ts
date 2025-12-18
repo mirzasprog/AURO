@@ -17,6 +17,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
   @Input() brojProdavnice = '';
 
   stavke: VikendAkcijaStavka[] = [];
+  ukupnoArtikala = 0;
   loading = false;
   greska = '';
 
@@ -36,6 +37,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
       .subscribe({
         next: (stavke) => {
           this.stavke = this.pripremiStavkeZaPregled(stavke);
+          this.ukupnoArtikala = this.stavke.length;
           this.loading = false;
         },
         error: (err) => {
@@ -50,24 +52,20 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
   }
 
   exportujStavke(): void {
-    const podaci = this.stavke
-      .filter(stavka => (Number(stavka.ukupnaKolicina ?? stavka.kolicina) || 0) > 0)
-      .map(stavka => ({
-        idAkcije: this.vikendAkcijaId,
-        sifraArtikla: stavka.sifra ?? '',
-        nazivArtikla: stavka.naziv ?? '',
-        barKod: stavka.barKod ?? '',
-        dobavljac: stavka.dobavljac ?? '',
-        akcijskaMpc: stavka.akcijskaMpc ?? 0,
-        asSa: stavka.asSa ?? 0,
-        asMo: stavka.asMo ?? 0,
-        asBl: stavka.asBl ?? 0,
-        status: stavka.status ?? '',
-        opis: stavka.opis ?? '',
-        zaliha: stavka.zaliha ?? 0,
-        prodavnica: stavka.prodavnica ?? '',
-        narucenaKolicina: stavka.ukupnaKolicina ?? stavka.kolicina ?? 0,
-      }));
+    const podaci = this.stavke.map(stavka => ({
+      idAkcije: this.vikendAkcijaId,
+      sifraArtikla: stavka.sifra ?? '',
+      nazivArtikla: stavka.naziv ?? '',
+      barKod: stavka.barKod ?? '',
+      dobavljac: stavka.dobavljac ?? '',
+      akcijskaMpc: stavka.akcijskaMpc ?? 0,
+      asSa: stavka.asSa ?? 0,
+      asMo: stavka.asMo ?? 0,
+      asBl: stavka.asBl ?? 0,
+      status: stavka.status ?? '',
+      opis: stavka.opis ?? '',
+      zaliha: stavka.zaliha ?? 0,
+    }));
 
     if (!podaci.length) {
       return;
@@ -82,54 +80,29 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
   }
 
   private pripremiStavkeZaPregled(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
-    const mapa = new Map<string, {
-      stavka: VikendAkcijaStavka;
-      ukupnaKolicina: number;
-      prodavnice: Set<string>;
-    }>();
-    const ciljanaProdavnica = this.rola === 'prodavnica' ? this.brojProdavnice : '';
+    const mapa = new Map<string, VikendAkcijaStavka>();
 
     stavke.forEach(stavka => {
-      const kljuc = (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
-      const prodavnica = (stavka.prodavnica ?? '').toString();
-      const jeCiljana = !!ciljanaProdavnica && prodavnica === ciljanaProdavnica;
-      const kolicina = Number(stavka.kolicina) || 0;
+      const kljuc = this.artikalKljuc(stavka);
       const postojeca = mapa.get(kljuc);
-      const normalizovanaStavka: VikendAkcijaStavka = {
-        ...stavka,
-        prodavnica: jeCiljana ? ciljanaProdavnica : prodavnica,
-        kolicina,
-        zaliha: stavka.zaliha ?? postojeca?.stavka.zaliha ?? 0
-      };
+      const normalizovana = this.normalizujStavku(stavka);
 
       if (!postojeca) {
-        mapa.set(kljuc, {
-          stavka: normalizovanaStavka,
-          ukupnaKolicina: kolicina,
-          prodavnice: prodavnica ? new Set([prodavnica]) : new Set()
-        });
+        mapa.set(kljuc, normalizovana);
         return;
       }
 
-      const prodavnice = prodavnica ? new Set([...postojeca.prodavnice, prodavnica]) : postojeca.prodavnice;
-      const trebaAzurirati = jeCiljana || this.imaViseMetaPodataka(postojeca.stavka, normalizovanaStavka);
-      const spojenaStavka = trebaAzurirati
-        ? this.spojiStavkeZaPregled(postojeca.stavka, normalizovanaStavka)
-        : postojeca.stavka;
-
-      mapa.set(kljuc, {
-        stavka: spojenaStavka,
-        ukupnaKolicina: postojeca.ukupnaKolicina + kolicina,
-        prodavnice
-      });
+      mapa.set(kljuc, this.spojiStavkeZaPregled(postojeca, normalizovana));
     });
 
     return Array.from(mapa.values())
-      .map(zapis => ({
-        ...zapis.stavka,
-        zaliha: zapis.stavka.zaliha ?? 0,
-        ukupnaKolicina: zapis.ukupnaKolicina,
-        brojProdavnica: zapis.prodavnice.size || (zapis.stavka.prodavnica ? 1 : 0)
+      .map(stavka => ({
+        ...stavka,
+        brojProdavnica: undefined,
+        ukupnaKolicina: undefined,
+        prodavnica: '',
+        kolicina: 0,
+        zaliha: stavka.zaliha ?? 0
       }))
       .sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
   }
@@ -148,13 +121,23 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
       asMo: noviPodaci.asMo ?? osnova.asMo,
       asBl: noviPodaci.asBl ?? osnova.asBl,
       zaliha: noviPodaci.zaliha ?? osnova.zaliha ?? 0,
-      kolicina: noviPodaci.kolicina ?? osnova.kolicina ?? 0
+      kolicina: 0
     };
   }
 
-  private imaViseMetaPodataka(trenutna: VikendAkcijaStavka, nova: VikendAkcijaStavka): boolean {
-    const polja = ['barKod', 'dobavljac', 'status', 'opis', 'akcijskaMpc', 'asSa', 'asMo', 'asBl'];
-    return polja.some(polje => (nova as any)[polje] && !(trenutna as any)[polje]);
+  private normalizujStavku(stavka: VikendAkcijaStavka): VikendAkcijaStavka {
+    return {
+      ...stavka,
+      kolicina: 0,
+      prodavnica: '',
+      brojProdavnica: undefined,
+      ukupnaKolicina: undefined,
+      zaliha: stavka.zaliha ?? 0
+    };
+  }
+
+  private artikalKljuc(stavka: VikendAkcijaStavka): string {
+    return (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
   }
 }
 
