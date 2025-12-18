@@ -26,6 +26,50 @@
   flex: 1;
 }
 
+.context-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--text-hint-color);
+  font-size: 0.7rem;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.section-subtitle {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
 .editor-bar {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -93,12 +137,82 @@
   font-weight: 600;
 }
 
+.pill.strong {
+  background: rgba(33, 150, 243, 0.12);
+  border-color: var(--status-info-border, #4a90e2);
+  color: var(--status-info-text, #0d47a1);
+}
+
+.pill.success {
+  background: rgba(76, 175, 80, 0.16);
+  border-color: var(--status-success-border);
+  color: var(--status-success-text, #2e7d32);
+}
+
+.pill.warning {
+  background: rgba(255, 193, 7, 0.2);
+  border-color: var(--status-warning-border);
+  color: var(--status-warning-text, #c79100);
+}
+
+.pill.neutral {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--card-border);
+  color: var(--text-secondary);
+}
+
 .editor-actions {
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
   align-items: flex-start;
   justify-content: flex-end;
+}
+
+.legend-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 0.25rem 0 0.65rem;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px dashed var(--card-border);
+  color: var(--text-secondary);
+  background: var(--card-background);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.legend-success-dot {
+  background: var(--status-success-border);
+}
+
+.legend-danger-dot {
+  background: var(--status-danger-border);
+}
+
+.legend-success {
+  border-color: var(--status-success-border);
+}
+
+.legend-danger {
+  border-color: var(--status-danger-border);
+}
+
+.legend-warning {
+  border-color: var(--status-warning-border);
 }
 
 .helper-text {
@@ -129,29 +243,12 @@
   gap: 0.75rem;
 }
 
-.table-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-}
-
 .stavke-table {
   color: var(--text-primary);
   table-layout: auto;
   width: 100%;
   border-collapse: collapse;
-}
-
-.kolicina-cell input {
-  max-width: 120px;
-  margin: 0 auto;
-}
-
-.kolicina-cell.zero-order input {
-  border-color: var(--status-danger-border);
-  background: rgba(244, 67, 54, 0.08);
-  color: var(--status-danger-text);
+  min-width: 1100px;
 }
 
 .stavke-table td,
@@ -164,14 +261,27 @@
 .stavke-table th {
   color: var(--text-secondary);
   font-weight: 600;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--card-background);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.stavke-table tbody tr {
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+  border-bottom: 1px solid var(--card-border);
 }
 
 .stavke-table tbody tr:hover {
   background: var(--table-row-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
 }
 
 .ordered-row {
-  background: rgba(76, 175, 80, 0.12);
+  background: linear-gradient(90deg, rgba(76, 175, 80, 0.08), rgba(76, 175, 80, 0.02));
+  border-left: 4px solid var(--status-success-border);
 }
 
 .ordered-row:hover {
@@ -179,7 +289,8 @@
 }
 
 .not-ordered-row {
-  background: rgba(244, 67, 54, 0.1);
+  background: linear-gradient(90deg, rgba(244, 67, 54, 0.08), rgba(244, 67, 54, 0.02));
+  border-left: 4px solid var(--status-danger-border);
 }
 
 .not-ordered-row:hover {
@@ -192,4 +303,196 @@
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 0.5rem;
+}
+
+.table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  background: var(--card-background);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+}
+
+.cell-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--pill-background);
+  border: 1px solid var(--pill-border);
+  color: var(--pill-text);
+  font-weight: 600;
+}
+
+.primary-text {
+  font-weight: 600;
+}
+
+.muted-text {
+  color: var(--text-secondary);
+}
+
+.mono {
+  font-family: var(--text-font-family-monospace, 'Roboto Mono', monospace);
+  font-size: 0.92rem;
+}
+
+.opis-cell {
+  max-width: 220px;
+}
+
+.opis-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zaliha-cell {
+  white-space: nowrap;
+}
+
+.quantity-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 58px;
+  padding: 0.25rem 0.55rem;
+  border-radius: 0.5rem;
+  background: rgba(33, 150, 243, 0.08);
+  color: var(--text-primary);
+  font-weight: 700;
+  border: 1px solid var(--card-border);
+}
+
+.kolicina-cell .quantity-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.kolicina-input {
+  text-align: right;
+  font-weight: 600;
+  min-width: 130px;
+}
+
+.kolicina-cell.changed .kolicina-input {
+  border-color: var(--status-warning-border);
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.25);
+}
+
+.change-pill {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.45rem;
+  background: rgba(255, 193, 7, 0.16);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.kolicina-cell.zero-order input {
+  border-color: var(--status-danger-border);
+  background: rgba(244, 67, 54, 0.08);
+  color: var(--status-danger-text);
+}
+
+.paginator span {
+  font-weight: 600;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--card-border);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-success {
+  background: rgba(76, 175, 80, 0.14);
+  color: var(--status-success-text, #2e7d32);
+  border-color: var(--status-success-border);
+}
+
+.status-warning {
+  background: rgba(255, 193, 7, 0.16);
+  color: var(--status-warning-text, #c79100);
+  border-color: var(--status-warning-border);
+}
+
+.status-danger {
+  background: rgba(244, 67, 54, 0.14);
+  color: var(--status-danger-text, #b71c1c);
+  border-color: var(--status-danger-border);
+}
+
+.status-neutral {
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--text-secondary);
+}
+
+.col-prodavnica {
+  width: 110px;
+}
+
+.col-sifra {
+  width: 110px;
+}
+
+.col-naziv {
+  width: 200px;
+}
+
+.col-bar-kod {
+  width: 140px;
+}
+
+.col-dobavljac {
+  width: 160px;
+}
+
+.col-akcija,
+.col-as,
+.col-zaliha,
+.col-kolicina,
+.col-oznaka {
+  width: 110px;
+}
+
+.col-status {
+  width: 130px;
+}
+
+.col-opis {
+  width: 200px;
+}
+
+@media (max-width: 1200px) {
+  .table-container {
+    border-radius: 8px;
+  }
+
+  .stavke-table {
+    min-width: 1000px;
+  }
+}
+
+@media (max-width: 768px) {
+  .context-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .paginator {
+    justify-content: center;
+  }
 }
