@@ -181,7 +181,7 @@ export class ParcijalneInvComponent implements OnInit, CanComponentDeactivate {
     this.cdr.detectChanges();
   }
 
-  // Funkacija za automatsko dodavanje broja sati na korisnike koji su bili na inventuri
+  // Funkcija za automatsko dodavanje broja sati na korisnike koji su bili na inventuri
   dodajSateNaUposlenika(employee: Zaposlenici, tip: number): void {
     this.isBrSatiDisabled = true;
     this.isBrMinutaDisabled = true;
