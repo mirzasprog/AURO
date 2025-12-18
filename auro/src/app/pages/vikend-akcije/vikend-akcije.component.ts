@@ -108,6 +108,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         naslov: akcija.opis ?? `Akcija #${akcija.id}`,
         rola: this.rola,
         brojProdavnice: this.brojProdavnice,
+        prodavnicaMozeNarucivati: this.jeAkcijaDostupnaZaProdavnicu(akcija),
       },
       closeOnBackdropClick: false,
       dialogClass: 'vikend-akcije-dialog',
@@ -404,6 +405,23 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
 
   jeAkcijaAktivna(akcija?: VikendAkcija): boolean {
     return this.izracunajStatus(akcija) === 'aktivno';
+  }
+
+  jeAkcijaDostupnaZaProdavnicu(akcija?: VikendAkcija): boolean {
+    if (this.rola !== 'prodavnica') {
+      return true;
+    }
+
+    if (!akcija) {
+      return false;
+    }
+
+    const status = (akcija.status ?? '').toLowerCase();
+    if (status && status !== 'aktivno') {
+      return false;
+    }
+
+    return this.jeAkcijaAktivna(akcija);
   }
 
   private ocistiPoruke(): void {

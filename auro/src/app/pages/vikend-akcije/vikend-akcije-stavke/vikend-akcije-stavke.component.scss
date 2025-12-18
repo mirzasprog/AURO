@@ -4,8 +4,8 @@
 }
 
 :host ::ng-deep nb-dialog-container.vikend-akcije-dialog {
-  width: min(1200px, 95vw);
-  max-width: 95vw;
+  width: 95vw;
+  max-width: 1200px;
   height: 90vh;
   max-height: 90vh;
   padding: 0;

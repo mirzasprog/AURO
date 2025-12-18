@@ -115,7 +115,7 @@
               <td *ngIf="prikaziAkcijeKolonu()" class="text-end">
                 <ng-container [ngSwitch]="rola">
                   <button *ngSwitchCase="'prodavnica'" nbButton size="small" status="success"
-                    (click)="otvoriAzuriranjeStavki(akcija)" [disabled]="!jeAkcijaAktivna(akcija)">
+                    (click)="otvoriAzuriranjeStavki(akcija)" [disabled]="!jeAkcijaDostupnaZaProdavnicu(akcija)">
                     <nb-icon icon="edit-2"></nb-icon> Otvori
                   </button>
                   <div *ngSwitchCase="'uprava'" class="btn-group">
@@ -149,7 +149,8 @@
           <small class="text-muted" *ngIf="selektovanaAkcija">ID: {{ selektovanaAkcija.uniqueId }}</small>
         </div>
         <button nbButton size="small" status="basic" ghost *ngIf="selektovanaAkcija"
-          (click)="otvoriStavke(selektovanaAkcija)" [disabled]="!jeAkcijaAktivna(selektovanaAkcija)">
+          (click)="otvoriStavke(selektovanaAkcija)"
+          [disabled]="rola === 'prodavnica' ? !jeAkcijaDostupnaZaProdavnicu(selektovanaAkcija) : !jeAkcijaAktivna(selektovanaAkcija)">
           Uredi
         </button>
       </div>
