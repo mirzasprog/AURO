@@ -51,7 +51,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
 
   exportujStavke(): void {
     const podaci = this.stavke
-      .filter(stavka => (Number(stavka.kolicina) || 0) > 0)
+      .filter(stavka => (Number(stavka.ukupnaKolicina ?? stavka.kolicina) || 0) > 0)
       .map(stavka => ({
         idAkcije: this.vikendAkcijaId,
         sifraArtikla: stavka.sifra ?? '',
@@ -66,7 +66,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
         opis: stavka.opis ?? '',
         zaliha: stavka.zaliha ?? 0,
         prodavnica: stavka.prodavnica ?? '',
-        narucenaKolicina: stavka.kolicina ?? 0,
+        narucenaKolicina: stavka.ukupnaKolicina ?? stavka.kolicina ?? 0,
       }));
 
     if (!podaci.length) {
@@ -82,27 +82,79 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
   }
 
   private pripremiStavkeZaPregled(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {
-    const mapa = new Map<string, VikendAkcijaStavka>();
+    const mapa = new Map<string, {
+      stavka: VikendAkcijaStavka;
+      ukupnaKolicina: number;
+      prodavnice: Set<string>;
+    }>();
     const ciljanaProdavnica = this.rola === 'prodavnica' ? this.brojProdavnice : '';
 
     stavke.forEach(stavka => {
       const kljuc = (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
+      const prodavnica = (stavka.prodavnica ?? '').toString();
+      const jeCiljana = !!ciljanaProdavnica && prodavnica === ciljanaProdavnica;
+      const kolicina = Number(stavka.kolicina) || 0;
       const postojeca = mapa.get(kljuc);
-      const jeCiljana = !!ciljanaProdavnica && (stavka.prodavnica ?? '').toString() === ciljanaProdavnica;
+      const normalizovanaStavka: VikendAkcijaStavka = {
+        ...stavka,
+        prodavnica: jeCiljana ? ciljanaProdavnica : prodavnica,
+        kolicina,
+        zaliha: stavka.zaliha ?? postojeca?.stavka.zaliha ?? 0
+      };
 
-      if (!postojeca || jeCiljana) {
+      if (!postojeca) {
         mapa.set(kljuc, {
-          ...stavka,
-          prodavnica: jeCiljana ? ciljanaProdavnica : postojeca?.prodavnica ?? stavka.prodavnica,
-          kolicina: stavka.kolicina ?? 0,
-          zaliha: stavka.zaliha ?? postojeca?.zaliha ?? 0
+          stavka: normalizovanaStavka,
+          ukupnaKolicina: kolicina,
+          prodavnice: prodavnica ? new Set([prodavnica]) : new Set()
         });
+        return;
       }
+
+      const prodavnice = prodavnica ? new Set([...postojeca.prodavnice, prodavnica]) : postojeca.prodavnice;
+      const trebaAzurirati = jeCiljana || this.imaViseMetaPodataka(postojeca.stavka, normalizovanaStavka);
+      const spojenaStavka = trebaAzurirati
+        ? this.spojiStavkeZaPregled(postojeca.stavka, normalizovanaStavka)
+        : postojeca.stavka;
+
+      mapa.set(kljuc, {
+        stavka: spojenaStavka,
+        ukupnaKolicina: postojeca.ukupnaKolicina + kolicina,
+        prodavnice
+      });
     });
 
     return Array.from(mapa.values())
-      .map(stavka => ({ ...stavka, zaliha: stavka.zaliha ?? 0 }))
+      .map(zapis => ({
+        ...zapis.stavka,
+        zaliha: zapis.stavka.zaliha ?? 0,
+        ukupnaKolicina: zapis.ukupnaKolicina,
+        brojProdavnica: zapis.prodavnice.size || (zapis.stavka.prodavnica ? 1 : 0)
+      }))
       .sort((a, b) => (a.sifra ?? '').localeCompare(b.sifra ?? ''));
+  }
+
+  private spojiStavkeZaPregled(osnova: VikendAkcijaStavka, noviPodaci: VikendAkcijaStavka): VikendAkcijaStavka {
+    return {
+      ...osnova,
+      ...noviPodaci,
+      naziv: noviPodaci.naziv || osnova.naziv,
+      barKod: noviPodaci.barKod || osnova.barKod,
+      dobavljac: noviPodaci.dobavljac || osnova.dobavljac,
+      status: noviPodaci.status || osnova.status,
+      opis: noviPodaci.opis || osnova.opis,
+      akcijskaMpc: noviPodaci.akcijskaMpc ?? osnova.akcijskaMpc,
+      asSa: noviPodaci.asSa ?? osnova.asSa,
+      asMo: noviPodaci.asMo ?? osnova.asMo,
+      asBl: noviPodaci.asBl ?? osnova.asBl,
+      zaliha: noviPodaci.zaliha ?? osnova.zaliha ?? 0,
+      kolicina: noviPodaci.kolicina ?? osnova.kolicina ?? 0
+    };
+  }
+
+  private imaViseMetaPodataka(trenutna: VikendAkcijaStavka, nova: VikendAkcijaStavka): boolean {
+    const polja = ['barKod', 'dobavljac', 'status', 'opis', 'akcijskaMpc', 'asSa', 'asMo', 'asBl'];
+    return polja.some(polje => (nova as any)[polje] && !(trenutna as any)[polje]);
   }
 }
 
