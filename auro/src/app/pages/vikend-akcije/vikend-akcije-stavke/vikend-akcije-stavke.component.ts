@@ -15,6 +15,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   @Input() naslov = '';
   @Input() rola = '';
   @Input() brojProdavnice = '';
+  @Input() prodavnicaMozeNarucivati = false;
 
   stavke: VikendAkcijaStavka[] = [];
   sveStavke: VikendAkcijaStavka[] = [];
@@ -104,7 +105,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   }
 
   mozeUrediti(): boolean {
-    return this.rola === 'uprava' || this.rola === 'prodavnica';
+    return this.rola === 'uprava' || (this.rola === 'prodavnica' && this.prodavnicaMozeNarucivati);
   }
 
   mozeSpasiti(): boolean {

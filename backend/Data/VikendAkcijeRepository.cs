@@ -70,13 +70,25 @@ namespace backend.Data
                 .Select(s => new { Stavka = s, ArtikalKey = s.SifraArtikla })
                 .ToListAsync();
 
-            var rezultat = stavke
-                .Select(s =>
+            var agregiraneStavke = new Dictionary<string, VikendAkcijaStavkaDto>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var zapis in stavke)
+            {
+                artikliMapa.TryGetValue((zapis.ArtikalKey ?? string.Empty).Trim(), out var artikal);
+                var kljuc = KreirajStavkaKljuc(zapis.Stavka, artikal);
+
+                if (!agregiraneStavke.TryGetValue(kljuc, out var dto))
                 {
-                    artikliMapa.TryGetValue((s.ArtikalKey ?? string.Empty).Trim(), out var artikal);
-                    return MapirajStavku(s.Stavka, artikal);
-                })
-                .ToList();
+                    dto = MapirajStavku(zapis.Stavka, artikal);
+                    dto.Kolicina = 0;
+                    dto.Prodavnica = (zapis.Stavka.Prodavnica ?? string.Empty).Trim();
+                    agregiraneStavke[kljuc] = dto;
+                }
+
+                dto.Kolicina += zapis.Stavka.Kolicina;
+            }
+
+            var rezultat = agregiraneStavke.Values.ToList();
 
             var postojeciKljuc = new HashSet<string>(rezultat
                 .Select(r => NormalizujSifru(r.Sifra)), StringComparer.OrdinalIgnoreCase);
@@ -525,6 +537,25 @@ namespace backend.Data
             return string.IsNullOrWhiteSpace(sifra)
                 ? string.Empty
                 : sifra.Trim().ToUpperInvariant();
+        }
+
+        private static string KreirajStavkaKljuc(VipStavke stavka, VipArtikli? artikal)
+        {
+            var sifra = NormalizujSifru(artikal?.SifraArtk ?? stavka.SifraArtikla);
+
+            if (string.IsNullOrWhiteSpace(sifra))
+            {
+                sifra = NormalizujSifru(artikal?.NazivArtk ?? stavka.NazivArtikla);
+            }
+
+            if (string.IsNullOrWhiteSpace(sifra))
+            {
+                sifra = NormalizujSifru(stavka.Id.ToString(CultureInfo.InvariantCulture));
+            }
+
+            var prodavnica = (stavka.Prodavnica ?? string.Empty).Trim().ToUpperInvariant();
+
+            return $"{sifra}|{prodavnica}";
         }
 
         private static string GenerisiId()
