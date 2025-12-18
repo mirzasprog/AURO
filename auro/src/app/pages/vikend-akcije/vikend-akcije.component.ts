@@ -101,7 +101,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     });
   }
 
-  otvoriAzuriranjeStavki(akcija: VikendAkcija): void {
+  otvoriAzuriranjeStavki(akcija: VikendAkcija, prikaziSamoNarucene: boolean = false): void {
     this.dialogService.open(VikendAkcijeStavkeComponent, {
       context: {
         vikendAkcijaId: akcija.uniqueId,
@@ -109,6 +109,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         rola: this.rola,
         brojProdavnice: this.brojProdavnice,
         prodavnicaMozeNarucivati: this.jeAkcijaDostupnaZaProdavnicu(akcija),
+        prikaziFiltre: this.rola === 'uprava',
+        prikaziSamoNarucene,
       },
       closeOnBackdropClick: false,
       dialogClass: 'vikend-akcije-dialog',
@@ -126,7 +128,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       this.greska = 'Akcija je istekla. Pregled i izmjena narudžbi nisu dostupni.';
       return;
     }
-    this.otvoriAzuriranjeStavki(akcija);
+    this.otvoriAzuriranjeStavki(akcija, true);
   }
 
   prikaziAdminZonu(): boolean {

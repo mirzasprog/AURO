@@ -39,7 +39,7 @@
       <option *ngFor="let prod of dostupneProdavnice" [value]="prod"></option>
     </datalist>
 
-    <div class="filter-bar">
+    <div class="filter-bar" *ngIf="prikaziFiltre">
       <div class="filter-field">
         <label>Pretraga</label>
         <input nbInput fullWidth placeholder="Šifra, naziv ili opis" [(ngModel)]="searchTerm"

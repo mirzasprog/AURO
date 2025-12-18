@@ -7,31 +7,33 @@
     <div class="text-center text-muted py-2" *ngIf="!loading && !stavke.length && !greska">
       Nema stavki za prikaz.
     </div>
+    <div class="text-muted mb-2" *ngIf="!loading && stavke.length">
+      Ukupno artikala na akciji: {{ ukupnoArtikala }}
+    </div>
     <div class="table-responsive stavke-pregled-table" *ngIf="!loading && stavke.length; else loadingStavke">
       <table class="table table-sm table-hover table-striped align-middle">
         <thead>
           <tr>
             <th>Šifra artikla</th>
             <th>Artikal</th>
+            <th>Bar kod</th>
             <th>Dobavljač</th>
             <th>Status</th>
             <th class="text-end">Akcijska MPC</th>
             <th class="text-end">AS SA / MO / BL</th>
             <th class="text-end">Zaliha</th>
-            <th class="text-end">Narudžena količina</th>
-            <th class="text-center">Prodavnice</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngFor="let stavka of stavke">
             <td>
               <div class="cell-primary">{{ stavka.sifra || '—' }}</div>
-              <div class="muted small">Bar kod: {{ stavka.barKod || 'N/A' }}</div>
             </td>
             <td>
               <div class="cell-primary">{{ stavka.naziv || 'Nepoznat artikal' }}</div>
               <div class="opis-text" *ngIf="stavka.opis">{{ stavka.opis }}</div>
             </td>
+            <td>{{ stavka.barKod || 'N/A' }}</td>
             <td>{{ stavka.dobavljac || '—' }}</td>
             <td>
               <span class="status-pill" [ngClass]="{
@@ -51,11 +53,6 @@
               </div>
             </td>
             <td class="text-end">{{ stavka.zaliha || 0 }}</td>
-            <td class="text-end highlight-value">{{ stavka.ukupnaKolicina ?? stavka.kolicina || 0 }}</td>
-            <td class="text-center">
-              <div class="badge badge-neutral">{{ stavka.brojProdavnica || (stavka.prodavnica ? 1 : 0) }}</div>
-              <div class="muted small" *ngIf="stavka.prodavnica">Aktivna: {{ stavka.prodavnica }}</div>
-            </td>
           </tr>
         </tbody>
       </table>
