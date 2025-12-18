@@ -4,6 +4,8 @@ export interface VikendAkcijaStavka {
   naziv?: string;
   kolicina: number;
   prodavnica?: string;
+  ukupnaKolicina?: number;
+  brojProdavnica?: number;
   barKod?: string;
   dobavljac?: string;
   asSa?: number;
