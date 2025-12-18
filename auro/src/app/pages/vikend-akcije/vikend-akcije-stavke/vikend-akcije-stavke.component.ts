@@ -220,6 +220,40 @@ export class VikendAkcijeStavkeComponent implements OnInit {
     return this.filtriraneStavke.slice(pocetak, pocetak + this.pageSize);
   }
 
+  get trenutnaProdavnicaOznaka(): string {
+    if (this.rola === 'prodavnica') {
+      return this.brojProdavnice || this.aktivnaProdavnica;
+    }
+
+    return this.aktivnaProdavnica || 'Sve prodavnice';
+  }
+
+  get ukupnoPrikazanih(): number {
+    return this.filtriraneStavke.length;
+  }
+
+  get brojNarucenih(): number {
+    return this.filtriraneStavke.filter(stavka => (Number(stavka.kolicina) || 0) > 0).length;
+  }
+
+  get brojNenarucenih(): number {
+    return this.filtriraneStavke.filter(stavka => (Number(stavka.kolicina) || 0) === 0).length;
+  }
+
+  statusClass(status?: string): string {
+    const oznaka = (status ?? '').toLowerCase();
+    if (oznaka.includes('aktiv')) {
+      return 'status-success';
+    }
+    if (oznaka.includes('istek') || oznaka.includes('exp')) {
+      return 'status-warning';
+    }
+    if (oznaka.includes('blok') || oznaka.includes('stop')) {
+      return 'status-danger';
+    }
+    return 'status-neutral';
+  }
+
   get ukupnoStranica(): number {
     return Math.max(1, Math.ceil(this.filtriraneStavke.length / this.pageSize) || 1);
   }

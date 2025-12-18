@@ -6,6 +6,33 @@
     <div class="alert alert-success" *ngIf="uspjeh">{{ uspjeh }}</div>
     <div class="alert alert-danger" *ngIf="greska">{{ greska }}</div>
 
+    <div class="context-header">
+      <div class="title-group">
+        <p class="eyebrow">Pregled narudžbi</p>
+        <h3 class="section-title">{{ naslov }}</h3>
+        <p class="section-subtitle">Provjerite narudžbe, status i količine prije slanja.</p>
+      </div>
+      <div class="pill-group">
+        <div class="pill strong">
+          <nb-icon icon="home-outline"></nb-icon>
+          <span *ngIf="rola === 'prodavnica'">Prodavnica #{{ brojProdavnice }}</span>
+          <span *ngIf="rola !== 'prodavnica'">{{ trenutnaProdavnicaOznaka }}</span>
+        </div>
+        <div class="pill success" title="Broj stavki sa naručenom količinom">
+          <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+          <span>{{ brojNarucenih }} naručenih</span>
+        </div>
+        <div class="pill warning" title="Broj stavki bez narudžbe">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <span>{{ brojNenarucenih }} bez narudžbe</span>
+        </div>
+        <div class="pill neutral" title="Ukupno stavki u tabeli">
+          <nb-icon icon="layers-outline"></nb-icon>
+          <span>{{ ukupnoPrikazanih }} stavki</span>
+        </div>
+      </div>
+    </div>
+
     <div class="editor-bar" *ngIf="mozeUrediti()">
       <ng-container *ngIf="rola === 'prodavnica'; else upravaControls">
         <div class="editor-field">
@@ -55,8 +82,39 @@
       </div>
     </div>
 
+    <div class="legend-bar">
+      <div class="legend-item legend-success">
+        <span class="legend-dot legend-success-dot"></span>
+        Naručeno
+      </div>
+      <div class="legend-item legend-danger">
+        <span class="legend-dot legend-danger-dot"></span>
+        Bez narudžbe
+      </div>
+      <div class="legend-item legend-warning">
+        <nb-icon icon="alert-circle-outline" status="warning"></nb-icon>
+        Izmijenjena količina
+      </div>
+    </div>
+
     <div class="table-container" *ngIf="!loading; else loadingStavke">
       <table class="stavke-table">
+        <colgroup>
+          <col class="col-prodavnica">
+          <col class="col-sifra">
+          <col class="col-naziv">
+          <col class="col-bar-kod">
+          <col class="col-dobavljac">
+          <col class="col-akcija">
+          <col class="col-as">
+          <col class="col-as">
+          <col class="col-as">
+          <col class="col-status">
+          <col class="col-opis">
+          <col class="col-zaliha">
+          <col class="col-kolicina">
+          <col class="col-oznaka">
+        </colgroup>
         <thead>
           <tr>
             <th>Prodavnica</th>
@@ -72,7 +130,7 @@
             <th>Opis</th>
             <th class="text-end">Zaliha</th>
             <th class="text-center">Naručena količina</th>
-            <th class="text-center">***</th>
+            <th class="text-center">Izmjena</th>
           </tr>
         </thead>
         <tbody>
@@ -80,21 +138,34 @@
               'ordered-row': (stavka.kolicina ?? 0) > 0,
               'not-ordered-row': (stavka.kolicina ?? 0) === 0
             }">
-            <td class="text-nowrap">{{ stavka.prodavnica || 'N/A' }}</td>
-            <td>{{ stavka.sifra }}</td>
-            <td>{{ stavka.naziv }}</td>
-            <td>{{ stavka.barKod }}</td>
+            <td class="text-nowrap">
+              <span class="cell-pill">{{ stavka.prodavnica || 'N/A' }}</span>
+            </td>
+            <td class="mono">{{ stavka.sifra }}</td>
+            <td class="naziv-cell">
+              <div class="primary-text">{{ stavka.naziv }}</div>
+            </td>
+            <td class="mono">{{ stavka.barKod }}</td>
             <td>{{ stavka.dobavljac }}</td>
-            <td class="text-end">{{ stavka.akcijskaMpc | number: '1.2-2' }}</td>
-            <td class="text-end">{{ stavka.asSa | number: '1.0-2' }}</td>
-            <td class="text-end">{{ stavka.asMo | number: '1.0-2' }}</td>
-            <td class="text-end">{{ stavka.asBl | number: '1.0-2' }}</td>
-            <td>{{ stavka.status }}</td>
-            <td>{{ stavka.opis }}</td>
-            <td class="text-end">{{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</td>
-            <td class="kolicina-cell" [ngClass]="{ 'zero-order': (stavka.kolicina ?? 0) === 0 }">
-              <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina"
-                (ngModelChange)="onKolicinaChange()" [disabled]="!mozeUrediti()" />
+            <td class="text-end numeric">{{ stavka.akcijskaMpc | number: '1.2-2' }}</td>
+            <td class="text-end numeric">{{ stavka.asSa | number: '1.0-2' }}</td>
+            <td class="text-end numeric">{{ stavka.asMo | number: '1.0-2' }}</td>
+            <td class="text-end numeric">{{ stavka.asBl | number: '1.0-2' }}</td>
+            <td>
+              <span class="status-pill" [ngClass]="statusClass(stavka.status)">{{ stavka.status || 'N/A' }}</span>
+            </td>
+            <td class="opis-cell">
+              <div class="opis-text" [title]="stavka.opis || 'Nema opisa'">{{ stavka.opis || 'Nema opisa' }}</div>
+            </td>
+            <td class="text-end zaliha-cell">
+              <span class="quantity-chip">{{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</span>
+            </td>
+            <td class="kolicina-cell" [ngClass]="{ 'zero-order': (stavka.kolicina ?? 0) === 0, 'changed': kolicinaPromijenjena(stavka) }">
+              <div class="quantity-wrapper">
+                <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina"
+                  (ngModelChange)="onKolicinaChange()" [disabled]="!mozeUrediti()" class="kolicina-input" />
+                <span class="change-pill" *ngIf="kolicinaPromijenjena(stavka)">Izmjena</span>
+              </div>
             </td>
             <td class="text-center">
               <nb-icon *ngIf="!kolicinaPromijenjena(stavka)" icon="checkmark-circle-2-outline" status="success"></nb-icon>
