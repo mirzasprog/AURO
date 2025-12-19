@@ -86,6 +86,8 @@ namespace backend.Entities
         public virtual DbSet<ParcijalnaInventura> ParcijalnaInventura { get; set; } = null!;
         public virtual DbSet<GetPodaciReklamacije> GetPodaciReklamacije { get; set; } = null!;
         public virtual DbSet<VikendAkcijaStavkaDto> VikendAkcijaStavkaDto { get; set; } = null!;
+        public virtual DbSet<ProdajniLayout> ProdajniLayout { get; set; } = null!;
+        public virtual DbSet<ProdajnaPozicija> ProdajnaPozicija { get; set; } = null!;
         public virtual DbSet<ResponseParcijalneInventurePodrucni> ResponseParcijalneInventurePodrucni { get; set; } = null!;
         public virtual DbSet<ResponseParcijalneInventurePodrucniZaglavlje> ResponseParcijalneInventurePodrucniZaglavlje { get; set; } = null!;
         public virtual DbSet<ResponseParcijalneInventurePodrucniZaglavlje> ResponseParcijalneInventureInternaZaglavlje { get; set; } = null!;
@@ -1083,6 +1085,70 @@ namespace backend.Entities
                     .WithMany(p => p.DailyTasks)
                     .HasForeignKey(d => d.TemplateId)
                     .HasConstraintName("FK_DailyTask_Template");
+            });
+
+            modelBuilder.Entity<ProdajniLayout>(entity =>
+            {
+                entity.ToTable("ProdajniLayout");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.ProdavnicaId).HasColumnName("ProdavnicaID");
+
+                entity.Property(e => e.Sirina).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Duzina).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.DatumKreiranja).HasColumnType("datetime");
+
+                entity.Property(e => e.DatumIzmjene).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Prodavnica)
+                    .WithMany()
+                    .HasForeignKey(d => d.ProdavnicaId)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_ProdajniLayout_Prodavnica");
+            });
+
+            modelBuilder.Entity<ProdajnaPozicija>(entity =>
+            {
+                entity.ToTable("ProdajnaPozicija");
+
+                entity.Property(e => e.Id).HasColumnName("ID");
+
+                entity.Property(e => e.LayoutId).HasColumnName("LayoutID");
+
+                entity.Property(e => e.Tip)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Naziv)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Sirina).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Duzina).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.PozicijaX).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.PozicijaY).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Rotacija).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Zona)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DatumKreiranja).HasColumnType("datetime");
+
+                entity.Property(e => e.DatumIzmjene).HasColumnType("datetime");
+
+                entity.HasOne(d => d.Layout)
+                    .WithMany(p => p.Pozicije)
+                    .HasForeignKey(d => d.LayoutId)
+                    .OnDelete(DeleteBehavior.Cascade)
+                    .HasConstraintName("FK_ProdajnaPozicija_ProdajniLayout");
             });
 
             modelBuilder.Entity<ResponseParcijalneInventurePodrucni>(entity =>

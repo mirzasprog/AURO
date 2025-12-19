@@ -374,6 +374,96 @@ namespace backend.Migrations
                         });
                 });
 
+            modelBuilder.Entity("backend.Entities.ProdajniLayout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime?>("DatumIzmjene")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("DatumKreiranja")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("Duzina")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("ProdavnicaId")
+                        .HasColumnType("int")
+                        .HasColumnName("ProdavnicaID");
+
+                    b.Property<decimal>("Sirina")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProdavnicaId");
+
+                    b.ToTable("ProdajniLayout", (string)null);
+                });
+
+            modelBuilder.Entity("backend.Entities.ProdajnaPozicija", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<DateTime?>("DatumIzmjene")
+                        .HasColumnType("datetime");
+
+                    b.Property<DateTime?>("DatumKreiranja")
+                        .HasColumnType("datetime");
+
+                    b.Property<decimal>("Duzina")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<int>("LayoutId")
+                        .HasColumnType("int")
+                        .HasColumnName("LayoutID");
+
+                    b.Property<string>("Naziv")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<decimal>("PozicijaX")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("PozicijaY")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("Rotacija")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<decimal>("Sirina")
+                        .HasColumnType("decimal(18, 2)");
+
+                    b.Property<string>("Tip")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Zona")
+                        .HasMaxLength(100)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LayoutId");
+
+                    b.ToTable("ProdajnaPozicija", (string)null);
+                });
+
             modelBuilder.Entity("backend.Entities.DatumOdobravanjaInventure", b =>
                 {
                     b.Property<int>("Id")
@@ -3528,6 +3618,29 @@ namespace backend.Migrations
                     b.Navigation("Prodavnica");
 
                     b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("backend.Entities.ProdajniLayout", b =>
+                {
+                    b.HasOne("backend.Entities.Prodavnica", "Prodavnica")
+                        .WithMany()
+                        .HasForeignKey("ProdavnicaId")
+                        .IsRequired()
+                        .HasConstraintName("FK_ProdajniLayout_Prodavnica");
+
+                    b.Navigation("Prodavnica");
+                });
+
+            modelBuilder.Entity("backend.Entities.ProdajnaPozicija", b =>
+                {
+                    b.HasOne("backend.Entities.ProdajniLayout", "Layout")
+                        .WithMany("Pozicije")
+                        .HasForeignKey("LayoutId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_ProdajnaPozicija_ProdajniLayout");
+
+                    b.Navigation("Layout");
                 });
 
             modelBuilder.Entity("backend.Entities.HijerarhijaOdobravanja", b =>
