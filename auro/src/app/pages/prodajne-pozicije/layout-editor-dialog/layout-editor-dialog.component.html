@@ -70,7 +70,7 @@
             *ngFor="let pozicija of pozicije; let i = index"
             [class.selected]="selectedIndex === i"
             [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
-            [ngStyle]="{ ...getPosition(pozicija), ...getStyle(pozicija) }"
+            [ngStyle]="getPozicijaStyle(pozicija)"
             (mousedown)="onMouseDown($event, i)"
           >
             <span>{{ pozicija.naziv }}</span>
