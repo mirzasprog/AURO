@@ -157,6 +157,13 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     };
   }
 
+  getPozicijaStyle(pozicija: ProdajnaPozicija): Record<string, string> {
+    return {
+      ...this.getPosition(pozicija),
+      ...this.getStyle(pozicija)
+    };
+  }
+
   isOutOfBounds(pozicija: ProdajnaPozicija): boolean {
     return (
       pozicija.pozicijaX < 0 ||
