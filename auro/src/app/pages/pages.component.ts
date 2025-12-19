@@ -101,6 +101,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], false);
+          this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
          // this.setMenuHidden(["Fakturisanje"], true);
         }
@@ -116,6 +117,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
+          this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
          // this.setMenuHidden(["Fakturisanje"], true);
         }
@@ -131,6 +133,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], false);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
+          this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         //  this.setMenuHidden(["Fakturisanje"], true);
         }
@@ -145,6 +148,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], false);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
+          this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         //  this.setMenuHidden(["Fakturisanje"], true);
         }
@@ -159,6 +163,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
+          this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
          // this.setMenuHidden(["Fakturisanje"], true);
         }
@@ -173,6 +178,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], false);
+          this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
          // this.setMenuHidden(["Fakturisanje"], true);
         }
@@ -188,6 +194,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Fakturisanje"], false);
         }       
         else {
@@ -202,6 +209,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Fakturisanje"], true);
         }
       })

@@ -93,6 +93,11 @@ const routes: Routes = [{
       .then(m => m.DnevniZadaciModule)
     },
     {
+      path: 'prodajne-pozicije',
+      loadChildren: () => import('./prodajne-pozicije/prodajne-pozicije.module')
+      .then(m => m.ProdajnePozicijeModule)
+    },
+    {
       path: 'vikend-akcije',
       loadChildren: () => import('./vikend-akcije/vikend-akcije.module')
       .then(m => m.VikendAkcijeModule)

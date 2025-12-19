@@ -60,6 +60,7 @@ import { Akcija } from '../data/akcija';
 import { AkcijaStavka } from '../data/akcija-stavka';
 import { PrometHistoryRow } from '../data/promet-history';
 import { PagedResult, ServiceInvoice, ServiceInvoiceListItem } from '../data/service-invoice';
+import { ProdajnePozicijeResponse, ProdajnePozicijeUpsertRequest, ProdavnicaOption } from '../data/prodajne-pozicije';
 @Injectable({
   providedIn: 'root'
 })
@@ -215,6 +216,27 @@ export class DataService {
 
   public preuzmiFakturuUsluge(id: number): Observable<ServiceInvoice> {
     return this.sendRequest<ServiceInvoice>("GET", `${this.baseUrl}/api/ServiceInvoices/${id}`);
+  }
+
+  // Prodajne pozicije
+  public preuzmiProdavniceZaProdajnePozicije(): Observable<ProdavnicaOption[]> {
+    return this.sendRequest<ProdavnicaOption[]>("GET", this.baseUrl + '/api/DailyTasks/stores');
+  }
+
+  public preuzmiProdajnePozicije(storeId: number): Observable<ProdajnePozicijeResponse> {
+    return this.sendRequest<ProdajnePozicijeResponse>("GET", this.baseUrl + `/api/ProdajnePozicije/${storeId}`);
+  }
+
+  public spremiProdajnePozicije(storeId: number, payload: ProdajnePozicijeUpsertRequest): Observable<ProdajnePozicijeResponse> {
+    return this.sendRequest<ProdajnePozicijeResponse>("PUT", this.baseUrl + `/api/ProdajnePozicije/${storeId}`, payload);
+  }
+
+  public obrisiProdajnePozicije(storeId: number): Observable<void> {
+    return this.sendRequest<void>("DELETE", this.baseUrl + `/api/ProdajnePozicije/${storeId}`);
+  }
+
+  public exportujProdajnePozicije(storeId: number): Observable<Blob> {
+    return this.http.get(this.baseUrl + `/api/ProdajnePozicije/${storeId}/export`, { responseType: 'blob' });
   }
 
   public kreirajFakturuUsluge(podaci: ServiceInvoice): Observable<ServiceInvoice> {

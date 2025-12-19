@@ -1,0 +1,77 @@
+<nb-card>
+  <nb-card-header>
+    <div class="header-row">
+      <div class="store-select">
+        <label for="prodavnica">Prodavnica</label>
+        <nb-select id="prodavnica" placeholder="Odaberite prodavnicu" [(ngModel)]="odabranaProdavnicaId" (selectedChange)="onProdavnicaChange()">
+          <nb-option *ngFor="let prodavnica of prodavnice" [value]="prodavnica.id">
+            {{ prodavnica.name }}
+          </nb-option>
+        </nb-select>
+      </div>
+      <div class="actions">
+        <button nbButton status="primary" (click)="otvoriEditor()" [disabled]="!odabranaProdavnicaId">
+          <nb-icon icon="edit-2-outline"></nb-icon>
+          Uredi layout
+        </button>
+        <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId">
+          <nb-icon icon="download-outline"></nb-icon>
+          Export u Excel
+        </button>
+      </div>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <nb-spinner *ngIf="loading" size="large"></nb-spinner>
+
+    <div *ngIf="!loading" class="content">
+      <div class="kpi-grid">
+        <nb-card class="kpi">
+          <nb-card-header>Ukupna površina</nb-card-header>
+          <nb-card-body>{{ ukupnaPovrsina | number:'1.0-2' }} m²</nb-card-body>
+        </nb-card>
+        <nb-card class="kpi">
+          <nb-card-header>Zauzeta površina</nb-card-header>
+          <nb-card-body>{{ zauzetaPovrsina | number:'1.0-2' }} m²</nb-card-body>
+        </nb-card>
+        <nb-card class="kpi">
+          <nb-card-header>Slobodna površina</nb-card-header>
+          <nb-card-body>{{ slobodnaPovrsina | number:'1.0-2' }} m²</nb-card-body>
+        </nb-card>
+        <nb-card class="kpi">
+          <nb-card-header>Iskorištenost</nb-card-header>
+          <nb-card-body>{{ iskoristenost | number:'1.0-2' }} %</nb-card-body>
+        </nb-card>
+      </div>
+
+      <div class="tables">
+        <nb-card>
+          <nb-card-header>Pregled po tipu</nb-card-header>
+          <nb-card-body>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Tip</th>
+                  <th>Broj objekata</th>
+                  <th>Zauzeta površina</th>
+                  <th>Učešće (%)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let stavka of statistikaPoTipu">
+                  <td>{{ stavka.tip }}</td>
+                  <td>{{ stavka.broj }}</td>
+                  <td>{{ stavka.zauzetaPovrsina | number:'1.0-2' }} m²</td>
+                  <td>{{ stavka.ucesce | number:'1.0-2' }} %</td>
+                </tr>
+                <tr *ngIf="!statistikaPoTipu.length">
+                  <td colspan="4" class="empty">Nema unesenih pozicija.</td>
+                </tr>
+              </tbody>
+            </table>
+          </nb-card-body>
+        </nb-card>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

@@ -1,0 +1,86 @@
+<nb-card class="editor-card">
+  <nb-card-header>
+    <div class="editor-header">
+      <span>Grafički editor layouta</span>
+      <div class="actions">
+        <button nbButton size="small" status="basic" (click)="zatvori()">Odustani</button>
+        <button nbButton size="small" status="primary" (click)="sacuvaj()">Sačuvaj</button>
+      </div>
+    </div>
+  </nb-card-header>
+  <nb-card-body>
+    <div class="editor-grid">
+      <div class="left-panel">
+        <div class="layout-form">
+          <label>Širina prodavnice (m)</label>
+          <input nbInput type="number" [(ngModel)]="layout.sirina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
+          <label>Dužina prodavnice (m)</label>
+          <input nbInput type="number" [(ngModel)]="layout.duzina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
+        </div>
+
+        <div class="add-object">
+          <label>Dodaj objekat</label>
+          <nb-select [(ngModel)]="odabraniTip">
+            <nb-option *ngFor="let tip of tipovi" [value]="tip">{{ tip.label }}</nb-option>
+          </nb-select>
+          <button nbButton status="success" (click)="dodajObjekat()">
+            <nb-icon icon="plus-outline"></nb-icon>
+            Dodaj
+          </button>
+        </div>
+
+        <div class="object-editor" *ngIf="selectedIndex !== null">
+          <h5>Odabrani objekat</h5>
+          <label>Tip</label>
+          <nb-select [(ngModel)]="pozicije[selectedIndex].tip" (selectedChange)="azurirajUpozorenja()">
+            <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
+          </nb-select>
+          <label>Naziv/Oznaka</label>
+          <input nbInput [(ngModel)]="pozicije[selectedIndex].naziv" (ngModelChange)="azurirajUpozorenja()" />
+          <label>Širina (m)</label>
+          <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].sirina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
+          <label>Dužina (m)</label>
+          <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].duzina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
+          <label>Pozicija X (m)</label>
+          <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].pozicijaX" (ngModelChange)="azurirajUpozorenja()" step="0.1" />
+          <label>Pozicija Y (m)</label>
+          <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].pozicijaY" (ngModelChange)="azurirajUpozorenja()" step="0.1" />
+          <label>Rotacija (°)</label>
+          <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].rotacija" step="5" />
+          <label>Zona (opcionalno)</label>
+          <input nbInput [(ngModel)]="pozicije[selectedIndex].zona" />
+          <button nbButton status="danger" outline (click)="obrisiPoziciju()">
+            <nb-icon icon="trash-2-outline"></nb-icon>
+            Obriši objekat
+          </button>
+        </div>
+
+        <div class="warnings" *ngIf="warnings.length">
+          <h6>Upozorenja</h6>
+          <ul>
+            <li *ngFor="let warning of warnings">{{ warning }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="canvas-panel">
+        <div class="canvas" #canvas>
+          <div
+            class="layout-item"
+            *ngFor="let pozicija of pozicije; let i = index"
+            [class.selected]="selectedIndex === i"
+            [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
+            [ngStyle]="{ ...getPosition(pozicija), ...getStyle(pozicija) }"
+            (mousedown)="onMouseDown($event, i)"
+          >
+            <span>{{ pozicija.naziv }}</span>
+            <div class="resize-handle" (mousedown)="onResizeMouseDown($event, i)"></div>
+          </div>
+        </div>
+        <div class="canvas-info">
+          <p>Napomena: Validacija preklapanja koristi osnovne okvire bez rotacije.</p>
+        </div>
+      </div>
+    </div>
+  </nb-card-body>
+</nb-card>

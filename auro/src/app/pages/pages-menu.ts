@@ -177,6 +177,11 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: "shopping-bag-outline",
     link: "/pages/vikend-akcije"
   },
+  {
+    title: "Prodajne pozicije",
+    icon: "grid-outline",
+    link: "/pages/prodajne-pozicije"
+  },
   //Reklamacija kvaliteta Voća i povrća -- rola: prodavnica [8], kontrolaKvaliteta
   {
     title: "Kvaliteta VIP-a",
