@@ -62,6 +62,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   filtrirajUskoro = false;
   pragDanaIsteka = 30;
 
+  private readonly defaultLayoutSize = 20;
   private scale = 1;
   private baseScale = 1;
   private dragMode: 'move' | 'resize' | null = null;
@@ -83,6 +84,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   novaPozicija: NovaPozicija = this.kreirajNovuPoziciju();
 
   ngAfterViewInit(): void {
+    this.ensureLayoutDimensions();
     if (this.layout.backgroundRotation == null) {
       this.layout.backgroundRotation = 0;
     }
@@ -370,11 +372,12 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   isOutOfBounds(pozicija: ProdajnaPozicija): boolean {
+    const { sirina, duzina } = this.ensureLayoutDimensions();
     return (
       pozicija.pozicijaX < 0 ||
       pozicija.pozicijaY < 0 ||
-      pozicija.pozicijaX + pozicija.sirina > this.layout.sirina ||
-      pozicija.pozicijaY + pozicija.duzina > this.layout.duzina
+      pozicija.pozicijaX + pozicija.sirina > sirina ||
+      pozicija.pozicijaY + pozicija.duzina > duzina
     );
   }
 
@@ -401,8 +404,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private izracunajSkalu(): void {
     const canvasWidth = this.canvasRef.nativeElement.clientWidth;
     const canvasHeight = this.canvasRef.nativeElement.clientHeight;
-    const sirina = this.layout.sirina || 1;
-    const duzina = this.layout.duzina || 1;
+    const { sirina, duzina } = this.ensureLayoutDimensions();
     this.baseScale = Math.min(canvasWidth / sirina, canvasHeight / duzina);
     this.scale = this.baseScale * this.zoom;
   }
@@ -423,8 +425,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   getCanvasStyle(): Record<string, string> {
-    const sirina = this.layout.sirina || 1;
-    const duzina = this.layout.duzina || 1;
+    const { sirina, duzina } = this.ensureLayoutDimensions();
     return {
       width: `${sirina * this.baseScale}px`,
       height: `${duzina * this.baseScale}px`,
@@ -626,25 +627,43 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   private getDefaultStartPositionForSize(sirina: number, duzina: number): { x: number; y: number } {
-    const maxX = Math.max((this.layout.sirina ?? 0) - sirina, 0);
-    const maxY = Math.max((this.layout.duzina ?? 0) - duzina, 0);
+    const layout = this.ensureLayoutDimensions();
+    const maxX = Math.max(layout.sirina - sirina, 0);
+    const maxY = Math.max(layout.duzina - duzina, 0);
     const x = maxX ? maxX / 2 : 0;
     const y = maxY ? maxY / 2 : 0;
     return { x, y };
   }
 
   private postaviPoziciju(pozicija: ProdajnaPozicija, x: number, y: number): void {
-    const maxX = Math.max((this.layout.sirina ?? 0) - pozicija.sirina, 0);
-    const maxY = Math.max((this.layout.duzina ?? 0) - pozicija.duzina, 0);
+    const layout = this.ensureLayoutDimensions();
+    const maxX = Math.max(layout.sirina - pozicija.sirina, 0);
+    const maxY = Math.max(layout.duzina - pozicija.duzina, 0);
     pozicija.pozicijaX = this.clamp(x, 0, maxX);
     pozicija.pozicijaY = this.clamp(y, 0, maxY);
   }
 
   private postaviVelicinu(pozicija: ProdajnaPozicija, sirina: number, duzina: number): void {
-    const maxSirina = Math.max((this.layout.sirina ?? 0) - pozicija.pozicijaX, 0.1);
-    const maxDuzina = Math.max((this.layout.duzina ?? 0) - pozicija.pozicijaY, 0.1);
+    const layout = this.ensureLayoutDimensions();
+    const maxSirina = Math.max(layout.sirina - pozicija.pozicijaX, 0.1);
+    const maxDuzina = Math.max(layout.duzina - pozicija.pozicijaY, 0.1);
     pozicija.sirina = this.clamp(sirina, 0.1, maxSirina);
     pozicija.duzina = this.clamp(duzina, 0.1, maxDuzina);
+  }
+
+  private ensureLayoutDimensions(): { sirina: number; duzina: number } {
+    const sirina = this.layout.sirina && this.layout.sirina > 0 ? this.layout.sirina : this.defaultLayoutSize;
+    const duzina = this.layout.duzina && this.layout.duzina > 0 ? this.layout.duzina : this.defaultLayoutSize;
+
+    if (!this.layout.sirina || this.layout.sirina <= 0) {
+      this.layout.sirina = sirina;
+    }
+
+    if (!this.layout.duzina || this.layout.duzina <= 0) {
+      this.layout.duzina = duzina;
+    }
+
+    return { sirina, duzina };
   }
 
   private clamp(value: number, min: number, max: number): number {
