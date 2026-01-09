@@ -33,6 +33,12 @@
   gap: 1.5rem;
 }
 
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .layout-form,
 .add-object,
 .object-editor,
@@ -119,6 +125,17 @@
   border-radius: 0.75rem;
   background-color: #f7f9fc;
   overflow: auto;
+  cursor: grab;
+}
+
+.canvas-viewport:active {
+  cursor: grabbing;
+}
+
+.canvas-pan {
+  position: relative;
+  width: fit-content;
+  height: fit-content;
 }
 
 .canvas-content {
@@ -182,6 +199,12 @@
   gap: 1rem;
 }
 
+.tools-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .detail-actions {
   display: flex;
   gap: 0.5rem;
@@ -196,6 +219,41 @@
 .canvas-info {
   font-size: 0.75rem;
   color: #8f9bb3;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: min(720px, 95vw);
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 @media (max-width: 980px) {

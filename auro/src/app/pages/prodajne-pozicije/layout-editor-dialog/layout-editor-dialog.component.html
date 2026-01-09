@@ -10,28 +10,30 @@
   <nb-card-body>
     <div class="editor-grid">
       <div class="canvas-panel">
-        <div class="canvas-viewport" #canvas>
-          <div class="canvas-content" [ngStyle]="getCanvasStyle()">
-            <div
-              class="background-layer"
-              *ngIf="layout.backgroundData && isImageBackground()"
-              [ngStyle]="getBackgroundStyle()"
-            ></div>
-            <div
-              class="layout-item"
-              *ngFor="let pozicija of pozicije; let i = index"
-              [class.selected]="selectedIndex === i"
-              [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
-              [ngStyle]="getPozicijaStyle(pozicija)"
-              (mousedown)="onMouseDown($event, i)"
-            >
-              <span>{{ getPozicijaLabel(pozicija) }}</span>
-              <div class="resize-handle" (mousedown)="onResizeMouseDown($event, i)"></div>
+        <div class="canvas-viewport" #canvas (mousedown)="onCanvasMouseDown($event)">
+          <div class="canvas-pan" [ngStyle]="getPanStyle()">
+            <div class="canvas-content" [ngStyle]="getCanvasStyle()">
+              <div
+                class="background-layer"
+                *ngIf="layout.backgroundData && isImageBackground()"
+                [ngStyle]="getBackgroundStyle()"
+              ></div>
+              <div
+                class="layout-item"
+                *ngFor="let pozicija of pozicije; let i = index"
+                [class.selected]="selectedIndex === i"
+                [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
+                [ngStyle]="getPozicijaStyle(pozicija)"
+                (mousedown)="onMouseDown($event, i)"
+              >
+                <span>{{ getPozicijaLabel(pozicija) }}</span>
+                <div class="resize-handle" (mousedown)="onResizeMouseDown($event, i)"></div>
+              </div>
             </div>
           </div>
         </div>
         <div class="canvas-info">
-          <p>Napomena: Validacija preklapanja koristi osnovne okvire bez rotacije.</p>
+          <p>Prevlačenjem praznog prostora pomjerate cijeli layout. Validacija preklapanja koristi osnovne okvire bez rotacije.</p>
         </div>
       </div>
       <div class="options-panel">
@@ -48,42 +50,10 @@
             <nb-select [(ngModel)]="odabraniTip">
               <nb-option *ngFor="let tip of tipovi" [value]="tip">{{ tip.label }}</nb-option>
             </nb-select>
-            <button nbButton status="success" (click)="dodajObjekat()">
+            <button nbButton status="success" (click)="otvoriModalZaDodavanje()">
               <nb-icon icon="plus-outline"></nb-icon>
-              Dodaj
+              Dodaj poziciju
             </button>
-          </div>
-
-          <div class="background-upload">
-            <label>Podloga (JPEG/DWG)</label>
-            <input #backgroundInput type="file" accept=".jpg,.jpeg,.dwg" (change)="onBackgroundSelected($event)" />
-            <button nbButton status="info" outline (click)="triggerBackgroundUpload()">
-              <nb-icon icon="image-outline"></nb-icon>
-              Učitaj podlogu
-            </button>
-            <div class="background-meta" *ngIf="layout.backgroundFileName">
-              <span>{{ layout.backgroundFileName }}</span>
-              <button nbButton size="tiny" status="danger" outline (click)="ukloniPodlogu()">Ukloni</button>
-            </div>
-            <div class="background-rotation" *ngIf="layout.backgroundData && isImageBackground()">
-              <label>Rotacija podloge (°)</label>
-              <input type="range" min="-180" max="180" step="5" [(ngModel)]="layout.backgroundRotation" />
-              <div class="rotation-actions">
-                <button nbButton size="tiny" status="basic" (click)="rotirajPodlogu(-90)">-90°</button>
-                <button nbButton size="tiny" status="basic" (click)="rotirajPodlogu(90)">+90°</button>
-              </div>
-            </div>
-            <p class="hint" *ngIf="layout.backgroundFileName && !isImageBackground()">DWG podloga se čuva, ali nije moguće prikazati pregled.</p>
-          </div>
-
-          <div class="zoom-controls">
-            <label>Zoom</label>
-            <div class="zoom-actions">
-              <button nbButton size="tiny" status="basic" (click)="zoomOut()">-</button>
-              <input type="range" [min]="minZoom" [max]="maxZoom" step="0.1" [(ngModel)]="zoom" (ngModelChange)="onZoomChange($event)" />
-              <button nbButton size="tiny" status="basic" (click)="zoomIn()">+</button>
-              <span>{{ zoom * 100 | number:'1.0-0' }}%</span>
-            </div>
           </div>
 
           <div class="warnings" *ngIf="warnings.length">
@@ -94,7 +64,42 @@
           </div>
         </div>
 
-        <div class="details-panel">
+        <div class="right-panel">
+          <div class="tools-panel">
+            <div class="background-upload">
+              <label>Podloga (JPEG/DWG)</label>
+              <input #backgroundInput type="file" accept=".jpg,.jpeg,.dwg" (change)="onBackgroundSelected($event)" />
+              <button nbButton status="info" outline (click)="triggerBackgroundUpload()">
+                <nb-icon icon="image-outline"></nb-icon>
+                Učitaj podlogu
+              </button>
+              <div class="background-meta" *ngIf="layout.backgroundFileName">
+                <span>{{ layout.backgroundFileName }}</span>
+                <button nbButton size="tiny" status="danger" outline (click)="ukloniPodlogu()">Ukloni</button>
+              </div>
+              <div class="background-rotation" *ngIf="layout.backgroundData && isImageBackground()">
+                <label>Rotacija podloge (°)</label>
+                <input type="range" min="-180" max="180" step="5" [(ngModel)]="layout.backgroundRotation" />
+                <div class="rotation-actions">
+                  <button nbButton size="tiny" status="basic" (click)="rotirajPodlogu(-90)">-90°</button>
+                  <button nbButton size="tiny" status="basic" (click)="rotirajPodlogu(90)">+90°</button>
+                </div>
+              </div>
+              <p class="hint" *ngIf="layout.backgroundFileName && !isImageBackground()">DWG podloga se čuva, ali nije moguće prikazati pregled.</p>
+            </div>
+
+            <div class="zoom-controls">
+              <label>Zoom</label>
+              <div class="zoom-actions">
+                <button nbButton size="tiny" status="basic" (click)="zoomOut()">-</button>
+                <input type="range" [min]="minZoom" [max]="maxZoom" step="0.1" [(ngModel)]="zoom" (ngModelChange)="onZoomChange($event)" />
+                <button nbButton size="tiny" status="basic" (click)="zoomIn()">+</button>
+                <span>{{ zoom * 100 | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="details-panel">
           <div *ngIf="selectedIndex !== null" class="object-editor">
             <h5>Detalji pozicije</h5>
             <label>Broj pozicije</label>
@@ -146,7 +151,56 @@
             <p>Odaberite poziciju na podlozi da prikažete detalje.</p>
           </div>
         </div>
+        </div>
       </div>
     </div>
   </nb-card-body>
 </nb-card>
+
+<div class="modal-backdrop" *ngIf="isDodavanjeModalOpen">
+  <nb-card class="modal-card">
+    <nb-card-header>Dodaj poziciju</nb-card-header>
+    <nb-card-body>
+      <div class="modal-form">
+        <label>Tip pozicije</label>
+        <nb-select [(ngModel)]="novaPozicija.tip" (selectedChange)="onTipChange($event)">
+          <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
+        </nb-select>
+        <label>Naziv</label>
+        <input nbInput [(ngModel)]="novaPozicija.naziv" />
+        <label>Broj pozicije</label>
+        <input nbInput [(ngModel)]="novaPozicija.brojPozicije" />
+        <div class="modal-grid">
+          <div>
+            <label>Širina (m)</label>
+            <input nbInput type="number" [(ngModel)]="novaPozicija.sirina" min="0.1" step="0.1" />
+          </div>
+          <div>
+            <label>Dužina (m)</label>
+            <input nbInput type="number" [(ngModel)]="novaPozicija.duzina" min="0.1" step="0.1" />
+          </div>
+          <div>
+            <label>Pozicija X (m)</label>
+            <input nbInput type="number" [(ngModel)]="novaPozicija.pozicijaX" step="0.1" />
+          </div>
+          <div>
+            <label>Pozicija Y (m)</label>
+            <input nbInput type="number" [(ngModel)]="novaPozicija.pozicijaY" step="0.1" />
+          </div>
+          <div>
+            <label>Rotacija (°)</label>
+            <input nbInput type="number" [(ngModel)]="novaPozicija.rotacija" step="5" />
+          </div>
+          <div>
+            <label>Zona</label>
+            <input nbInput [(ngModel)]="novaPozicija.zona" />
+          </div>
+        </div>
+      </div>
+    </nb-card-body>
+    <nb-card-footer class="modal-actions">
+      <button nbButton status="basic" outline (click)="zatvoriModalZaDodavanje()">Odustani</button>
+      <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>
+    </nb-card-footer>
+  </nb-card>
+</div>
