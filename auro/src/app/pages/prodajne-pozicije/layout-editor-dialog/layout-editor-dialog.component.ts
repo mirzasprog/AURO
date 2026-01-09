@@ -11,11 +11,6 @@ interface NovaPozicija {
   tip: string;
   naziv: string;
   brojPozicije: string;
-  sirina: number;
-  duzina: number;
-  pozicijaX: number;
-  pozicijaY: number;
-  rotacija: number;
   zona: string;
 }
 
@@ -51,6 +46,23 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   vrsteUgovora = ['Nije postavljeno', 'Mjesečni', 'Godišnji', 'Sezonski'];
   tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal'];
+  odjeli = [
+    'Pakirana',
+    'Svježa',
+    'Neprehrana 1',
+    'Neprehrana 2',
+    'Delikates',
+    'Gastro',
+    'Piće i grickalice',
+    'Voće i povrće',
+    'Mesnica',
+    'Cigarete i duhanski proizvodi'
+  ];
+  odabraniDobavljaci: string[] = [];
+  filtrirajUskoro = false;
+  pragDanaIsteka = 30;
+
+  isDetaljiModalOpen = false;
 
   private scale = 1;
   private baseScale = 1;
@@ -130,15 +142,17 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   potvrdiDodavanje(): void {
     const index = this.pozicije.length + 1;
+    const tip = this.tipovi.find((item) => item.value === this.novaPozicija.tip) ?? this.tipovi[0];
+    const startPozicija = this.getDefaultStartPosition();
     this.pozicije.push({
       tip: this.novaPozicija.tip,
       naziv: this.novaPozicija.naziv || `${this.getTipLabel(this.novaPozicija.tip)} ${index}`,
       brojPozicije: this.novaPozicija.brojPozicije || `P${index.toString().padStart(3, '0')}`,
-      sirina: this.novaPozicija.sirina,
-      duzina: this.novaPozicija.duzina,
-      pozicijaX: this.novaPozicija.pozicijaX,
-      pozicijaY: this.novaPozicija.pozicijaY,
-      rotacija: this.novaPozicija.rotacija,
+      sirina: tip.defaultSize.sirina,
+      duzina: tip.defaultSize.duzina,
+      pozicijaX: startPozicija.x,
+      pozicijaY: startPozicija.y,
+      rotacija: 0,
       zona: this.novaPozicija.zona,
       trgovac: '',
       zakupDo: null,
@@ -151,17 +165,17 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.isDodavanjeModalOpen = false;
   }
 
-  onTipChange(value: string): void {
-    const tip = this.tipovi.find((item) => item.value === value);
-    if (!tip) {
-      return;
-    }
-    this.novaPozicija.sirina = tip.defaultSize.sirina;
-    this.novaPozicija.duzina = tip.defaultSize.duzina;
-  }
-
   selectPozicija(index: number): void {
     this.selectedIndex = index;
+  }
+
+  otvoriDetalje(index: number): void {
+    this.selectPozicija(index);
+    this.isDetaljiModalOpen = true;
+  }
+
+  zatvoriDetalje(): void {
+    this.isDetaljiModalOpen = false;
   }
 
   obrisiPoziciju(): void {
@@ -171,6 +185,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
     this.pozicije.splice(this.selectedIndex, 1);
     this.selectedIndex = null;
+    this.isDetaljiModalOpen = false;
     this.azurirajUpozorenja();
   }
 
@@ -199,6 +214,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   onMouseDown(event: MouseEvent, index: number): void {
     event.preventDefault();
     event.stopPropagation();
+    if (this.isDetaljiModalOpen) {
+      return;
+    }
     this.selectPozicija(index);
     this.dragMode = 'move';
     this.dragIndex = index;
@@ -210,6 +228,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   onResizeMouseDown(event: MouseEvent, index: number): void {
     event.preventDefault();
     event.stopPropagation();
+    if (this.isDetaljiModalOpen) {
+      return;
+    }
     this.selectPozicija(index);
     this.dragMode = 'resize';
     this.dragIndex = index;
@@ -255,7 +276,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   getPozicijaStyle(pozicija: ProdajnaPozicija): Record<string, string> {
     return {
       ...this.getPosition(pozicija),
-      ...this.getStyle(pozicija)
+      ...this.getStyle(pozicija),
+      ...this.getTipColorStyle(pozicija)
     };
   }
 
@@ -404,6 +426,55 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     return pozicija.brojPozicije || pozicija.naziv;
   }
 
+  getPozicijaTooltip(pozicija: ProdajnaPozicija): string {
+    const status = pozicija.trgovac ? `Zauzeta (${pozicija.trgovac})` : 'Slobodna';
+    return `${this.getPozicijaLabel(pozicija)} · ${status}`;
+  }
+
+  get dostupniDobavljaci(): string[] {
+    const set = new Set(
+      this.pozicije
+        .map((pozicija) => pozicija.trgovac?.trim())
+        .filter((trgovac): trgovac is string => Boolean(trgovac))
+    );
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  get prikazanePozicije(): Array<{ pozicija: ProdajnaPozicija; index: number }> {
+    return this.pozicije
+      .map((pozicija, index) => ({ pozicija, index }))
+      .filter(({ pozicija }) => this.isPozicijaVidljiva(pozicija));
+  }
+
+  private isPozicijaVidljiva(pozicija: ProdajnaPozicija): boolean {
+    if (this.odabraniDobavljaci.length) {
+      if (!pozicija.trgovac || !this.odabraniDobavljaci.includes(pozicija.trgovac)) {
+        return false;
+      }
+    }
+
+    if (this.filtrirajUskoro) {
+      return this.jeUgovorUskoro(pozicija.zakupDo);
+    }
+
+    return true;
+  }
+
+  private jeUgovorUskoro(zakupDo?: string | null): boolean {
+    if (!zakupDo) {
+      return false;
+    }
+
+    const parsed = new Date(zakupDo);
+    if (Number.isNaN(parsed.getTime())) {
+      return false;
+    }
+
+    const granica = new Date();
+    granica.setDate(granica.getDate() + this.pragDanaIsteka);
+    return parsed <= granica;
+  }
+
   rotirajPodlogu(delta: number): void {
     const trenutna = this.layout.backgroundRotation ?? 0;
     this.layout.backgroundRotation = Math.max(-180, Math.min(180, trenutna + delta));
@@ -416,16 +487,47 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       tip,
       naziv: `${this.odabraniTip.label} ${index}`,
       brojPozicije: `P${index.toString().padStart(3, '0')}`,
-      sirina: this.odabraniTip.defaultSize.sirina,
-      duzina: this.odabraniTip.defaultSize.duzina,
-      pozicijaX: 0,
-      pozicijaY: 0,
-      rotacija: 0,
       zona: ''
     };
   }
 
   private getTipLabel(value: string): string {
     return this.tipovi.find((item) => item.value === value)?.label ?? 'Pozicija';
+  }
+
+  private getTipColorStyle(pozicija: ProdajnaPozicija): Record<string, string> {
+    const base = this.getOdjelColor(pozicija.zona);
+    if (!base) {
+      return {};
+    }
+    return {
+      borderColor: base.border,
+      backgroundColor: base.background
+    };
+  }
+
+  private getOdjelColor(zona?: string | null): { border: string; background: string } | null {
+    if (!zona) {
+      return null;
+    }
+
+    const map: Record<string, { border: string; background: string }> = {
+      Pakirana: { border: '#1d4ed8', background: 'rgba(37, 99, 235, 0.25)' },
+      'Svježa': { border: '#059669', background: 'rgba(16, 185, 129, 0.25)' },
+      'Neprehrana 1': { border: '#d97706', background: 'rgba(245, 158, 11, 0.25)' },
+      'Neprehrana 2': { border: '#c2410c', background: 'rgba(249, 115, 22, 0.25)' },
+      Delikates: { border: '#7c3aed', background: 'rgba(139, 92, 246, 0.25)' },
+      Gastro: { border: '#0f766e', background: 'rgba(20, 184, 166, 0.25)' },
+      'Piće i grickalice': { border: '#be123c', background: 'rgba(244, 63, 94, 0.25)' },
+      'Voće i povrće': { border: '#15803d', background: 'rgba(34, 197, 94, 0.25)' },
+      Mesnica: { border: '#9f1239', background: 'rgba(225, 29, 72, 0.25)' },
+      'Cigarete i duhanski proizvodi': { border: '#334155', background: 'rgba(71, 85, 105, 0.25)' }
+    };
+
+    return map[zona] ?? null;
+  }
+
+  private getDefaultStartPosition(): { x: number; y: number } {
+    return { x: 0, y: 0 };
   }
 }

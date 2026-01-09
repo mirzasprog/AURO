@@ -20,14 +20,17 @@
               ></div>
               <div
                 class="layout-item"
-                *ngFor="let pozicija of pozicije; let i = index"
-                [class.selected]="selectedIndex === i"
-                [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
-                [ngStyle]="getPozicijaStyle(pozicija)"
-                (mousedown)="onMouseDown($event, i)"
+                *ngFor="let item of prikazanePozicije"
+                [class.selected]="selectedIndex === item.index"
+                [class.invalid]="isOutOfBounds(item.pozicija) || isOverlapping(item.index)"
+                [ngStyle]="getPozicijaStyle(item.pozicija)"
+                [nbTooltip]="getPozicijaTooltip(item.pozicija)"
+                nbTooltipPlacement="top"
+                (mousedown)="onMouseDown($event, item.index)"
+                (click)="otvoriDetalje(item.index)"
               >
-                <span>{{ getPozicijaLabel(pozicija) }}</span>
-                <div class="resize-handle" (mousedown)="onResizeMouseDown($event, i)"></div>
+                <span>{{ getPozicijaLabel(item.pozicija) }}</span>
+                <div class="resize-handle" (mousedown)="onResizeMouseDown($event, item.index)"></div>
               </div>
             </div>
           </div>
@@ -38,13 +41,6 @@
       </div>
       <div class="options-panel">
         <div class="left-panel">
-          <div class="layout-form">
-            <label>Širina prodavnice (m)</label>
-            <input nbInput type="number" [(ngModel)]="layout.sirina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
-            <label>Dužina prodavnice (m)</label>
-            <input nbInput type="number" [(ngModel)]="layout.duzina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
-          </div>
-
           <div class="add-object">
             <label>Dodaj objekat</label>
             <nb-select [(ngModel)]="odabraniTip">
@@ -54,6 +50,19 @@
               <nb-icon icon="plus-outline"></nb-icon>
               Dodaj poziciju
             </button>
+          </div>
+
+          <div class="filters-panel">
+            <label>Dobavljač</label>
+            <nb-select multiple [(ngModel)]="odabraniDobavljaci">
+              <nb-option *ngFor="let dobavljac of dostupniDobavljaci" [value]="dobavljac">
+                {{ dobavljac }}
+              </nb-option>
+            </nb-select>
+            <label class="toggle">
+              <input type="checkbox" [(ngModel)]="filtrirajUskoro" />
+              <span>Ugovor ističe uskoro ({{ pragDanaIsteka }} dana)</span>
+            </label>
           </div>
 
           <div class="warnings" *ngIf="warnings.length">
@@ -98,59 +107,6 @@
               </div>
             </div>
           </div>
-
-          <div class="details-panel">
-          <div *ngIf="selectedIndex !== null" class="object-editor">
-            <h5>Detalji pozicije</h5>
-            <label>Broj pozicije</label>
-            <input nbInput [(ngModel)]="pozicije[selectedIndex].brojPozicije" />
-            <label>Tip</label>
-            <nb-select [(ngModel)]="pozicije[selectedIndex].tip" (selectedChange)="azurirajUpozorenja()">
-              <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
-            </nb-select>
-            <label>Naziv/Oznaka</label>
-            <input nbInput [(ngModel)]="pozicije[selectedIndex].naziv" (ngModelChange)="azurirajUpozorenja()" />
-            <label>Trgovac</label>
-            <input nbInput [(ngModel)]="pozicije[selectedIndex].trgovac" />
-            <label>Zakup do</label>
-            <input nbInput type="date" [(ngModel)]="pozicije[selectedIndex].zakupDo" />
-            <label>Vrijednost zakupa (KM)</label>
-            <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].vrijednostZakupa" min="0" step="0.01" />
-            <label>Vrsta ugovora</label>
-            <nb-select [(ngModel)]="pozicije[selectedIndex].vrstaUgovora">
-              <nb-option *ngFor="let vrsta of vrsteUgovora" [value]="vrsta">{{ vrsta }}</nb-option>
-            </nb-select>
-            <label>Tip pozicije (oprema)</label>
-            <nb-select [(ngModel)]="pozicije[selectedIndex].tipPozicije">
-              <nb-option *ngFor="let tip of tipoviPozicije" [value]="tip">{{ tip }}</nb-option>
-            </nb-select>
-            <label>Širina (m)</label>
-            <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].sirina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
-            <label>Dužina (m)</label>
-            <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].duzina" (ngModelChange)="azurirajUpozorenja()" min="0.1" step="0.1" />
-            <label>Pozicija X (m)</label>
-            <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].pozicijaX" (ngModelChange)="azurirajUpozorenja()" step="0.1" />
-            <label>Pozicija Y (m)</label>
-            <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].pozicijaY" (ngModelChange)="azurirajUpozorenja()" step="0.1" />
-            <label>Rotacija (°)</label>
-            <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].rotacija" step="5" />
-            <label>Zona (opcionalno)</label>
-            <input nbInput [(ngModel)]="pozicije[selectedIndex].zona" />
-            <div class="detail-actions">
-              <button nbButton status="info" outline (click)="kopirajPoziciju()">
-                <nb-icon icon="copy-outline"></nb-icon>
-                Kopiraj
-              </button>
-              <button nbButton status="danger" outline (click)="obrisiPoziciju()">
-                <nb-icon icon="trash-2-outline"></nb-icon>
-                Obriši
-              </button>
-            </div>
-          </div>
-          <div *ngIf="selectedIndex === null" class="empty-state">
-            <p>Odaberite poziciju na podlozi da prikažete detalje.</p>
-          </div>
-        </div>
         </div>
       </div>
     </div>
@@ -163,44 +119,73 @@
     <nb-card-body>
       <div class="modal-form">
         <label>Tip pozicije</label>
-        <nb-select [(ngModel)]="novaPozicija.tip" (selectedChange)="onTipChange($event)">
+        <nb-select [(ngModel)]="novaPozicija.tip">
           <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
         </nb-select>
         <label>Naziv</label>
         <input nbInput [(ngModel)]="novaPozicija.naziv" />
         <label>Broj pozicije</label>
         <input nbInput [(ngModel)]="novaPozicija.brojPozicije" />
-        <div class="modal-grid">
-          <div>
-            <label>Širina (m)</label>
-            <input nbInput type="number" [(ngModel)]="novaPozicija.sirina" min="0.1" step="0.1" />
-          </div>
-          <div>
-            <label>Dužina (m)</label>
-            <input nbInput type="number" [(ngModel)]="novaPozicija.duzina" min="0.1" step="0.1" />
-          </div>
-          <div>
-            <label>Pozicija X (m)</label>
-            <input nbInput type="number" [(ngModel)]="novaPozicija.pozicijaX" step="0.1" />
-          </div>
-          <div>
-            <label>Pozicija Y (m)</label>
-            <input nbInput type="number" [(ngModel)]="novaPozicija.pozicijaY" step="0.1" />
-          </div>
-          <div>
-            <label>Rotacija (°)</label>
-            <input nbInput type="number" [(ngModel)]="novaPozicija.rotacija" step="5" />
-          </div>
-          <div>
-            <label>Zona</label>
-            <input nbInput [(ngModel)]="novaPozicija.zona" />
-          </div>
-        </div>
+        <label>Odjel</label>
+        <nb-select [(ngModel)]="novaPozicija.zona">
+          <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
+        </nb-select>
       </div>
     </nb-card-body>
     <nb-card-footer class="modal-actions">
       <button nbButton status="basic" outline (click)="zatvoriModalZaDodavanje()">Odustani</button>
       <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>
     </nb-card-footer>
+  </nb-card>
+</div>
+
+<div class="modal-backdrop" *ngIf="isDetaljiModalOpen && selectedIndex !== null">
+  <nb-card class="modal-card">
+    <nb-card-header>
+      <div class="modal-header">
+        <span>Detalji pozicije</span>
+        <button nbButton size="tiny" status="basic" outline (click)="zatvoriDetalje()">Zatvori</button>
+      </div>
+    </nb-card-header>
+    <nb-card-body>
+      <div class="modal-form" *ngIf="selectedIndex !== null">
+        <label>Broj pozicije</label>
+        <input nbInput [(ngModel)]="pozicije[selectedIndex].brojPozicije" />
+        <label>Tip</label>
+        <nb-select [(ngModel)]="pozicije[selectedIndex].tip" (selectedChange)="azurirajUpozorenja()">
+          <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
+        </nb-select>
+        <label>Naziv/Oznaka</label>
+        <input nbInput [(ngModel)]="pozicije[selectedIndex].naziv" (ngModelChange)="azurirajUpozorenja()" />
+        <label>Trgovac</label>
+        <input nbInput [(ngModel)]="pozicije[selectedIndex].trgovac" />
+        <label>Zakup do</label>
+        <input nbInput type="date" [(ngModel)]="pozicije[selectedIndex].zakupDo" />
+        <label>Vrijednost zakupa (KM)</label>
+        <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].vrijednostZakupa" min="0" step="0.01" />
+        <label>Vrsta ugovora</label>
+        <nb-select [(ngModel)]="pozicije[selectedIndex].vrstaUgovora">
+          <nb-option *ngFor="let vrsta of vrsteUgovora" [value]="vrsta">{{ vrsta }}</nb-option>
+        </nb-select>
+        <label>Tip pozicije (oprema)</label>
+        <nb-select [(ngModel)]="pozicije[selectedIndex].tipPozicije">
+          <nb-option *ngFor="let tip of tipoviPozicije" [value]="tip">{{ tip }}</nb-option>
+        </nb-select>
+        <label>Odjel</label>
+        <nb-select [(ngModel)]="pozicije[selectedIndex].zona">
+          <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
+        </nb-select>
+        <div class="detail-actions">
+          <button nbButton status="info" outline (click)="kopirajPoziciju()">
+            <nb-icon icon="copy-outline"></nb-icon>
+            Kopiraj
+          </button>
+          <button nbButton status="danger" outline (click)="obrisiPoziciju()">
+            <nb-icon icon="trash-2-outline"></nb-icon>
+            Obriši
+          </button>
+        </div>
+      </div>
+    </nb-card-body>
   </nb-card>
 </div>
