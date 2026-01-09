@@ -7,6 +7,18 @@ interface ProdajniTip {
   defaultSize: { sirina: number; duzina: number };
 }
 
+interface NovaPozicija {
+  tip: string;
+  naziv: string;
+  brojPozicije: string;
+  sirina: number;
+  duzina: number;
+  pozicijaX: number;
+  pozicijaY: number;
+  rotacija: number;
+  zona: string;
+}
+
 @Component({
   selector: 'ngx-layout-editor-dialog',
   templateUrl: './layout-editor-dialog.component.html',
@@ -47,6 +59,17 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private startX = 0;
   private startY = 0;
   private startPozicija?: ProdajnaPozicija;
+  private isPanning = false;
+  private panStartX = 0;
+  private panStartY = 0;
+  private panOriginX = 0;
+  private panOriginY = 0;
+
+  panX = 0;
+  panY = 0;
+
+  isDodavanjeModalOpen = false;
+  novaPozicija: NovaPozicija = this.kreirajNovuPoziciju();
 
   ngAfterViewInit(): void {
     if (this.layout.backgroundRotation == null) {
@@ -63,6 +86,12 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
+    if (this.isPanning) {
+      this.panX = this.panOriginX + (event.clientX - this.panStartX);
+      this.panY = this.panOriginY + (event.clientY - this.panStartY);
+      return;
+    }
+
     if (this.dragMode === null || this.dragIndex === null || !this.startPozicija) {
       return;
     }
@@ -87,20 +116,30 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.dragMode = null;
     this.dragIndex = null;
     this.startPozicija = undefined;
+    this.isPanning = false;
   }
 
-  dodajObjekat(): void {
+  otvoriModalZaDodavanje(): void {
+    this.novaPozicija = this.kreirajNovuPoziciju();
+    this.isDodavanjeModalOpen = true;
+  }
+
+  zatvoriModalZaDodavanje(): void {
+    this.isDodavanjeModalOpen = false;
+  }
+
+  potvrdiDodavanje(): void {
     const index = this.pozicije.length + 1;
     this.pozicije.push({
-      tip: this.odabraniTip.value,
-      naziv: `${this.odabraniTip.label} ${index}`,
-      brojPozicije: `P${index.toString().padStart(3, '0')}`,
-      sirina: this.odabraniTip.defaultSize.sirina,
-      duzina: this.odabraniTip.defaultSize.duzina,
-      pozicijaX: 0,
-      pozicijaY: 0,
-      rotacija: 0,
-      zona: '',
+      tip: this.novaPozicija.tip,
+      naziv: this.novaPozicija.naziv || `${this.getTipLabel(this.novaPozicija.tip)} ${index}`,
+      brojPozicije: this.novaPozicija.brojPozicije || `P${index.toString().padStart(3, '0')}`,
+      sirina: this.novaPozicija.sirina,
+      duzina: this.novaPozicija.duzina,
+      pozicijaX: this.novaPozicija.pozicijaX,
+      pozicijaY: this.novaPozicija.pozicijaY,
+      rotacija: this.novaPozicija.rotacija,
+      zona: this.novaPozicija.zona,
       trgovac: '',
       zakupDo: null,
       vrijednostZakupa: null,
@@ -109,6 +148,16 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     });
     this.selectedIndex = this.pozicije.length - 1;
     this.azurirajUpozorenja();
+    this.isDodavanjeModalOpen = false;
+  }
+
+  onTipChange(value: string): void {
+    const tip = this.tipovi.find((item) => item.value === value);
+    if (!tip) {
+      return;
+    }
+    this.novaPozicija.sirina = tip.defaultSize.sirina;
+    this.novaPozicija.duzina = tip.defaultSize.duzina;
   }
 
   selectPozicija(index: number): void {
@@ -167,6 +216,18 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.startPozicija = { ...this.pozicije[index] };
+  }
+
+  onCanvasMouseDown(event: MouseEvent): void {
+    if ((event.target as HTMLElement).closest('.layout-item')) {
+      return;
+    }
+    event.preventDefault();
+    this.isPanning = true;
+    this.panStartX = event.clientX;
+    this.panStartY = event.clientY;
+    this.panOriginX = this.panX;
+    this.panOriginY = this.panY;
   }
 
   sacuvaj(): void {
@@ -262,6 +323,12 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     };
   }
 
+  getPanStyle(): Record<string, string> {
+    return {
+      transform: `translate(${this.panX}px, ${this.panY}px)`
+    };
+  }
+
   getBackgroundStyle(): Record<string, string> {
     const rotation = this.layout.backgroundRotation ?? 0;
     return {
@@ -340,5 +407,25 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   rotirajPodlogu(delta: number): void {
     const trenutna = this.layout.backgroundRotation ?? 0;
     this.layout.backgroundRotation = Math.max(-180, Math.min(180, trenutna + delta));
+  }
+
+  private kreirajNovuPoziciju(): NovaPozicija {
+    const index = this.pozicije.length + 1;
+    const tip = this.odabraniTip.value;
+    return {
+      tip,
+      naziv: `${this.odabraniTip.label} ${index}`,
+      brojPozicije: `P${index.toString().padStart(3, '0')}`,
+      sirina: this.odabraniTip.defaultSize.sirina,
+      duzina: this.odabraniTip.defaultSize.duzina,
+      pozicijaX: 0,
+      pozicijaY: 0,
+      rotacija: 0,
+      zona: ''
+    };
+  }
+
+  private getTipLabel(value: string): string {
+    return this.tipovi.find((item) => item.value === value)?.label ?? 'Pozicija';
   }
 }
