@@ -62,8 +62,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   filtrirajUskoro = false;
   pragDanaIsteka = 30;
 
-  isDetaljiModalOpen = false;
-
   private scale = 1;
   private baseScale = 1;
   private dragMode: 'move' | 'resize' | null = null;
@@ -169,15 +167,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.selectedIndex = index;
   }
 
-  otvoriDetalje(index: number): void {
-    this.selectPozicija(index);
-    this.isDetaljiModalOpen = true;
-  }
-
-  zatvoriDetalje(): void {
-    this.isDetaljiModalOpen = false;
-  }
-
   obrisiPoziciju(): void {
     if (this.selectedIndex === null) {
       return;
@@ -185,7 +174,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
     this.pozicije.splice(this.selectedIndex, 1);
     this.selectedIndex = null;
-    this.isDetaljiModalOpen = false;
     this.azurirajUpozorenja();
   }
 
@@ -212,11 +200,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onMouseDown(event: MouseEvent, index: number): void {
-    event.preventDefault();
     event.stopPropagation();
-    if (this.isDetaljiModalOpen) {
-      return;
-    }
     this.selectPozicija(index);
     this.dragMode = 'move';
     this.dragIndex = index;
@@ -226,11 +210,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onResizeMouseDown(event: MouseEvent, index: number): void {
-    event.preventDefault();
     event.stopPropagation();
-    if (this.isDetaljiModalOpen) {
-      return;
-    }
     this.selectPozicija(index);
     this.dragMode = 'resize';
     this.dragIndex = index;
@@ -277,7 +257,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     return {
       ...this.getPosition(pozicija),
       ...this.getStyle(pozicija),
-      ...this.getTipColorStyle(pozicija)
+      ...this.getTipColorStyle(pozicija),
+      '--label-size': `${this.getLabelFontSize(pozicija)}px`
     };
   }
 
@@ -428,7 +409,17 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   getPozicijaTooltip(pozicija: ProdajnaPozicija): string {
     const status = pozicija.trgovac ? `Zauzeta (${pozicija.trgovac})` : 'Slobodna';
-    return `${this.getPozicijaLabel(pozicija)} · ${status}`;
+    const lines = [
+      `${this.getPozicijaLabel(pozicija)}${pozicija.naziv ? ` — ${pozicija.naziv}` : ''}`,
+      `Status: ${status}`,
+      `Odjel: ${pozicija.zona || 'Nije postavljeno'}`,
+      `Vrsta ugovora: ${pozicija.vrstaUgovora || 'Nije postavljeno'}`,
+      `Tip pozicije: ${pozicija.tipPozicije || 'Nije postavljeno'}`,
+      `Zakup do: ${this.formatDateValue(pozicija.zakupDo)}`,
+      `Vrijednost zakupa: ${this.formatCurrencyValue(pozicija.vrijednostZakupa)}`
+    ];
+
+    return lines.join('\n');
   }
 
   get dostupniDobavljaci(): string[] {
@@ -512,16 +503,16 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     }
 
     const map: Record<string, { border: string; background: string }> = {
-      Pakirana: { border: '#1d4ed8', background: 'rgba(37, 99, 235, 0.25)' },
-      'Svježa': { border: '#059669', background: 'rgba(16, 185, 129, 0.25)' },
-      'Neprehrana 1': { border: '#d97706', background: 'rgba(245, 158, 11, 0.25)' },
-      'Neprehrana 2': { border: '#c2410c', background: 'rgba(249, 115, 22, 0.25)' },
-      Delikates: { border: '#7c3aed', background: 'rgba(139, 92, 246, 0.25)' },
-      Gastro: { border: '#0f766e', background: 'rgba(20, 184, 166, 0.25)' },
-      'Piće i grickalice': { border: '#be123c', background: 'rgba(244, 63, 94, 0.25)' },
-      'Voće i povrće': { border: '#15803d', background: 'rgba(34, 197, 94, 0.25)' },
-      Mesnica: { border: '#9f1239', background: 'rgba(225, 29, 72, 0.25)' },
-      'Cigarete i duhanski proizvodi': { border: '#334155', background: 'rgba(71, 85, 105, 0.25)' }
+      Pakirana: { border: '#1d4ed8', background: '#1d4ed8' },
+      'Svježa': { border: '#059669', background: '#059669' },
+      'Neprehrana 1': { border: '#d97706', background: '#d97706' },
+      'Neprehrana 2': { border: '#c2410c', background: '#c2410c' },
+      Delikates: { border: '#7c3aed', background: '#7c3aed' },
+      Gastro: { border: '#0f766e', background: '#0f766e' },
+      'Piće i grickalice': { border: '#be123c', background: '#be123c' },
+      'Voće i povrće': { border: '#15803d', background: '#15803d' },
+      Mesnica: { border: '#9f1239', background: '#9f1239' },
+      'Cigarete i duhanski proizvodi': { border: '#334155', background: '#334155' }
     };
 
     return map[zona] ?? null;
@@ -529,5 +520,29 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   private getDefaultStartPosition(): { x: number; y: number } {
     return { x: 0, y: 0 };
+  }
+
+  private getLabelFontSize(pozicija: ProdajnaPozicija): number {
+    const minDim = Math.min(pozicija.sirina, pozicija.duzina);
+    const baseSize = minDim * this.baseScale * 0.35;
+    return Math.max(10, Math.min(24, baseSize));
+  }
+
+  private formatDateValue(value?: string | null): string {
+    if (!value) {
+      return '-';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString('sr-BA');
+  }
+
+  private formatCurrencyValue(value?: number | null): string {
+    if (value === null || value === undefined) {
+      return '-';
+    }
+    return `${value.toFixed(2)} KM`;
   }
 }
