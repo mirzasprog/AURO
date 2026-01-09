@@ -10,7 +10,7 @@
   <nb-card-body>
     <div class="editor-grid">
       <div class="canvas-panel">
-        <div class="canvas-viewport" #canvas (mousedown)="onCanvasMouseDown($event)">
+        <div class="canvas-viewport" #canvas (mousedown)="onCanvasMouseDown($event)" (pointerdown)="onCanvasPointerDown($event)">
           <div class="canvas-pan" [ngStyle]="getPanStyle()">
             <div class="canvas-content" [ngStyle]="getCanvasStyle()">
               <div
@@ -28,10 +28,15 @@
                 nbTooltipClass="pozicija-tooltip"
                 nbTooltipPlacement="top"
                 (mousedown)="onMouseDown($event, item.index)"
+                (pointerdown)="onPointerDown($event, item.index)"
                 (click)="selectPozicija(item.index)"
               >
                 <span class="layout-label">{{ getPozicijaLabel(item.pozicija) }}</span>
-                <div class="resize-handle" (mousedown)="onResizeMouseDown($event, item.index)"></div>
+                <div
+                  class="resize-handle"
+                  (mousedown)="onResizeMouseDown($event, item.index)"
+                  (pointerdown)="onResizePointerDown($event, item.index)"
+                ></div>
               </div>
             </div>
           </div>
