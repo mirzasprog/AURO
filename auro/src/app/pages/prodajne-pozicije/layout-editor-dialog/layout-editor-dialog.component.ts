@@ -111,11 +111,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const target = this.pozicije[this.dragIndex];
 
     if (this.dragMode === 'move') {
-      target.pozicijaX = this.startPozicija.pozicijaX + deltaX;
-      target.pozicijaY = this.startPozicija.pozicijaY + deltaY;
+      this.postaviPoziciju(target, this.startPozicija.pozicijaX + deltaX, this.startPozicija.pozicijaY + deltaY);
     } else if (this.dragMode === 'resize') {
-      target.sirina = Math.max(0.1, this.startPozicija.sirina + deltaX);
-      target.duzina = Math.max(0.1, this.startPozicija.duzina + deltaY);
+      this.postaviVelicinu(target, this.startPozicija.sirina + deltaX, this.startPozicija.duzina + deltaY);
     }
 
     this.azurirajUpozorenja();
@@ -141,7 +139,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   potvrdiDodavanje(): void {
     const index = this.pozicije.length + 1;
     const tip = this.tipovi.find((item) => item.value === this.novaPozicija.tip) ?? this.tipovi[0];
-    const startPozicija = this.getDefaultStartPosition();
+    const startPozicija = this.getDefaultStartPositionForSize(tip.defaultSize.sirina, tip.defaultSize.duzina);
     this.pozicije.push({
       tip: this.novaPozicija.tip,
       naziv: this.novaPozicija.naziv || `${this.getTipLabel(this.novaPozicija.tip)} ${index}`,
@@ -200,6 +198,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onMouseDown(event: MouseEvent, index: number): void {
+    event.preventDefault();
     event.stopPropagation();
     this.selectPozicija(index);
     this.dragMode = 'move';
@@ -210,6 +209,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onResizeMouseDown(event: MouseEvent, index: number): void {
+    event.preventDefault();
     event.stopPropagation();
     this.selectPozicija(index);
     this.dragMode = 'resize';
@@ -518,8 +518,30 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     return map[zona] ?? null;
   }
 
-  private getDefaultStartPosition(): { x: number; y: number } {
-    return { x: 0, y: 0 };
+  private getDefaultStartPositionForSize(sirina: number, duzina: number): { x: number; y: number } {
+    const maxX = Math.max((this.layout.sirina ?? 0) - sirina, 0);
+    const maxY = Math.max((this.layout.duzina ?? 0) - duzina, 0);
+    const x = maxX ? maxX / 2 : 0;
+    const y = maxY ? maxY / 2 : 0;
+    return { x, y };
+  }
+
+  private postaviPoziciju(pozicija: ProdajnaPozicija, x: number, y: number): void {
+    const maxX = Math.max((this.layout.sirina ?? 0) - pozicija.sirina, 0);
+    const maxY = Math.max((this.layout.duzina ?? 0) - pozicija.duzina, 0);
+    pozicija.pozicijaX = this.clamp(x, 0, maxX);
+    pozicija.pozicijaY = this.clamp(y, 0, maxY);
+  }
+
+  private postaviVelicinu(pozicija: ProdajnaPozicija, sirina: number, duzina: number): void {
+    const maxSirina = Math.max((this.layout.sirina ?? 0) - pozicija.pozicijaX, 0.1);
+    const maxDuzina = Math.max((this.layout.duzina ?? 0) - pozicija.pozicijaY, 0.1);
+    pozicija.sirina = this.clamp(sirina, 0.1, maxSirina);
+    pozicija.duzina = this.clamp(duzina, 0.1, maxDuzina);
+  }
+
+  private clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
   }
 
   private getLabelFontSize(pozicija: ProdajnaPozicija): number {
