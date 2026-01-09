@@ -267,6 +267,51 @@ BEGIN
     CREATE INDEX [IX_ServiceInvoiceItems_ServiceInvoiceId] ON [dbo].[ServiceInvoiceItems]([ServiceInvoiceId]);
 END";
 
+        private const string EnsureProdajnePozicijeColumnsSql = @"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ProdajniLayout' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'BackgroundFileName' AND Object_ID = OBJECT_ID('[dbo].[ProdajniLayout]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajniLayout] ADD [BackgroundFileName] VARCHAR(255) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'BackgroundContentType' AND Object_ID = OBJECT_ID('[dbo].[ProdajniLayout]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajniLayout] ADD [BackgroundContentType] VARCHAR(100) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'BackgroundData' AND Object_ID = OBJECT_ID('[dbo].[ProdajniLayout]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajniLayout] ADD [BackgroundData] NVARCHAR(MAX) NULL;
+    END
+END
+
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ProdajnaPozicija' AND schema_id = SCHEMA_ID('dbo'))
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'BrojPozicije' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [BrojPozicije] VARCHAR(50) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'TipPozicije' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [TipPozicije] VARCHAR(100) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'Trgovac' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [Trgovac] VARCHAR(200) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'VrijednostZakupa' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [VrijednostZakupa] DECIMAL(18, 2) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'VrstaUgovora' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [VrstaUgovora] VARCHAR(100) NULL;
+    END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'ZakupDo' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [ZakupDo] DATETIME NULL;
+    END
+END";
+
         public static async Task EnsureDailyTaskTablesAsync(IServiceProvider services)
         {
             using var scope = services.CreateScope();
@@ -299,6 +344,14 @@ END";
             await context.Database.ExecuteSqlRawAsync(EnsureServiceInvoicesTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureServiceInvoiceServiceIdColumnSql);
             await context.Database.ExecuteSqlRawAsync(EnsureServiceInvoiceItemsTableSql);
+        }
+
+        public static async Task EnsureProdajnePozicijeColumnsAsync(IServiceProvider services)
+        {
+            using var scope = services.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<Auro2Context>();
+
+            await context.Database.ExecuteSqlRawAsync(EnsureProdajnePozicijeColumnsSql);
         }
     }
 }
