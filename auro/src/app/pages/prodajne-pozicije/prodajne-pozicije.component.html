@@ -10,10 +10,6 @@
         </nb-select>
       </div>
       <div class="actions">
-        <button nbButton status="primary" (click)="otvoriEditor()" [disabled]="!odabranaProdavnicaId">
-          <nb-icon icon="edit-2-outline"></nb-icon>
-          Uredi layout
-        </button>
         <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId">
           <nb-icon icon="download-outline"></nb-icon>
           Export u Excel
@@ -72,6 +68,13 @@
           </nb-card-body>
         </nb-card>
       </div>
+
+      <ngx-layout-editor-dialog
+        *ngIf="editorLayout"
+        [layout]="editorLayout"
+        [pozicije]="editorPozicije"
+        (sacuvajLayout)="onSacuvajLayout($event)"
+      ></ngx-layout-editor-dialog>
     </div>
   </nb-card-body>
 </nb-card>

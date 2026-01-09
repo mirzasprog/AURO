@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { NbDialogService, NbToastrService } from '@nebular/theme';
+import { NbToastrService } from '@nebular/theme';
 import * as FileSaver from 'file-saver';
 import { DataService } from '../../@core/utils/data.service';
 import { ProdajnaPozicija, ProdajniLayout, ProdajnePozicijeResponse, ProdavnicaOption } from '../../@core/data/prodajne-pozicije';
-import { LayoutEditorDialogComponent } from './layout-editor-dialog/layout-editor-dialog.component';
 
 interface TipStatistika {
   tip: string;
@@ -23,6 +22,8 @@ export class ProdajnePozicijeComponent implements OnInit {
   layout: ProdajniLayout | null = null;
   pozicije: ProdajnaPozicija[] = [];
   loading = false;
+  editorLayout: ProdajniLayout | null = null;
+  editorPozicije: ProdajnaPozicija[] = [];
 
   ukupnaPovrsina = 0;
   zauzetaPovrsina = 0;
@@ -32,7 +33,6 @@ export class ProdajnePozicijeComponent implements OnInit {
 
   constructor(
     private readonly dataService: DataService,
-    private readonly dialogService: NbDialogService,
     private readonly toastrService: NbToastrService
   ) {}
 
@@ -72,6 +72,7 @@ export class ProdajnePozicijeComponent implements OnInit {
       next: (response: ProdajnePozicijeResponse) => {
         this.layout = response.layout ?? null;
         this.pozicije = response.pozicije ?? [];
+        this.osvjeziEditor();
         this.izracunajStatistiku();
         this.loading = false;
       },
@@ -82,38 +83,8 @@ export class ProdajnePozicijeComponent implements OnInit {
     });
   }
 
-  otvoriEditor(): void {
-    if (!this.odabranaProdavnicaId) {
-      this.toastrService.warning('Odaberite prodavnicu prije uređivanja.', 'Prodajne pozicije');
-      return;
-    }
-
-    const layout = this.layout
-      ? { ...this.layout }
-      : {
-        sirina: 20,
-        duzina: 20,
-        prodavnicaId: this.odabranaProdavnicaId,
-        backgroundFileName: null,
-        backgroundContentType: null,
-        backgroundData: null
-      } as ProdajniLayout;
-
-    const dialogRef = this.dialogService.open(LayoutEditorDialogComponent, {
-      context: {
-        layout,
-        pozicije: this.pozicije.map(pozicija => ({ ...pozicija }))
-      },
-      closeOnBackdropClick: false
-    });
-
-    dialogRef.onClose.subscribe(result => {
-      if (!result) {
-        return;
-      }
-
-      this.spremiLayout(result.layout, result.pozicije);
-    });
+  onSacuvajLayout(result: { layout: ProdajniLayout; pozicije: ProdajnaPozicija[] }): void {
+    this.spremiLayout(result.layout, result.pozicije);
   }
 
   private spremiLayout(layout: ProdajniLayout, pozicije: ProdajnaPozicija[]): void {
@@ -133,6 +104,7 @@ export class ProdajnePozicijeComponent implements OnInit {
       next: (response) => {
         this.layout = response.layout ?? layout;
         this.pozicije = response.pozicije ?? pozicije;
+        this.osvjeziEditor();
         this.izracunajStatistiku();
         this.loading = false;
         this.toastrService.success('Layout je uspješno sačuvan.', 'Prodajne pozicije');
@@ -198,5 +170,26 @@ export class ProdajnePozicijeComponent implements OnInit {
         ? Math.round((stat.zauzetaPovrsina / this.ukupnaPovrsina) * 100 * 100) / 100
         : 0
     }));
+  }
+
+  private osvjeziEditor(): void {
+    if (!this.odabranaProdavnicaId) {
+      this.editorLayout = null;
+      this.editorPozicije = [];
+      return;
+    }
+
+    this.editorLayout = this.layout
+      ? { ...this.layout }
+      : {
+        sirina: 20,
+        duzina: 20,
+        prodavnicaId: this.odabranaProdavnicaId,
+        backgroundFileName: null,
+        backgroundContentType: null,
+        backgroundData: null
+      } as ProdajniLayout;
+
+    this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));
   }
 }
