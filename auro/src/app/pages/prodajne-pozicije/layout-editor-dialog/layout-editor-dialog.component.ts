@@ -74,6 +74,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private panStartY = 0;
   private panOriginX = 0;
   private panOriginY = 0;
+  private activePointerId: number | null = null;
 
   panX = 0;
   panY = 0;
@@ -96,6 +97,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
     if (this.isPanning) {
       this.panX = this.panOriginX + (event.clientX - this.panStartX);
       this.panY = this.panOriginY + (event.clientY - this.panStartY);
@@ -121,6 +125,51 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   @HostListener('document:mouseup')
   onMouseUp(): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
+    this.dragMode = null;
+    this.dragIndex = null;
+    this.startPozicija = undefined;
+    this.isPanning = false;
+  }
+
+  @HostListener('document:pointermove', ['$event'])
+  onPointerMove(event: PointerEvent): void {
+    if (this.activePointerId === null || event.pointerId !== this.activePointerId) {
+      return;
+    }
+
+    if (this.isPanning) {
+      this.panX = this.panOriginX + (event.clientX - this.panStartX);
+      this.panY = this.panOriginY + (event.clientY - this.panStartY);
+      return;
+    }
+
+    if (this.dragMode === null || this.dragIndex === null || !this.startPozicija) {
+      return;
+    }
+
+    const deltaX = (event.clientX - this.startX) / this.scale;
+    const deltaY = (event.clientY - this.startY) / this.scale;
+    const target = this.pozicije[this.dragIndex];
+
+    if (this.dragMode === 'move') {
+      this.postaviPoziciju(target, this.startPozicija.pozicijaX + deltaX, this.startPozicija.pozicijaY + deltaY);
+    } else if (this.dragMode === 'resize') {
+      this.postaviVelicinu(target, this.startPozicija.sirina + deltaX, this.startPozicija.duzina + deltaY);
+    }
+
+    this.azurirajUpozorenja();
+  }
+
+  @HostListener('document:pointerup', ['$event'])
+  @HostListener('document:pointercancel', ['$event'])
+  onPointerUp(event: PointerEvent): void {
+    if (this.activePointerId === null || event.pointerId !== this.activePointerId) {
+      return;
+    }
+    this.activePointerId = null;
     this.dragMode = null;
     this.dragIndex = null;
     this.startPozicija = undefined;
@@ -198,6 +247,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onMouseDown(event: MouseEvent, index: number): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     this.selectPozicija(index);
@@ -209,6 +261,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onResizeMouseDown(event: MouseEvent, index: number): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
     event.preventDefault();
     event.stopPropagation();
     this.selectPozicija(index);
@@ -220,10 +275,62 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onCanvasMouseDown(event: MouseEvent): void {
+    if (this.activePointerId !== null) {
+      return;
+    }
     if ((event.target as HTMLElement).closest('.layout-item')) {
       return;
     }
     event.preventDefault();
+    this.isPanning = true;
+    this.panStartX = event.clientX;
+    this.panStartY = event.clientY;
+    this.panOriginX = this.panX;
+    this.panOriginY = this.panY;
+  }
+
+  onPointerDown(event: PointerEvent, index: number): void {
+    if (event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.activePointerId = event.pointerId;
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+    this.selectPozicija(index);
+    this.dragMode = 'move';
+    this.dragIndex = index;
+    this.startX = event.clientX;
+    this.startY = event.clientY;
+    this.startPozicija = { ...this.pozicije[index] };
+  }
+
+  onResizePointerDown(event: PointerEvent, index: number): void {
+    if (event.button !== 0) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.activePointerId = event.pointerId;
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
+    this.selectPozicija(index);
+    this.dragMode = 'resize';
+    this.dragIndex = index;
+    this.startX = event.clientX;
+    this.startY = event.clientY;
+    this.startPozicija = { ...this.pozicije[index] };
+  }
+
+  onCanvasPointerDown(event: PointerEvent): void {
+    if (event.button !== 0) {
+      return;
+    }
+    if ((event.target as HTMLElement).closest('.layout-item')) {
+      return;
+    }
+    event.preventDefault();
+    this.activePointerId = event.pointerId;
+    (event.currentTarget as HTMLElement | null)?.setPointerCapture?.(event.pointerId);
     this.isPanning = true;
     this.panStartX = event.clientX;
     this.panStartY = event.clientY;
