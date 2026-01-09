@@ -2,61 +2,99 @@
 <html lang="bs">
   <head>
     <meta charset="utf-8" />
-    <title>Vikend Akcije</title>
+    <title>Prodajne pozicije</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <div class="page">
-      <header>
-        <h1>Vikend Akcije</h1>
-        <p>Pregled VIP akcija uz uvid u stavke i izmjene količina.</p>
+      <header class="page-header">
+        <div>
+          <h1>Prodajne Pozicije</h1>
+          <p>Učitaj nacrt, dodaj pozicije i upravljaj detaljima na desnoj strani.</p>
+        </div>
+        <div class="header-actions">
+          <input id="plan-upload" type="file" accept=".jpg,.jpeg,.dwg" hidden />
+          <button id="replace-plan" class="primary">Zamijeni nacrt</button>
+          <button id="remove-plan" class="ghost">Ukloni</button>
+        </div>
       </header>
-      <main>
-        <section>
-          <table id="zaglavlja-table">
-            <thead>
-              <tr>
-                <th>Id</th>
-                <th>Opis</th>
-                <th>Pocetak</th>
-                <th>Kraj</th>
-                <th>Stavke</th>
-                <th>Status</th>
-                <th class="akcija-col">Akcija</th>
-              </tr>
-            </thead>
-            <tbody id="zaglavlja-body"></tbody>
-          </table>
-        </section>
-      </main>
-    </div>
 
-    <div id="stavke-modal" class="modal hidden" role="dialog" aria-modal="true">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>VIP Stavke</h2>
-          <button class="close" aria-label="Zatvori" id="close-modal">×</button>
+      <section class="toolbar">
+        <div class="tool-group">
+          <button id="select-mode" class="primary">Odaberi</button>
+          <button id="add-mode">Dodaj poziciju</button>
+          <button id="copy-position">Kopiraj</button>
+          <button id="delete-position" class="danger">Obriši</button>
         </div>
-        <div class="modal-body">
-          <table>
-            <thead>
-              <tr>
-                <th>Id</th>
-                <th>Sifra</th>
-                <th>Naziv</th>
-                <th>Kolicina</th>
-                <th>Prodavnica</th>
-                <th>***</th>
-              </tr>
-            </thead>
-            <tbody id="stavke-body"></tbody>
-          </table>
+        <div class="tool-group">
+          <button id="zoom-out">-</button>
+          <span id="zoom-value">100%</span>
+          <button id="zoom-in">+</button>
         </div>
-        <div class="modal-actions">
-          <button id="save-stavke" class="primary">Spasi</button>
-          <button id="discard-stavke" class="secondary">Odbaci</button>
+      </section>
+
+      <main class="workspace">
+        <div class="plan-wrapper">
+          <div id="plan-stage" class="plan-stage">
+            <div id="plan-content" class="plan-content">
+              <img id="plan-image" alt="" />
+              <div id="plan-placeholder" class="plan-placeholder">
+                Učitaj nacrt (JPEG ili DWG) da bi započeo.
+              </div>
+              <div id="plan-overlay" class="plan-overlay"></div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        <aside class="details-panel">
+          <div class="details-header">
+            <h2>Detalji pozicije</h2>
+            <span id="selected-label" class="pill">Nema odabrane</span>
+          </div>
+          <div class="details-body">
+            <label>
+              Broj pozicije
+              <input id="detail-label" type="text" placeholder="P001" />
+            </label>
+            <label>
+              Trgovac
+              <input id="detail-tenant" type="text" placeholder="Naziv firme / trgovca" />
+            </label>
+            <label>
+              Zakup do
+              <input id="detail-date" type="date" />
+            </label>
+            <label>
+              Vrijednost zakupa (KM)
+              <input id="detail-value" type="number" min="0" step="0.01" />
+            </label>
+            <label>
+              Vrsta ugovora
+              <select id="detail-contract">
+                <option value="">Nije postavljeno</option>
+                <option value="Standard">Standard</option>
+                <option value="Promo">Promo</option>
+                <option value="Ekskluzivno">Ekskluzivno</option>
+              </select>
+            </label>
+            <label>
+              Tip pozicije (oprema)
+              <select id="detail-type">
+                <option value="">Nije postavljeno</option>
+                <option value="Stalak">Stalak</option>
+                <option value="Gondola">Gondola</option>
+                <option value="Paleta">Paleta</option>
+                <option value="Stalak + Paleta">Stalak + Paleta</option>
+              </select>
+            </label>
+            <label>
+              Veličina balončića
+              <input id="detail-size" type="range" min="20" max="120" step="2" />
+            </label>
+            <div class="hint" id="detail-hint">Odaberite poziciju na nacrtu.</div>
+          </div>
+        </aside>
+      </main>
     </div>
 
     <script src="main.js"></script>

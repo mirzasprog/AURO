@@ -5,6 +5,7 @@ const url = require('url');
 
 const PORT = process.env.PORT || 3000;
 const DATA_PATH = path.join(__dirname, 'data', 'vip-data.json');
+const POZICIJE_PATH = path.join(__dirname, 'data', 'pozicije.json');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
 function loadData() {
@@ -19,6 +20,23 @@ function saveData(data) {
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(payload));
+}
+
+function ensurePozicijeData() {
+  if (!fs.existsSync(POZICIJE_PATH)) {
+    const initial = { background: null, positions: [] };
+    fs.writeFileSync(POZICIJE_PATH, JSON.stringify(initial, null, 2));
+  }
+}
+
+function loadPozicije() {
+  ensurePozicijeData();
+  const raw = fs.readFileSync(POZICIJE_PATH, 'utf-8');
+  return JSON.parse(raw);
+}
+
+function savePozicije(data) {
+  fs.writeFileSync(POZICIJE_PATH, JSON.stringify(data, null, 2));
 }
 
 function serveStatic(req, res, filePath) {
@@ -60,6 +78,34 @@ function serveStatic(req, res, filePath) {
 function handleApi(req, res) {
   const parsedUrl = url.parse(req.url, true);
   const { pathname } = parsedUrl;
+
+  if (req.method === 'GET' && pathname === '/api/pozicije') {
+    const data = loadPozicije();
+    sendJson(res, 200, data);
+    return true;
+  }
+
+  if (req.method === 'PUT' && pathname === '/api/pozicije') {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body || '{}');
+        const nextData = {
+          background: payload.background || null,
+          positions: Array.isArray(payload.positions) ? payload.positions : [],
+        };
+        savePozicije(nextData);
+        sendJson(res, 200, { message: 'Pozicije sacuvane.' });
+      } catch (error) {
+        sendJson(res, 400, { message: 'Neispravan JSON format.' });
+      }
+    });
+    return true;
+  }
 
   if (req.method === 'GET' && pathname === '/api/vip-zaglavlja') {
     const data = loadData();
