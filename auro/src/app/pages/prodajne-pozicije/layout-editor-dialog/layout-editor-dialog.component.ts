@@ -49,6 +49,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private startPozicija?: ProdajnaPozicija;
 
   ngAfterViewInit(): void {
+    if (this.layout.backgroundRotation == null) {
+      this.layout.backgroundRotation = 0;
+    }
     this.izracunajSkalu();
     this.azurirajUpozorenja();
   }
@@ -251,23 +254,20 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   getCanvasStyle(): Record<string, string> {
     const sirina = this.layout.sirina || 1;
     const duzina = this.layout.duzina || 1;
-    const style: Record<string, string> = {
+    return {
       width: `${sirina * this.baseScale}px`,
       height: `${duzina * this.baseScale}px`,
       transform: `scale(${this.zoom})`,
       transformOrigin: 'top left'
     };
+  }
 
-    if (!this.layout.backgroundData || !this.isImageBackground()) {
-      return style;
-    }
-
+  getBackgroundStyle(): Record<string, string> {
+    const rotation = this.layout.backgroundRotation ?? 0;
     return {
-      ...style,
       backgroundImage: `url(${this.layout.backgroundData})`,
-      backgroundSize: '100% 100%',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat'
+      transform: `rotate(${rotation}deg)`,
+      transformOrigin: 'center'
     };
   }
 
@@ -311,6 +311,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       this.layout.backgroundData = reader.result as string;
       this.layout.backgroundFileName = file.name;
       this.layout.backgroundContentType = file.type || (extension ? `application/${extension}` : '');
+      this.layout.backgroundRotation = 0;
       this.izracunajSkalu();
     };
     reader.readAsDataURL(file);
@@ -320,6 +321,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.layout.backgroundData = null;
     this.layout.backgroundFileName = null;
     this.layout.backgroundContentType = null;
+    this.layout.backgroundRotation = 0;
     if (this.backgroundInputRef) {
       this.backgroundInputRef.nativeElement.value = '';
     }
@@ -333,5 +335,10 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   getPozicijaLabel(pozicija: ProdajnaPozicija): string {
     return pozicija.brojPozicije || pozicija.naziv;
+  }
+
+  rotirajPodlogu(delta: number): void {
+    const trenutna = this.layout.backgroundRotation ?? 0;
+    this.layout.backgroundRotation = Math.max(-180, Math.min(180, trenutna + delta));
   }
 }

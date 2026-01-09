@@ -24,6 +24,7 @@ export interface ProdajniLayout {
   backgroundFileName?: string | null;
   backgroundContentType?: string | null;
   backgroundData?: string | null;
+  backgroundRotation?: number | null;
 }
 
 export interface ProdajnePozicijeResponse {
@@ -37,6 +38,7 @@ export interface ProdajnePozicijeUpsertRequest {
   backgroundFileName?: string | null;
   backgroundContentType?: string | null;
   backgroundData?: string | null;
+  backgroundRotation?: number | null;
   pozicije: ProdajnaPozicija[];
 }
 
