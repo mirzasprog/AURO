@@ -18,6 +18,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   @Input() pozicije: ProdajnaPozicija[] = [];
 
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLDivElement>;
+  @ViewChild('backgroundInput', { static: false }) backgroundInputRef?: ElementRef<HTMLInputElement>;
 
   tipovi: ProdajniTip[] = [
     { value: 'vitrina', label: 'Vitrina', defaultSize: { sirina: 2, duzina: 1 } },
@@ -32,7 +33,15 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   selectedIndex: number | null = null;
   warnings: string[] = [];
 
+  zoom = 1;
+  minZoom = 0.4;
+  maxZoom = 2;
+
+  vrsteUgovora = ['Nije postavljeno', 'Mjesečni', 'Godišnji', 'Sezonski'];
+  tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal'];
+
   private scale = 1;
+  private baseScale = 1;
   private dragMode: 'move' | 'resize' | null = null;
   private dragIndex: number | null = null;
   private startX = 0;
@@ -84,12 +93,18 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.pozicije.push({
       tip: this.odabraniTip.value,
       naziv: `${this.odabraniTip.label} ${index}`,
+      brojPozicije: `P${index.toString().padStart(3, '0')}`,
       sirina: this.odabraniTip.defaultSize.sirina,
       duzina: this.odabraniTip.defaultSize.duzina,
       pozicijaX: 0,
       pozicijaY: 0,
       rotacija: 0,
-      zona: ''
+      zona: '',
+      trgovac: '',
+      zakupDo: null,
+      vrijednostZakupa: null,
+      vrstaUgovora: 'Nije postavljeno',
+      tipPozicije: 'Nije postavljeno'
     });
     this.selectedIndex = this.pozicije.length - 1;
     this.azurirajUpozorenja();
@@ -106,6 +121,28 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
     this.pozicije.splice(this.selectedIndex, 1);
     this.selectedIndex = null;
+    this.azurirajUpozorenja();
+  }
+
+  kopirajPoziciju(): void {
+    if (this.selectedIndex === null) {
+      return;
+    }
+
+    const original = this.pozicije[this.selectedIndex];
+    const copyIndex = this.pozicije.length + 1;
+    const kopija: ProdajnaPozicija = {
+      ...original,
+      id: undefined,
+      naziv: `${original.naziv} (kopija)`,
+      brojPozicije: original.brojPozicije
+        ? `${original.brojPozicije}-K${copyIndex}`
+        : `P${copyIndex.toString().padStart(3, '0')}`,
+      pozicijaX: original.pozicijaX + 0.5,
+      pozicijaY: original.pozicijaY + 0.5
+    };
+    this.pozicije.push(kopija);
+    this.selectedIndex = this.pozicije.length - 1;
     this.azurirajUpozorenja();
   }
 
@@ -198,7 +235,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const canvasHeight = this.canvasRef.nativeElement.clientHeight;
     const sirina = this.layout.sirina || 1;
     const duzina = this.layout.duzina || 1;
-    this.scale = Math.min(canvasWidth / sirina, canvasHeight / duzina);
+    this.baseScale = Math.min(canvasWidth / sirina, canvasHeight / duzina);
+    this.scale = this.baseScale * this.zoom;
   }
 
   azurirajUpozorenja(): void {
@@ -214,5 +252,82 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       }
     });
     this.warnings = warnings;
+  }
+
+  getCanvasStyle(): Record<string, string> {
+    if (!this.layout.backgroundData || !this.isImageBackground()) {
+      return {};
+    }
+
+    return {
+      backgroundImage: `url(${this.layout.backgroundData})`,
+      backgroundSize: '100% 100%',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    };
+  }
+
+  onZoomChange(value: number): void {
+    this.zoom = Number(value);
+    this.izracunajSkalu();
+  }
+
+  zoomIn(): void {
+    this.zoom = Math.min(this.maxZoom, Math.round((this.zoom + 0.1) * 10) / 10);
+    this.izracunajSkalu();
+  }
+
+  zoomOut(): void {
+    this.zoom = Math.max(this.minZoom, Math.round((this.zoom - 0.1) * 10) / 10);
+    this.izracunajSkalu();
+  }
+
+  triggerBackgroundUpload(): void {
+    this.backgroundInputRef?.nativeElement.click();
+  }
+
+  onBackgroundSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) {
+      return;
+    }
+
+    const file = input.files[0];
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'application/acad', 'image/vnd.dwg', 'application/dwg'];
+    const extension = file.name.split('.').pop()?.toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'dwg'];
+
+    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension ?? '')) {
+      this.warnings = ['Podržani formati su JPEG ili DWG.'];
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.layout.backgroundData = reader.result as string;
+      this.layout.backgroundFileName = file.name;
+      this.layout.backgroundContentType = file.type || (extension ? `application/${extension}` : '');
+      this.izracunajSkalu();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  ukloniPodlogu(): void {
+    this.layout.backgroundData = null;
+    this.layout.backgroundFileName = null;
+    this.layout.backgroundContentType = null;
+    if (this.backgroundInputRef) {
+      this.backgroundInputRef.nativeElement.value = '';
+    }
+  }
+
+  isImageBackground(): boolean {
+    const contentType = this.layout.backgroundContentType ?? '';
+    const data = this.layout.backgroundData ?? '';
+    return contentType.startsWith('image/') || data.startsWith('data:image');
+  }
+
+  getPozicijaLabel(pozicija: ProdajnaPozicija): string {
+    return pozicija.brojPozicije || pozicija.naziv;
   }
 }

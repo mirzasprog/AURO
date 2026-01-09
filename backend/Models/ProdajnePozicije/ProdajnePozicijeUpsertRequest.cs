@@ -11,6 +11,12 @@ namespace backend.Models.ProdajnePozicije
         [Range(0.1, double.MaxValue)]
         public decimal Duzina { get; set; }
 
+        public string? BackgroundFileName { get; set; }
+
+        public string? BackgroundContentType { get; set; }
+
+        public string? BackgroundData { get; set; }
+
         public List<ProdajnaPozicijaDto> Pozicije { get; set; } = new();
     }
 }

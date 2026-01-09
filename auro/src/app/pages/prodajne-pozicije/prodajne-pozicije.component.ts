@@ -90,7 +90,14 @@ export class ProdajnePozicijeComponent implements OnInit {
 
     const layout = this.layout
       ? { ...this.layout }
-      : { sirina: 20, duzina: 20, prodavnicaId: this.odabranaProdavnicaId } as ProdajniLayout;
+      : {
+        sirina: 20,
+        duzina: 20,
+        prodavnicaId: this.odabranaProdavnicaId,
+        backgroundFileName: null,
+        backgroundContentType: null,
+        backgroundData: null
+      } as ProdajniLayout;
 
     const dialogRef = this.dialogService.open(LayoutEditorDialogComponent, {
       context: {
@@ -118,6 +125,9 @@ export class ProdajnePozicijeComponent implements OnInit {
     this.dataService.spremiProdajnePozicije(this.odabranaProdavnicaId, {
       sirina: layout.sirina,
       duzina: layout.duzina,
+      backgroundFileName: layout.backgroundFileName ?? null,
+      backgroundContentType: layout.backgroundContentType ?? null,
+      backgroundData: layout.backgroundData ?? null,
       pozicije
     }).subscribe({
       next: (response) => {

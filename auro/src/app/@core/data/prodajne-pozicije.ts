@@ -2,6 +2,12 @@ export interface ProdajnaPozicija {
   id?: number;
   tip: string;
   naziv: string;
+  brojPozicije?: string | null;
+  trgovac?: string | null;
+  zakupDo?: string | null;
+  vrijednostZakupa?: number | null;
+  vrstaUgovora?: string | null;
+  tipPozicije?: string | null;
   sirina: number;
   duzina: number;
   pozicijaX: number;
@@ -15,6 +21,9 @@ export interface ProdajniLayout {
   prodavnicaId?: number;
   sirina: number;
   duzina: number;
+  backgroundFileName?: string | null;
+  backgroundContentType?: string | null;
+  backgroundData?: string | null;
 }
 
 export interface ProdajnePozicijeResponse {
@@ -25,6 +34,9 @@ export interface ProdajnePozicijeResponse {
 export interface ProdajnePozicijeUpsertRequest {
   sirina: number;
   duzina: number;
+  backgroundFileName?: string | null;
+  backgroundContentType?: string | null;
+  backgroundData?: string | null;
   pozicije: ProdajnaPozicija[];
 }
 

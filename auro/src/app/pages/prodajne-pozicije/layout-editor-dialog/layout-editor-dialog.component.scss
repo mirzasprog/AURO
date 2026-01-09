@@ -17,7 +17,7 @@
 
 .editor-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) 1fr;
+  grid-template-columns: minmax(240px, 320px) 1fr minmax(240px, 320px);
   gap: 1.5rem;
 }
 
@@ -29,7 +29,9 @@
 
 .layout-form,
 .add-object,
-.object-editor {
+.object-editor,
+.background-upload,
+.zoom-controls {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -37,6 +39,33 @@
 
 .object-editor h5 {
   margin-bottom: 0.25rem;
+}
+
+.background-upload input[type='file'] {
+  display: none;
+}
+
+.background-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: #8f9bb3;
+}
+
+.zoom-controls .zoom-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.zoom-controls input[type='range'] {
+  flex: 1;
 }
 
 .warnings {
@@ -66,6 +95,9 @@
   border-radius: 0.75rem;
   background-color: #f7f9fc;
   overflow: hidden;
+  background-image: linear-gradient(#edf1f7 1px, transparent 1px),
+    linear-gradient(90deg, #edf1f7 1px, transparent 1px);
+  background-size: 24px 24px;
 }
 
 .layout-item {
@@ -102,6 +134,23 @@
   background: #3366ff;
   border-radius: 50%;
   cursor: se-resize;
+}
+
+.details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  color: #8f9bb3;
+  font-size: 0.85rem;
 }
 
 .canvas-info {
