@@ -120,6 +120,7 @@ var app = builder.Build();
 await DatabaseInitializer.EnsureDailyTaskTablesAsync(app.Services);
 await DatabaseInitializer.EnsureVipTablesAsync(app.Services);
 await DatabaseInitializer.EnsureServiceInvoiceTablesAsync(app.Services);
+await DatabaseInitializer.EnsureProdajnePozicijeColumnsAsync(app.Services);
 VikendAkcijeAssets.EnsureAssets(app.Environment);
 
 // Configure the HTTP request pipeline.
