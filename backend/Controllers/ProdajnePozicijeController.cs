@@ -44,7 +44,10 @@ namespace backend.Controllers
                     Id = layout.Id,
                     ProdavnicaId = layout.ProdavnicaId,
                     Sirina = layout.Sirina,
-                    Duzina = layout.Duzina
+                    Duzina = layout.Duzina,
+                    BackgroundFileName = layout.BackgroundFileName,
+                    BackgroundContentType = layout.BackgroundContentType,
+                    BackgroundData = layout.BackgroundData
                 },
                 Pozicije = layout.Pozicije.Select(MapPozicija).ToList()
             });
@@ -75,6 +78,9 @@ namespace backend.Controllers
                     ProdavnicaId = storeId,
                     Sirina = request.Sirina,
                     Duzina = request.Duzina,
+                    BackgroundFileName = request.BackgroundFileName,
+                    BackgroundContentType = request.BackgroundContentType,
+                    BackgroundData = request.BackgroundData,
                     DatumKreiranja = DateTime.UtcNow
                 };
 
@@ -84,6 +90,9 @@ namespace backend.Controllers
             {
                 layout.Sirina = request.Sirina;
                 layout.Duzina = request.Duzina;
+                layout.BackgroundFileName = request.BackgroundFileName;
+                layout.BackgroundContentType = request.BackgroundContentType;
+                layout.BackgroundData = request.BackgroundData;
                 layout.DatumIzmjene = DateTime.UtcNow;
 
                 if (layout.Pozicije.Any())
@@ -96,6 +105,12 @@ namespace backend.Controllers
             {
                 Tip = pozicija.Tip,
                 Naziv = pozicija.Naziv,
+                BrojPozicije = pozicija.BrojPozicije,
+                Trgovac = pozicija.Trgovac,
+                ZakupDo = pozicija.ZakupDo,
+                VrijednostZakupa = pozicija.VrijednostZakupa,
+                VrstaUgovora = pozicija.VrstaUgovora,
+                TipPozicije = pozicija.TipPozicije,
                 Sirina = pozicija.Sirina,
                 Duzina = pozicija.Duzina,
                 PozicijaX = pozicija.PozicijaX,
@@ -120,7 +135,10 @@ namespace backend.Controllers
                     Id = layout.Id,
                     ProdavnicaId = layout.ProdavnicaId,
                     Sirina = layout.Sirina,
-                    Duzina = layout.Duzina
+                    Duzina = layout.Duzina,
+                    BackgroundFileName = layout.BackgroundFileName,
+                    BackgroundContentType = layout.BackgroundContentType,
+                    BackgroundData = layout.BackgroundData
                 },
                 Pozicije = nowePozicije.Select(MapPozicija).ToList()
             });
@@ -247,6 +265,12 @@ namespace backend.Controllers
                 Id = pozicija.Id,
                 Tip = pozicija.Tip,
                 Naziv = pozicija.Naziv,
+                BrojPozicije = pozicija.BrojPozicije,
+                Trgovac = pozicija.Trgovac,
+                ZakupDo = pozicija.ZakupDo,
+                VrijednostZakupa = pozicija.VrijednostZakupa,
+                VrstaUgovora = pozicija.VrstaUgovora,
+                TipPozicije = pozicija.TipPozicije,
                 Sirina = pozicija.Sirina,
                 Duzina = pozicija.Duzina,
                 PozicijaX = pozicija.PozicijaX,

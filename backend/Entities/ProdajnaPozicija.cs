@@ -8,6 +8,12 @@ namespace backend.Entities
         public int LayoutId { get; set; }
         public string Tip { get; set; } = null!;
         public string Naziv { get; set; } = null!;
+        public string? BrojPozicije { get; set; }
+        public string? Trgovac { get; set; }
+        public DateTime? ZakupDo { get; set; }
+        public decimal? VrijednostZakupa { get; set; }
+        public string? VrstaUgovora { get; set; }
+        public string? TipPozicije { get; set; }
         public decimal Sirina { get; set; }
         public decimal Duzina { get; set; }
         public decimal PozicijaX { get; set; }

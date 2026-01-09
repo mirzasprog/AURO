@@ -11,9 +11,10 @@ using backend.Entities;
 namespace backend.Migrations
 {
     [DbContext(typeof(Auro2Context))]
-    partial class Auro2ContextModelSnapshot : ModelSnapshot
+    [Migration("20250220090000_AddProdajnePozicijeDetalji")]
+    partial class AddProdajnePozicijeDetalji
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

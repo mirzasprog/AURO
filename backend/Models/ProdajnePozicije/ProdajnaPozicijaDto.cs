@@ -1,3 +1,5 @@
+using System;
+
 namespace backend.Models.ProdajnePozicije
 {
     public class ProdajnaPozicijaDto
@@ -5,6 +7,12 @@ namespace backend.Models.ProdajnePozicije
         public int Id { get; set; }
         public string Tip { get; set; } = string.Empty;
         public string Naziv { get; set; } = string.Empty;
+        public string? BrojPozicije { get; set; }
+        public string? Trgovac { get; set; }
+        public DateTime? ZakupDo { get; set; }
+        public decimal? VrijednostZakupa { get; set; }
+        public string? VrstaUgovora { get; set; }
+        public string? TipPozicije { get; set; }
         public decimal Sirina { get; set; }
         public decimal Duzina { get; set; }
         public decimal PozicijaX { get; set; }

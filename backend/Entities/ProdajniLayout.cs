@@ -14,6 +14,9 @@ namespace backend.Entities
         public int ProdavnicaId { get; set; }
         public decimal Sirina { get; set; }
         public decimal Duzina { get; set; }
+        public string? BackgroundFileName { get; set; }
+        public string? BackgroundContentType { get; set; }
+        public string? BackgroundData { get; set; }
         public DateTime? DatumKreiranja { get; set; }
         public DateTime? DatumIzmjene { get; set; }
 

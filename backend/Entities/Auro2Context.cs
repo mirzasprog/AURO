@@ -1099,6 +1099,16 @@ namespace backend.Entities
 
                 entity.Property(e => e.Duzina).HasColumnType("decimal(18, 2)");
 
+                entity.Property(e => e.BackgroundFileName)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.BackgroundContentType)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.BackgroundData).HasColumnType("nvarchar(max)");
+
                 entity.Property(e => e.DatumKreiranja).HasColumnType("datetime");
 
                 entity.Property(e => e.DatumIzmjene).HasColumnType("datetime");
@@ -1123,6 +1133,26 @@ namespace backend.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.Naziv)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.BrojPozicije)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Trgovac)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ZakupDo).HasColumnType("datetime");
+
+                entity.Property(e => e.VrijednostZakupa).HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.VrstaUgovora)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TipPozicije)
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
