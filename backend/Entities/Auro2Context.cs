@@ -109,8 +109,8 @@ namespace backend.Entities
         public virtual DbSet<VipArtikli> VipArtiklis { get; set; } = null!;
         public DbSet<KategorijaPrometResponse> PrometPoKategoriji { get; set; } = null!;
         public DbSet<ArtikliNaRacunuResponse> ArtikliNaRacunu { get; set; } = null!;
+        public DbSet<NarucenoIsporucenoResponse> NarucenoIsporuceno { get; set; }
 
-        
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             /*
@@ -1341,8 +1341,11 @@ namespace backend.Entities
 
             });
 
-             modelBuilder.Entity<KategorijaPrometResponse>().HasNoKey();
-              modelBuilder.Entity<ArtikliNaRacunuResponse>().HasNoKey();
+            modelBuilder.Entity<KategorijaPrometResponse>().HasNoKey();
+            modelBuilder.Entity<ArtikliNaRacunuResponse>().HasNoKey();
+            modelBuilder.Entity<NarucenoIsporucenoResponse>(entity =>
+                entity.HasNoKey()
+            );
 
             OnModelCreatingPartial(modelBuilder);
         }

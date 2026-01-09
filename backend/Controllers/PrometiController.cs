@@ -2,9 +2,6 @@ using backend.Data;
 using Microsoft.AspNetCore.Mvc;
 using backend.Entities;
 using Microsoft.AspNetCore.Authorization;
-using backend.Models;
-using System;
-using System.Linq;
 using backend.Models.Prometi;
 
 namespace backend.Controllers
