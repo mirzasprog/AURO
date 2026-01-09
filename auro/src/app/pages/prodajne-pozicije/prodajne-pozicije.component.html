@@ -1,6 +1,7 @@
-<nb-card>
-  <nb-card-header>
-    <div class="header-row">
+<nb-card class="page-card">
+  <nb-card-header class="page-header">
+    <div class="title-block">
+      <h4>Prodajne Pozicije</h4>
       <div class="store-select">
         <label for="prodavnica">Prodavnica</label>
         <nb-select id="prodavnica" placeholder="Odaberite prodavnicu" [(ngModel)]="odabranaProdavnicaId" (selectedChange)="onProdavnicaChange()">
@@ -9,12 +10,24 @@
           </nb-option>
         </nb-select>
       </div>
-      <div class="actions">
-        <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId">
-          <nb-icon icon="download-outline"></nb-icon>
-          Export u Excel
-        </button>
-      </div>
+    </div>
+    <div class="header-actions">
+      <button nbButton status="basic" outline>
+        <nb-icon icon="image-outline"></nb-icon>
+        Zamijeni nacrt
+      </button>
+      <button nbButton status="danger" outline>
+        <nb-icon icon="trash-2-outline"></nb-icon>
+        Ukloni
+      </button>
+      <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId">
+        <nb-icon icon="download-outline"></nb-icon>
+        Excel
+      </button>
+      <button nbButton status="primary" outline>
+        <nb-icon icon="bar-chart-outline"></nb-icon>
+        Izvještaji
+      </button>
     </div>
   </nb-card-header>
   <nb-card-body>
@@ -22,46 +35,111 @@
 
     <div *ngIf="!loading" class="content">
       <div class="kpi-grid">
-        <nb-card class="kpi">
-          <nb-card-header>Ukupna površina</nb-card-header>
-          <nb-card-body>{{ ukupnaPovrsina | number:'1.0-2' }} m²</nb-card-body>
-        </nb-card>
-        <nb-card class="kpi">
-          <nb-card-header>Zauzeta površina</nb-card-header>
-          <nb-card-body>{{ zauzetaPovrsina | number:'1.0-2' }} m²</nb-card-body>
-        </nb-card>
-        <nb-card class="kpi">
-          <nb-card-header>Slobodna površina</nb-card-header>
-          <nb-card-body>{{ slobodnaPovrsina | number:'1.0-2' }} m²</nb-card-body>
-        </nb-card>
-        <nb-card class="kpi">
-          <nb-card-header>Iskorištenost</nb-card-header>
-          <nb-card-body>{{ iskoristenost | number:'1.0-2' }} %</nb-card-body>
-        </nb-card>
+        <div class="kpi-card">
+          <div class="kpi-icon info">
+            <nb-icon icon="pin-outline"></nb-icon>
+          </div>
+          <div>
+            <div class="kpi-value">{{ ukupnoPozicija }}</div>
+            <div class="kpi-label">Ukupno pozicija</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon success">
+            <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+          </div>
+          <div>
+            <div class="kpi-value">{{ zauzetoPozicija }}</div>
+            <div class="kpi-label">Zauzeto</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon warning">
+            <nb-icon icon="alert-circle-outline"></nb-icon>
+          </div>
+          <div>
+            <div class="kpi-value">{{ slobodnoPozicija }}</div>
+            <div class="kpi-label">Slobodno</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange">
+            <nb-icon icon="clock-outline"></nb-icon>
+          </div>
+          <div>
+            <div class="kpi-value">{{ isticeUskoroPozicija }}</div>
+            <div class="kpi-label">Ističe uskoro</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon primary">
+            <nb-icon icon="credit-card-outline"></nb-icon>
+          </div>
+          <div>
+            <div class="kpi-value">KM {{ vrijednostZakupaUkupno | number:'1.0-2' }}</div>
+            <div class="kpi-label">Vrijednost zakupa</div>
+          </div>
+        </div>
       </div>
 
-      <div class="tables">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <div class="summary-title">Zakup (odabrana prodavnica)</div>
+          <div class="summary-value">KM {{ vrijednostZakupaUkupno | number:'1.0-2' }}</div>
+          <div class="summary-subtitle">{{ zauzetoPozicija }} zakupljenih pozicija</div>
+        </div>
+        <div class="summary-card">
+          <div class="summary-title">Zakup (sve prodavnice)</div>
+          <div class="summary-value">KM {{ vrijednostZakupaUkupno | number:'1.0-2' }}</div>
+          <div class="summary-subtitle">Ukupno zakupljeno u mreži</div>
+        </div>
+      </div>
+
+      <div class="tables-grid">
         <nb-card>
-          <nb-card-header>Pregled po tipu</nb-card-header>
+          <nb-card-header>Vrijednost po tipu pozicije</nb-card-header>
           <nb-card-body>
             <table class="table">
               <thead>
                 <tr>
-                  <th>Tip</th>
-                  <th>Broj objekata</th>
-                  <th>Zauzeta površina</th>
-                  <th>Učešće (%)</th>
+                  <th>Tip pozicije</th>
+                  <th>Zakup</th>
+                  <th>Vrijednost</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let stavka of statistikaPoTipu">
                   <td>{{ stavka.tip }}</td>
                   <td>{{ stavka.broj }}</td>
-                  <td>{{ stavka.zauzetaPovrsina | number:'1.0-2' }} m²</td>
-                  <td>{{ stavka.ucesce | number:'1.0-2' }} %</td>
+                  <td>KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
                 </tr>
                 <tr *ngIf="!statistikaPoTipu.length">
-                  <td colspan="4" class="empty">Nema unesenih pozicija.</td>
+                  <td colspan="3" class="empty">Nema unesenih pozicija.</td>
+                </tr>
+              </tbody>
+            </table>
+          </nb-card-body>
+        </nb-card>
+
+        <nb-card>
+          <nb-card-header>Vrijednost po nazivu pozicije</nb-card-header>
+          <nb-card-body>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Naziv pozicije</th>
+                  <th>Zakup</th>
+                  <th>Vrijednost</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let stavka of statistikaPoNazivu">
+                  <td>{{ stavka.naziv }}</td>
+                  <td>{{ stavka.broj }}</td>
+                  <td>KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
+                </tr>
+                <tr *ngIf="!statistikaPoNazivu.length">
+                  <td colspan="3" class="empty">Nema unesenih pozicija.</td>
                 </tr>
               </tbody>
             </table>

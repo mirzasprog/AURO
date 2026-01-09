@@ -8,7 +8,14 @@ interface TipStatistika {
   tip: string;
   broj: number;
   zauzetaPovrsina: number;
+  vrijednost: number;
   ucesce: number;
+}
+
+interface NazivStatistika {
+  naziv: string;
+  broj: number;
+  vrijednost: number;
 }
 
 @Component({
@@ -25,11 +32,18 @@ export class ProdajnePozicijeComponent implements OnInit {
   editorLayout: ProdajniLayout | null = null;
   editorPozicije: ProdajnaPozicija[] = [];
 
+  ukupnoPozicija = 0;
+  zauzetoPozicija = 0;
+  slobodnoPozicija = 0;
+  isticeUskoroPozicija = 0;
+  vrijednostZakupaUkupno = 0;
+
   ukupnaPovrsina = 0;
   zauzetaPovrsina = 0;
   slobodnaPovrsina = 0;
   iskoristenost = 0;
   statistikaPoTipu: TipStatistika[] = [];
+  statistikaPoNazivu: NazivStatistika[] = [];
 
   constructor(
     private readonly dataService: DataService,
@@ -150,6 +164,15 @@ export class ProdajnePozicijeComponent implements OnInit {
       ? Math.round((this.zauzetaPovrsina / this.ukupnaPovrsina) * 100 * 100) / 100
       : 0;
 
+    this.ukupnoPozicija = this.pozicije.length;
+    this.zauzetoPozicija = this.pozicije.filter((pozicija) => Boolean(pozicija.trgovac)).length;
+    this.slobodnoPozicija = Math.max(this.ukupnoPozicija - this.zauzetoPozicija, 0);
+    this.isticeUskoroPozicija = this.pozicije.filter((pozicija) => this.jeUgovorUskoro(pozicija.zakupDo)).length;
+    this.vrijednostZakupaUkupno = this.pozicije.reduce(
+      (sum, pozicija) => sum + (pozicija.vrijednostZakupa ?? 0),
+      0
+    );
+
     const grupisano: Record<string, TipStatistika> = {};
     this.pozicije.forEach((pozicija) => {
       if (!grupisano[pozicija.tip]) {
@@ -157,12 +180,14 @@ export class ProdajnePozicijeComponent implements OnInit {
           tip: pozicija.tip,
           broj: 0,
           zauzetaPovrsina: 0,
+          vrijednost: 0,
           ucesce: 0
         };
       }
 
       grupisano[pozicija.tip].broj += 1;
       grupisano[pozicija.tip].zauzetaPovrsina += pozicija.sirina * pozicija.duzina;
+      grupisano[pozicija.tip].vrijednost += pozicija.vrijednostZakupa ?? 0;
     });
 
     this.statistikaPoTipu = Object.values(grupisano).map(stat => ({
@@ -171,6 +196,38 @@ export class ProdajnePozicijeComponent implements OnInit {
         ? Math.round((stat.zauzetaPovrsina / this.ukupnaPovrsina) * 100 * 100) / 100
         : 0
     }));
+
+    const grupisanoPoNazivu: Record<string, NazivStatistika> = {};
+    this.pozicije.forEach((pozicija) => {
+      const naziv = pozicija.naziv || pozicija.brojPozicije || 'Bez naziva';
+      if (!grupisanoPoNazivu[naziv]) {
+        grupisanoPoNazivu[naziv] = {
+          naziv,
+          broj: 0,
+          vrijednost: 0
+        };
+      }
+
+      grupisanoPoNazivu[naziv].broj += 1;
+      grupisanoPoNazivu[naziv].vrijednost += pozicija.vrijednostZakupa ?? 0;
+    });
+
+    this.statistikaPoNazivu = Object.values(grupisanoPoNazivu);
+  }
+
+  private jeUgovorUskoro(zakupDo?: string | null): boolean {
+    if (!zakupDo) {
+      return false;
+    }
+
+    const parsed = new Date(zakupDo);
+    if (Number.isNaN(parsed.getTime())) {
+      return false;
+    }
+
+    const granica = new Date();
+    granica.setDate(granica.getDate() + 30);
+    return parsed <= granica;
   }
 
   private osvjeziEditor(): void {
