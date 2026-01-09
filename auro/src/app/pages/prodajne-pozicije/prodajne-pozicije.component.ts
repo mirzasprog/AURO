@@ -99,6 +99,7 @@ export class ProdajnePozicijeComponent implements OnInit {
       backgroundFileName: layout.backgroundFileName ?? null,
       backgroundContentType: layout.backgroundContentType ?? null,
       backgroundData: layout.backgroundData ?? null,
+      backgroundRotation: layout.backgroundRotation ?? 0,
       pozicije
     }).subscribe({
       next: (response) => {
@@ -187,7 +188,8 @@ export class ProdajnePozicijeComponent implements OnInit {
         prodavnicaId: this.odabranaProdavnicaId,
         backgroundFileName: null,
         backgroundContentType: null,
-        backgroundData: null
+        backgroundData: null,
+        backgroundRotation: 0
       } as ProdajniLayout;
 
     this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));

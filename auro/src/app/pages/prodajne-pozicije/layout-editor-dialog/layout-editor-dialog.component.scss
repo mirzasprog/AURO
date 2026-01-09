@@ -16,8 +16,14 @@
 }
 
 .editor-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.options-panel {
   display: grid;
-  grid-template-columns: minmax(240px, 320px) 1fr minmax(240px, 320px);
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
   gap: 1.5rem;
 }
 
@@ -31,7 +37,8 @@
 .add-object,
 .object-editor,
 .background-upload,
-.zoom-controls {
+.zoom-controls,
+.background-rotation {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -39,6 +46,23 @@
 
 .object-editor h5 {
   margin-bottom: 0.25rem;
+}
+
+.background-upload button {
+  width: 100%;
+}
+
+.background-upload {
+  padding: 0.75rem;
+  border: 1px solid #e4e9f2;
+  border-radius: 0.75rem;
+  background-color: #ffffff;
+}
+
+.rotation-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .background-upload input[type='file'] {
@@ -89,8 +113,8 @@
 .canvas-viewport {
   position: relative;
   width: 100%;
-  min-height: 520px;
-  height: 620px;
+  min-height: 640px;
+  height: 720px;
   border: 2px dashed #c5cee0;
   border-radius: 0.75rem;
   background-color: #f7f9fc;
@@ -105,8 +129,19 @@
   transform-origin: top left;
 }
 
+.background-layer {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .layout-item {
   position: absolute;
+  z-index: 1;
   border: 2px solid #3366ff;
   border-radius: 0.4rem;
   background-color: rgba(51, 102, 255, 0.12);
@@ -164,7 +199,7 @@
 }
 
 @media (max-width: 980px) {
-  .editor-grid {
+  .options-panel {
     grid-template-columns: 1fr;
   }
 }
