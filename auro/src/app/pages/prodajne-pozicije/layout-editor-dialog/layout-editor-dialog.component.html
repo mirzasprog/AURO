@@ -3,7 +3,6 @@
     <div class="editor-header">
       <span>Grafički editor layouta</span>
       <div class="actions">
-        <button nbButton size="small" status="basic" (click)="zatvori()">Odustani</button>
         <button nbButton size="small" status="primary" (click)="sacuvaj()">Sačuvaj</button>
       </div>
     </div>
@@ -62,17 +61,19 @@
       </div>
 
       <div class="canvas-panel">
-        <div class="canvas" #canvas [ngStyle]="getCanvasStyle()">
-          <div
-            class="layout-item"
-            *ngFor="let pozicija of pozicije; let i = index"
-            [class.selected]="selectedIndex === i"
-            [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
-            [ngStyle]="getPozicijaStyle(pozicija)"
-            (mousedown)="onMouseDown($event, i)"
-          >
-            <span>{{ getPozicijaLabel(pozicija) }}</span>
-            <div class="resize-handle" (mousedown)="onResizeMouseDown($event, i)"></div>
+        <div class="canvas-viewport" #canvas>
+          <div class="canvas-content" [ngStyle]="getCanvasStyle()">
+            <div
+              class="layout-item"
+              *ngFor="let pozicija of pozicije; let i = index"
+              [class.selected]="selectedIndex === i"
+              [class.invalid]="isOutOfBounds(pozicija) || isOverlapping(i)"
+              [ngStyle]="getPozicijaStyle(pozicija)"
+              (mousedown)="onMouseDown($event, i)"
+            >
+              <span>{{ getPozicijaLabel(pozicija) }}</span>
+              <div class="resize-handle" (mousedown)="onResizeMouseDown($event, i)"></div>
+            </div>
           </div>
         </div>
         <div class="canvas-info">

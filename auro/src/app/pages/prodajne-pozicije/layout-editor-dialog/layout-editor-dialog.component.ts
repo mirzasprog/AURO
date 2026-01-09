@@ -1,5 +1,4 @@
-import { AfterViewInit, Component, ElementRef, HostListener, Input, ViewChild } from '@angular/core';
-import { NbDialogRef } from '@nebular/theme';
+import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, Output, ViewChild } from '@angular/core';
 import { ProdajnaPozicija, ProdajniLayout } from '../../../@core/data/prodajne-pozicije';
 
 interface ProdajniTip {
@@ -16,6 +15,7 @@ interface ProdajniTip {
 export class LayoutEditorDialogComponent implements AfterViewInit {
   @Input() layout!: ProdajniLayout;
   @Input() pozicije: ProdajnaPozicija[] = [];
+  @Output() sacuvajLayout = new EventEmitter<{ layout: ProdajniLayout; pozicije: ProdajnaPozicija[] }>();
 
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLDivElement>;
   @ViewChild('backgroundInput', { static: false }) backgroundInputRef?: ElementRef<HTMLInputElement>;
@@ -47,8 +47,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private startX = 0;
   private startY = 0;
   private startPozicija?: ProdajnaPozicija;
-
-  constructor(private readonly dialogRef: NbDialogRef<LayoutEditorDialogComponent>) {}
 
   ngAfterViewInit(): void {
     this.izracunajSkalu();
@@ -169,28 +167,24 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   sacuvaj(): void {
-    this.dialogRef.close({
+    this.sacuvajLayout.emit({
       layout: this.layout,
       pozicije: this.pozicije
     });
   }
 
-  zatvori(): void {
-    this.dialogRef.close();
-  }
-
   getStyle(pozicija: ProdajnaPozicija): Record<string, string> {
     return {
-      width: `${pozicija.sirina * this.scale}px`,
-      height: `${pozicija.duzina * this.scale}px`,
+      width: `${pozicija.sirina * this.baseScale}px`,
+      height: `${pozicija.duzina * this.baseScale}px`,
       transform: `rotate(${pozicija.rotacija}deg)`
     };
   }
 
   getPosition(pozicija: ProdajnaPozicija): Record<string, string> {
     return {
-      left: `${pozicija.pozicijaX * this.scale}px`,
-      top: `${pozicija.pozicijaY * this.scale}px`
+      left: `${pozicija.pozicijaX * this.baseScale}px`,
+      top: `${pozicija.pozicijaY * this.baseScale}px`
     };
   }
 
@@ -255,11 +249,21 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   getCanvasStyle(): Record<string, string> {
+    const sirina = this.layout.sirina || 1;
+    const duzina = this.layout.duzina || 1;
+    const style: Record<string, string> = {
+      width: `${sirina * this.baseScale}px`,
+      height: `${duzina * this.baseScale}px`,
+      transform: `scale(${this.zoom})`,
+      transformOrigin: 'top left'
+    };
+
     if (!this.layout.backgroundData || !this.isImageBackground()) {
-      return {};
+      return style;
     }
 
     return {
+      ...style,
       backgroundImage: `url(${this.layout.backgroundData})`,
       backgroundSize: '100% 100%',
       backgroundPosition: 'center',
