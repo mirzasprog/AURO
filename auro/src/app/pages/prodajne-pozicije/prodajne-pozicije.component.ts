@@ -31,7 +31,7 @@ export class ProdajnePozicijeComponent implements OnInit {
   loading = false;
   editorLayout: ProdajniLayout | null = null;
   editorPozicije: ProdajnaPozicija[] = [];
-
+  showEditor = false;
   ukupnoPozicija = 0;
   zauzetoPozicija = 0;
   slobodnoPozicija = 0;
@@ -96,6 +96,35 @@ export class ProdajnePozicijeComponent implements OnInit {
       }
     });
   }
+
+private osvjeziEditor(): void {
+  if (!this.odabranaProdavnicaId) {
+    this.editorLayout = null;
+    this.editorPozicije = [];
+    this.showEditor = false;
+    return;
+  }
+
+  this.editorLayout = this.layout
+    ? { ...this.layout }
+    : {
+      sirina: 20,
+      duzina: 20,
+      prodavnicaId: this.odabranaProdavnicaId,
+      backgroundFileName: null,
+      backgroundContentType: null,
+      backgroundData: null,
+      backgroundRotation: 0
+    } as ProdajniLayout;
+
+  this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));
+  
+  // Force re-render editora
+  this.showEditor = false;
+  setTimeout(() => {
+    this.showEditor = true;
+  }, 0);
+}
 
   onSacuvajLayout(result: { layout: ProdajniLayout; pozicije: ProdajnaPozicija[] }): void {
     this.spremiLayout(result.layout, result.pozicije);
@@ -230,25 +259,4 @@ export class ProdajnePozicijeComponent implements OnInit {
     return parsed <= granica;
   }
 
-  private osvjeziEditor(): void {
-    if (!this.odabranaProdavnicaId) {
-      this.editorLayout = null;
-      this.editorPozicije = [];
-      return;
-    }
-
-    this.editorLayout = this.layout
-      ? { ...this.layout }
-      : {
-        sirina: 20,
-        duzina: 20,
-        prodavnicaId: this.odabranaProdavnicaId,
-        backgroundFileName: null,
-        backgroundContentType: null,
-        backgroundData: null,
-        backgroundRotation: 0
-      } as ProdajniLayout;
-
-    this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));
-  }
 }

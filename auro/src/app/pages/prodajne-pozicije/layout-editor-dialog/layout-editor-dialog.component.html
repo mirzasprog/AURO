@@ -2,15 +2,60 @@
   <nb-card-header>
     <div class="editor-header">
       <span>Grafički editor layouta</span>
-      <div class="actions">
-        <button nbButton size="small" status="primary" (click)="sacuvaj()">Sačuvaj</button>
+    </div>
+  </nb-card-header>
+
+<nb-card class="editor-card">
+  <nb-card-header>
+    <div class="header-toolbar">
+      <div class="toolbar-left">
+        <button nbButton size="small" status="basic" [disabled]="true">
+          <nb-icon icon="move-outline"></nb-icon>
+          Odaberi
+        </button>
+        <button nbButton size="small" status="success" (click)="otvoriModalZaDodavanje()">
+          <nb-icon icon="plus-outline"></nb-icon>
+          Dodaj poziciju
+        </button>
+        <button nbButton size="small" status="info" [disabled]="selectedIndex === null" (click)="kopirajPoziciju()">
+          <nb-icon icon="copy-outline"></nb-icon>
+          Kopiraj
+        </button>
+        <button nbButton size="small" status="danger" [disabled]="selectedIndex === null" (click)="obrisiPoziciju()">
+          <nb-icon icon="trash-2-outline"></nb-icon>
+          Zalijepi
+        </button>
+      </div>
+      
+      <div class="toolbar-right">
+        <div class="zoom-control">
+          <button nbButton size="small" status="basic" (click)="zoomOut()">
+            <nb-icon icon="minus-outline"></nb-icon>
+          </button>
+          <span class="zoom-value">{{ zoom * 100 | number: '1.0-0' }}%</span>
+          <button nbButton size="small" status="basic" (click)="zoomIn()">
+            <nb-icon icon="plus-outline"></nb-icon>
+          </button>
+        </div>
+        
+        <button nbButton size="small" status="basic" (click)="triggerBackgroundUpload()">
+          <nb-icon icon="image-outline"></nb-icon>
+          Podloga
+        </button>
+        
+        <button nbButton size="small" status="primary" (click)="sacuvaj()">
+          <nb-icon icon="save-outline"></nb-icon>
+          Sačuvaj
+        </button>
       </div>
     </div>
   </nb-card-header>
+
   <nb-card-body>
-    <div class="editor-grid">
-      <div class="canvas-panel">
-        <div class="canvas-viewport" #canvas (mousedown)="onCanvasMouseDown($event)" (pointerdown)="onCanvasPointerDown($event)">
+    <div class="editor-layout">
+      <!-- Canvas Area -->
+      <div class="canvas-area">
+        <div class="canvas-viewport" #canvas (pointerdown)="onCanvasPointerDown($event)">
           <div class="canvas-pan" [ngStyle]="getPanStyle()">
             <div class="canvas-content" [ngStyle]="getCanvasStyle()">
               <div
@@ -18,149 +63,165 @@
                 *ngIf="layout.backgroundData && isImageBackground()"
                 [ngStyle]="getBackgroundStyle()"
               ></div>
+
               <div
                 class="layout-item"
                 *ngFor="let item of prikazanePozicije"
                 [class.selected]="selectedIndex === item.index"
                 [class.invalid]="isOutOfBounds(item.pozicija) || isOverlapping(item.index)"
+                [class.bubble]="item.pozicija.tip === 'promotivna_pozicija'"
                 [ngStyle]="getPozicijaStyle(item.pozicija)"
                 [nbTooltip]="getPozicijaTooltip(item.pozicija)"
                 nbTooltipClass="pozicija-tooltip"
                 nbTooltipPlacement="top"
-                (mousedown)="onMouseDown($event, item.index)"
                 (pointerdown)="onPointerDown($event, item.index)"
                 (click)="selectPozicija(item.index)"
               >
                 <span class="layout-label">{{ getPozicijaLabel(item.pozicija) }}</span>
+
                 <div
                   class="resize-handle"
-                  (mousedown)="onResizeMouseDown($event, item.index)"
                   (pointerdown)="onResizePointerDown($event, item.index)"
+                  title="Resize"
                 ></div>
               </div>
             </div>
           </div>
         </div>
-        <div class="canvas-info">
-          <p>Prevlačenjem praznog prostora pomjerate cijeli layout. Validacija preklapanja koristi osnovne okvire bez rotacije.</p>
+
+        <div class="warnings-bar" *ngIf="warnings.length">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          <span>{{ warnings.length }} upozorenja</span>
         </div>
       </div>
-      <div class="options-panel">
-        <div class="left-panel">
-          <div class="add-object">
-            <label>Dodaj objekat</label>
-            <nb-select [(ngModel)]="odabraniTip">
-              <nb-option *ngFor="let tip of tipovi" [value]="tip">{{ tip.label }}</nb-option>
-            </nb-select>
-            <button nbButton status="success" (click)="otvoriModalZaDodavanje()">
-              <nb-icon icon="plus-outline"></nb-icon>
-              Dodaj poziciju
-            </button>
-          </div>
 
-          <div class="filters-panel">
-            <label>Dobavljač</label>
-            <nb-select multiple [(ngModel)]="odabraniDobavljaci">
-              <nb-option *ngFor="let dobavljac of dostupniDobavljaci" [value]="dobavljac">
-                {{ dobavljac }}
-              </nb-option>
-            </nb-select>
-            <label class="toggle">
-              <input type="checkbox" [(ngModel)]="filtrirajUskoro" />
-              <span>Ugovor ističe uskoro ({{ pragDanaIsteka }} dana)</span>
-            </label>
-          </div>
-
-          <div class="warnings" *ngIf="warnings.length">
-            <h6>Upozorenja</h6>
-            <ul>
-              <li *ngFor="let warning of warnings">{{ warning }}</li>
-            </ul>
-          </div>
+      <!-- Sidebar -->
+      <div class="sidebar" *ngIf="selectedIndex !== null">
+        <div class="sidebar-header">
+          <h6>Detalji pozicije</h6>
+          <button nbButton size="tiny" ghost status="basic" (click)="selectedIndex = null">
+            <nb-icon icon="close-outline"></nb-icon>
+          </button>
         </div>
 
-        <div class="right-panel">
-          <div class="details-panel" *ngIf="selectedIndex !== null; else emptyDetails">
-            <h5>Detalji pozicije</h5>
-            <div class="modal-form">
-              <label>Broj pozicije</label>
-              <input nbInput [(ngModel)]="pozicije[selectedIndex].brojPozicije" />
-              <label>Tip</label>
-              <nb-select [(ngModel)]="pozicije[selectedIndex].tip" (selectedChange)="azurirajUpozorenja()">
-                <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
-              </nb-select>
-              <label>Naziv/Oznaka</label>
-              <input nbInput [(ngModel)]="pozicije[selectedIndex].naziv" (ngModelChange)="azurirajUpozorenja()" />
-              <label>Trgovac</label>
-              <input nbInput [(ngModel)]="pozicije[selectedIndex].trgovac" />
-              <label>Zakup do</label>
-              <input nbInput type="date" [(ngModel)]="pozicije[selectedIndex].zakupDo" />
-              <label>Vrijednost zakupa (KM)</label>
-              <input nbInput type="number" [(ngModel)]="pozicije[selectedIndex].vrijednostZakupa" min="0" step="0.01" />
-              <label>Vrsta ugovora</label>
-              <nb-select [(ngModel)]="pozicije[selectedIndex].vrstaUgovora">
-                <nb-option *ngFor="let vrsta of vrsteUgovora" [value]="vrsta">{{ vrsta }}</nb-option>
-              </nb-select>
-              <label>Tip pozicije (oprema)</label>
-              <nb-select [(ngModel)]="pozicije[selectedIndex].tipPozicije">
-                <nb-option *ngFor="let tip of tipoviPozicije" [value]="tip">{{ tip }}</nb-option>
-              </nb-select>
-              <label>Odjel</label>
-              <nb-select [(ngModel)]="pozicije[selectedIndex].zona">
-                <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
-              </nb-select>
-              <div class="detail-actions">
-                <button nbButton status="info" outline (click)="kopirajPoziciju()">
-                  <nb-icon icon="copy-outline"></nb-icon>
-                  Kopiraj
-                </button>
-                <button nbButton status="danger" outline (click)="obrisiPoziciju()">
-                  <nb-icon icon="trash-2-outline"></nb-icon>
-                  Obriši
-                </button>
-              </div>
-            </div>
+        <div class="sidebar-content">
+          <div class="form-group">
+            <label>Broj pozicije</label>
+            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].brojPozicije" />
           </div>
-          <ng-template #emptyDetails>
-            <div class="details-panel empty-state">Odaberite poziciju da vidite detalje.</div>
-          </ng-template>
-          <div class="tools-panel">
-            <div class="background-upload">
-              <label>Podloga (JPEG/DWG)</label>
-              <input #backgroundInput type="file" accept=".jpg,.jpeg,.dwg" (change)="onBackgroundSelected($event)" />
-              <button nbButton status="info" outline (click)="triggerBackgroundUpload()">
-                <nb-icon icon="image-outline"></nb-icon>
-                Učitaj podlogu
-              </button>
-              <div class="background-meta" *ngIf="layout.backgroundFileName">
-                <span>{{ layout.backgroundFileName }}</span>
-                <button nbButton size="tiny" status="danger" outline (click)="ukloniPodlogu()">Ukloni</button>
-              </div>
-              <div class="background-rotation" *ngIf="layout.backgroundData && isImageBackground()">
-                <label>Rotacija podloge (°)</label>
-                <input type="range" min="-180" max="180" step="5" [(ngModel)]="layout.backgroundRotation" />
-                <div class="rotation-actions">
-                  <button nbButton size="tiny" status="basic" (click)="rotirajPodlogu(-90)">-90°</button>
-                  <button nbButton size="tiny" status="basic" (click)="rotirajPodlogu(90)">+90°</button>
-                </div>
-              </div>
-              <p class="hint" *ngIf="layout.backgroundFileName && !isImageBackground()">DWG podloga se čuva, ali nije moguće prikazati pregled.</p>
-            </div>
 
-            <div class="zoom-controls">
-              <label>Zoom</label>
-              <div class="zoom-actions">
-                <button nbButton size="tiny" status="basic" (click)="zoomOut()">-</button>
-                <input type="range" [min]="minZoom" [max]="maxZoom" step="0.1" [(ngModel)]="zoom" (ngModelChange)="onZoomChange($event)" />
-                <button nbButton size="tiny" status="basic" (click)="zoomIn()">+</button>
-                <span>{{ zoom * 100 | number:'1.0-0' }}%</span>
-              </div>
-            </div>
+          <div class="form-group">
+            <label>Trgovac</label>
+            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].trgovac" 
+                   placeholder="Naziv firme / trgovca" />
+          </div>
+
+          <div class="form-group">
+            <label>Zakup do</label>
+            <input nbInput fullWidth type="date" [(ngModel)]="pozicije[selectedIndex].zakupDo" />
+          </div>
+
+          <div class="form-group">
+            <label>Vrijednost zakupa (KM)</label>
+            <input nbInput fullWidth type="number" [(ngModel)]="pozicije[selectedIndex].vrijednostZakupa" 
+                   min="0" step="0.01" placeholder="0" />
+          </div>
+
+          <div class="form-group">
+            <label>Vrsta ugovora</label>
+            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].vrstaUgovora">
+              <nb-option *ngFor="let vrsta of vrsteUgovora" [value]="vrsta">{{ vrsta }}</nb-option>
+            </nb-select>
+          </div>
+
+          <div class="form-group">
+            <label>Tip pozicije (oprema)</label>
+            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].tipPozicije">
+              <nb-option *ngFor="let tip of tipoviPozicije" [value]="tip">{{ tip }}</nb-option>
+            </nb-select>
+          </div>
+
+          <div class="form-group">
+            <label>Tip</label>
+            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].tip" (selectedChange)="azurirajUpozorenja()">
+              <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
+            </nb-select>
+          </div>
+
+          <div class="form-group">
+            <label>Naziv/Oznaka</label>
+            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].naziv" 
+                   (ngModelChange)="azurirajUpozorenja()" />
+          </div>
+
+          <div class="form-group">
+            <label>Odjel</label>
+            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].zona">
+              <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
+            </nb-select>
+          </div>
+
+          <div class="sidebar-actions">
+            <button nbButton fullWidth status="danger" outline (click)="obrisiPoziciju()">
+              <nb-icon icon="trash-2-outline"></nb-icon>
+              Obriši poziciju
+            </button>
           </div>
         </div>
       </div>
     </div>
   </nb-card-body>
+</nb-card>
+
+<!-- Hidden file input -->
+<input #backgroundInput type="file" accept=".jpg,.jpeg,.dwg" (change)="onBackgroundSelected($event)" style="display: none;" />
+
+<!-- Modal za dodavanje -->
+<div class="modal-backdrop" *ngIf="isDodavanjeModalOpen">
+  <nb-card class="modal-card">
+    <nb-card-header>
+      <span>Dodaj poziciju</span>
+      <button nbButton size="tiny" ghost status="basic" (click)="zatvoriModalZaDodavanje()">
+        <nb-icon icon="close-outline"></nb-icon>
+      </button>
+    </nb-card-header>
+    
+    <nb-card-body>
+      <div class="modal-form">
+        <div class="form-group">
+          <label>Tip pozicije</label>
+          <nb-select fullWidth [(ngModel)]="novaPozicija.tip">
+            <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
+          </nb-select>
+        </div>
+
+        <div class="form-group">
+          <label>Naziv</label>
+          <input nbInput fullWidth [(ngModel)]="novaPozicija.naziv" placeholder="Unesite naziv..." />
+        </div>
+
+        <div class="form-group">
+          <label>Broj pozicije</label>
+          <input nbInput fullWidth [(ngModel)]="novaPozicija.brojPozicije" placeholder="P001" />
+        </div>
+
+        <div class="form-group">
+          <label>Odjel</label>
+          <nb-select fullWidth [(ngModel)]="novaPozicija.zona">
+            <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
+          </nb-select>
+        </div>
+      </div>
+    </nb-card-body>
+
+    <nb-card-footer>
+      <div class="modal-actions">
+        <button nbButton status="basic" (click)="zatvoriModalZaDodavanje()">Odustani</button>
+        <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>
+      </div>
+    </nb-card-footer>
+  </nb-card>
+</div>
 </nb-card>
 
 <div class="modal-backdrop" *ngIf="isDodavanjeModalOpen">
@@ -172,16 +233,20 @@
         <nb-select [(ngModel)]="novaPozicija.tip">
           <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
         </nb-select>
+
         <label>Naziv</label>
         <input nbInput [(ngModel)]="novaPozicija.naziv" />
+
         <label>Broj pozicije</label>
         <input nbInput [(ngModel)]="novaPozicija.brojPozicije" />
+
         <label>Odjel</label>
         <nb-select [(ngModel)]="novaPozicija.zona">
           <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
         </nb-select>
       </div>
     </nb-card-body>
+
     <nb-card-footer class="modal-actions">
       <button nbButton status="basic" outline (click)="zatvoriModalZaDodavanje()">Odustani</button>
       <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>

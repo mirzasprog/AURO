@@ -34,12 +34,6 @@
     </div>
 
     <div class="editor-bar" *ngIf="mozeUrediti()">
-      <ng-container *ngIf="rola === 'prodavnica'; else upravaControls">
-        <div class="editor-field">
-          <label>Prodavnica</label>
-          <div class="pill">Prodavnica #{{ brojProdavnice }}</div>
-        </div>
-      </ng-container>
       <ng-template #upravaControls>
         <div class="editor-field full-width">
           <label>Prodavnica</label>
@@ -49,17 +43,8 @@
             <button nbButton size="tiny" status="basic" (click)="prodavnicaFilter=''; promijeniFiltre()"
               [disabled]="!prodavnicaFilter">Reset</button>
           </div>
-          <small class="text-muted">Ne mijenja podatke, već filtrira tabelu po prodavnici.</small>
         </div>
-        <div class="editor-actions">
-          <button nbButton size="small" status="success" (click)="exportujProdavniceBezNarudzbi()"
-            [disabled]="!neaktivneProdavnice.length">
-            <nb-icon icon="download-outline"></nb-icon> Prodavnice bez narudžbi
-          </button>
-          <small class="text-muted helper-text" *ngIf="!neaktivneProdavnice.length && !loading">
-            Sve prodavnice imaju kreirane narudžbe.
-          </small>
-        </div>
+
       </ng-template>
     </div>
     <datalist id="prodavnice-list">
@@ -81,22 +66,6 @@
         </nb-select>
       </div>
     </div>
-
-    <div class="legend-bar">
-      <div class="legend-item legend-success">
-        <span class="legend-dot legend-success-dot"></span>
-        Naručeno
-      </div>
-      <div class="legend-item legend-danger">
-        <span class="legend-dot legend-danger-dot"></span>
-        Bez narudžbe
-      </div>
-      <div class="legend-item legend-warning">
-        <nb-icon icon="alert-circle-outline" status="warning"></nb-icon>
-        Izmijenjena količina
-      </div>
-    </div>
-
     <div class="table-container" *ngIf="!loading; else loadingStavke">
       <table class="stavke-table">
         <colgroup>
@@ -189,9 +158,4 @@
       </div>
     </ng-template>
   </nb-card-body>
-  <nb-card-footer class="col">
-    <button nbButton status="danger" size="small" (click)="zatvori(false)" [disabled]="saving">Zatvori</button>
-    <button nbButton status="primary" size="small" (click)="ucitajStavke()" [disabled]="saving">Osvježi</button>
-    <button nbButton status="success" size="small" (click)="sacuvaj()" [disabled]="!mozeSpasiti()">Sačuvaj</button>
-  </nb-card-footer>
 </nb-card>

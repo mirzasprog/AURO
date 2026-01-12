@@ -148,7 +148,7 @@
       </div>
 
       <ngx-layout-editor-dialog
-        *ngIf="editorLayout"
+        *ngIf="showEditor && editorLayout"
         [layout]="editorLayout"
         [pozicije]="editorPozicije"
         (sacuvajLayout)="onSacuvajLayout($event)"
