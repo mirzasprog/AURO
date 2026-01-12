@@ -9,7 +9,7 @@ import { environment } from '../../../../environments/environment';
     <b>Copyright © {{this.currentYear}} Aplikativna podrška Konzum Bosna i Hercegovina </b>
     </span>
     <div style="margin-left:5px;">
-    <label style="float:right;" id="text" class="label col-sm7 col-form-label"> AURO</label>
+    <label style="float:right;" id="text" class="label col-sm7 col-form-label"> Konzum360</label>
     <br>
     <label style="float:right;" id="text"  class="label col-sm7 col-form-label"> Verzija :  {{trenutnaVerzija}}</label>
     </div>  

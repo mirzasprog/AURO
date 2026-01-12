@@ -2,6 +2,7 @@
   <nb-card-header>
     <div class="editor-header">
       <span>Grafički editor layouta</span>
+
     </div>
   </nb-card-header>
 
@@ -111,9 +112,15 @@
           </div>
 
           <div class="form-group">
-            <label>Trgovac</label>
+            <label>Dobavljač</label>
             <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].trgovac" 
-                   placeholder="Naziv firme / trgovca" />
+                   placeholder="Naziv dobavljača" />
+          </div>          
+          
+          <div class="form-group">
+            <label>Naziv artikla</label>
+            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].nazivArtikla" 
+                   placeholder="Naziv artikla" />
           </div>
 
           <div class="form-group">

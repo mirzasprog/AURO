@@ -37,12 +37,22 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   @ViewChild('backgroundInput', { static: false }) backgroundInputRef?: ElementRef<HTMLInputElement>;
 
   tipovi: ProdajniTip[] = [
-    { value: 'vitrina', label: 'Vitrina', defaultSize: { sirina: 2, duzina: 1 } },
-    { value: 'frizider', label: 'Frižider', defaultSize: { sirina: 1, duzina: 1 } },
-    { value: 'regal', label: 'Regal', defaultSize: { sirina: 3, duzina: 1 } },
-    { value: 'kasa', label: 'Kasa', defaultSize: { sirina: 1.5, duzina: 1 } },
     { value: 'paletno_mjesto', label: 'Paletno mjesto', defaultSize: { sirina: 1.2, duzina: 1 } },
-    { value: 'promotivna_pozicija', label: 'Promotivna/ostrvska pozicija', defaultSize: { sirina: 2, duzina: 2 } }
+    { value: 'promotivna_pozicija', label: 'Promotivna/ostrvska pozicija', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'bocna_polica', label: 'Bočna polica', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'bok_na_bok', label: 'Bok na bok', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'cm_kosara', label: 'CM košara', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'dp_alu', label: 'DP-alu', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'frizider_dd', label: 'Frižider DD', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'frizider_ot', label: 'Frižider OT', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'frizider_sd', label: 'Frižider SD', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'frizider', label: 'Frižider', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'kosara', label: 'Košara', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'paleta', label: 'Paleta', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'parazit', label: 'Parazit', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'plug_in', label: 'Plug in', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'stalak', label: 'Stalak', defaultSize: { sirina: 2, duzina: 2 } },
+    { value: 'stalak_mini', label: 'Stalak mini', defaultSize: { sirina: 2, duzina: 2 } },
   ];
 
   odabraniTip = this.tipovi[0];
@@ -54,7 +64,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   maxZoom = 2;
 
   vrsteUgovora = ['Nije postavljeno', 'Mjesečni', 'Godišnji', 'Sezonski'];
-  tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal'];
+  tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal', '500+'];
   odjeli = [
     'Pakirana',
     'Svježa',
@@ -65,7 +75,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     'Piće i grickalice',
     'Voće i povrće',
     'Mesnica',
-    'Cigarete i duhanski proizvodi'
+    'Cigarete i duhanski proizvodi',
+    'Neprehrana svježa',
+    'Neprehrana prehrana',
+    'Neprehrana prehrana svježa',
+    'Prehrana svježa',
   ];
 
   odabraniDobavljaci: string[] = [];
