@@ -27,6 +27,14 @@
           Zalijepi
         </button>
       </div>
+
+      <div class="toolbar-center">
+        <button nbButton size="small" status="basic" [class.active]="showFilters" (click)="toggleFilters()">
+          <nb-icon icon="funnel-outline"></nb-icon>
+          Filteri
+          <span class="filter-badge" *ngIf="hasActiveFilters()">{{ getActiveFiltersCount() }}</span>
+        </button>
+      </div>
       
       <div class="toolbar-right">
         <div class="zoom-control">
@@ -53,6 +61,79 @@
   </nb-card-header>
 
   <nb-card-body>
+    <!-- Filters Panel -->
+    <div class="filters-panel" *ngIf="showFilters">
+      <div class="filters-grid">
+        <div class="filter-item">
+          <label>Pretraga po broju pozicije</label>
+          <input nbInput fullWidth
+                 [(ngModel)]="filterBrojPozicije"
+                 (ngModelChange)="primijeniFiltere()"
+                 placeholder="P001, P002..."
+                 [nbTooltip]="'Pretražite po broju pozicije'"
+                 nbTooltipPlacement="top">
+        </div>
+
+        <div class="filter-item">
+          <label>Dobavljač</label>
+          <nb-select fullWidth multiple
+                     [(ngModel)]="filterTrgovci"
+                     (selectedChange)="primijeniFiltere()"
+                     placeholder="Svi dobavljači">
+            <nb-option *ngFor="let trgovac of dostupniDobavljaci" [value]="trgovac">
+              {{ trgovac }}
+            </nb-option>
+          </nb-select>
+        </div>
+
+        <div class="filter-item">
+          <label>Odjel/Kategorija</label>
+          <nb-select fullWidth multiple
+                     [(ngModel)]="filterOdjeli"
+                     (selectedChange)="primijeniFiltere()"
+                     placeholder="Svi odjeli">
+            <nb-option *ngFor="let odjel of odjeli" [value]="odjel">
+              {{ odjel }}
+            </nb-option>
+          </nb-select>
+        </div>
+
+        <div class="filter-item">
+          <label>Tip pozicije</label>
+          <nb-select fullWidth multiple
+                     [(ngModel)]="filterTipovi"
+                     (selectedChange)="primijeniFiltere()"
+                     placeholder="Svi tipovi">
+            <nb-option *ngFor="let tip of tipovi" [value]="tip.value">
+              {{ tip.label }}
+            </nb-option>
+          </nb-select>
+        </div>
+
+        <div class="filter-item filter-checkbox">
+          <nb-checkbox [(ngModel)]="filterIsticeUskoro" (checkedChange)="primijeniFiltere()">
+            Zakup ističe uskoro ({{ pragDanaIsteka }} dana)
+          </nb-checkbox>
+        </div>
+
+        <div class="filter-item filter-checkbox">
+          <nb-checkbox [(ngModel)]="filterSamoSlobodne" (checkedChange)="primijeniFiltere()">
+            Samo slobodne pozicije
+          </nb-checkbox>
+        </div>
+
+        <div class="filter-actions">
+          <button nbButton size="small" status="basic" (click)="resetFilters()">
+            <nb-icon icon="refresh-outline"></nb-icon>
+            Resetuj filtere
+          </button>
+          <span class="filter-results">
+            Prikazano: {{ prikazanePozicije.length }} / {{ pozicije.length }}
+          </span>
+        </div>
+      </div>
+    </div>
+
     <div class="editor-layout">
       <!-- Canvas Area -->
       <div class="canvas-area">

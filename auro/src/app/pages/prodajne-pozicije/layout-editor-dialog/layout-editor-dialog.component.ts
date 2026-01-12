@@ -82,9 +82,18 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     'Prehrana svježa',
   ];
 
+  // Filteri
+  showFilters = false;
+  filterBrojPozicije = '';
+  filterTrgovci: string[] = [];
+  filterOdjeli: string[] = [];
+  filterTipovi: string[] = [];
+  filterIsticeUskoro = false;
+  filterSamoSlobodne = false;
+  pragDanaIsteka = 60;
+
   odabraniDobavljaci: string[] = [];
   filtrirajUskoro = false;
-  pragDanaIsteka = 30;
 
   private readonly defaultLayoutSize = 20;
 
@@ -631,6 +640,51 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     return contentType.startsWith('image/') || data.startsWith('data:image');
   }
 
+  // ============= FILTERI =============
+
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+  }
+
+  primijeniFiltere(): void {
+    this._lastPozicijeLength = -1;
+    this._lastFilterHash = '';
+  }
+
+  resetFilters(): void {
+    this.filterBrojPozicije = '';
+    this.filterTrgovci = [];
+    this.filterOdjeli = [];
+    this.filterTipovi = [];
+    this.filterIsticeUskoro = false;
+    this.filterSamoSlobodne = false;
+    this.primijeniFiltere();
+  }
+
+  hasActiveFilters(): boolean {
+    return this.filterBrojPozicije.trim() !== '' ||
+      this.filterTrgovci.length > 0 ||
+      this.filterOdjeli.length > 0 ||
+      this.filterTipovi.length > 0 ||
+      this.filterIsticeUskoro ||
+      this.filterSamoSlobodne ||
+      this.odabraniDobavljaci.length > 0 ||
+      this.filtrirajUskoro;
+  }
+
+  getActiveFiltersCount(): number {
+    let count = 0;
+    if (this.filterBrojPozicije.trim()) count++;
+    if (this.filterTrgovci.length > 0) count++;
+    if (this.filterOdjeli.length > 0) count++;
+    if (this.filterTipovi.length > 0) count++;
+    if (this.filterIsticeUskoro) count++;
+    if (this.filterSamoSlobodne) count++;
+    if (this.odabraniDobavljaci.length > 0) count++;
+    if (this.filtrirajUskoro) count++;
+    return count;
+  }
+
   getPozicijaLabel(pozicija: ProdajnaPozicija): string {
     return pozicija.brojPozicije || pozicija.naziv;
   }
@@ -664,13 +718,26 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private _lastPozicijeLength = 0;
   private _lastDobavljaciLength = 0;
   private _lastFiltrirajUskoro = false;
+  private _lastFilterHash = '';
 
   get prikazanePozicije(): Array<{ pozicija: ProdajnaPozicija; index: number }> {
+    const filterHash = JSON.stringify({
+      brojPozicije: this.filterBrojPozicije,
+      trgovci: this.filterTrgovci,
+      odjeli: this.filterOdjeli,
+      tipovi: this.filterTipovi,
+      isticeUskoro: this.filterIsticeUskoro,
+      samoSlobodne: this.filterSamoSlobodne,
+      odabraniDobavljaci: this.odabraniDobavljaci,
+      filtrirajUskoro: this.filtrirajUskoro
+    });
+
     // Provjeri da li treba recalkulirati
-    const needsRecalc = 
+    const needsRecalc =
       this._lastPozicijeLength !== this.pozicije.length ||
       this._lastDobavljaciLength !== this.odabraniDobavljaci.length ||
-      this._lastFiltrirajUskoro !== this.filtrirajUskoro;
+      this._lastFiltrirajUskoro !== this.filtrirajUskoro ||
+      this._lastFilterHash !== filterHash;
 
     if (needsRecalc) {
       this._cachedPrikazanePozicije = this.pozicije
@@ -680,12 +747,53 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       this._lastPozicijeLength = this.pozicije.length;
       this._lastDobavljaciLength = this.odabraniDobavljaci.length;
       this._lastFiltrirajUskoro = this.filtrirajUskoro;
+      this._lastFilterHash = filterHash;
     }
     
     return this._cachedPrikazanePozicije;
   }
 
   private isPozicijaVidljiva(pozicija: ProdajnaPozicija): boolean {
+    if (this.filterBrojPozicije.trim()) {
+      const searchTerm = this.filterBrojPozicije.toLowerCase().trim();
+      const brojPozicije = (pozicija.brojPozicije || '').toLowerCase();
+      const naziv = (pozicija.naziv || '').toLowerCase();
+
+      if (!brojPozicije.includes(searchTerm) && !naziv.includes(searchTerm)) {
+        return false;
+      }
+    }
+
+    if (this.filterTrgovci.length > 0) {
+      if (!pozicija.trgovac || !this.filterTrgovci.includes(pozicija.trgovac)) {
+        return false;
+      }
+    }
+
+    if (this.filterOdjeli.length > 0) {
+      if (!pozicija.zona || !this.filterOdjeli.includes(pozicija.zona)) {
+        return false;
+      }
+    }
+
+    if (this.filterTipovi.length > 0) {
+      if (!this.filterTipovi.includes(pozicija.tip)) {
+        return false;
+      }
+    }
+
+    if (this.filterIsticeUskoro) {
+      if (!this.jeUgovorUskoro(pozicija.zakupDo)) {
+        return false;
+      }
+    }
+
+    if (this.filterSamoSlobodne) {
+      if (pozicija.trgovac && pozicija.trgovac.trim()) {
+        return false;
+      }
+    }
+
     if (this.odabraniDobavljaci.length) {
       if (!pozicija.trgovac || !this.odabraniDobavljaci.includes(pozicija.trgovac)) {
         return false;
