@@ -6,6 +6,7 @@ public class ResponsePrometProdavnice
     public string Adresa { get; set; } = null!;
     public string Format { get; set; } = null!;
     public string Regija { get; set; } = null!;
+    [NotMapped]
     public string? PodrucniVoditelj { get; set; }
     public decimal Promet { get; set; }
     public decimal PrometProslaGodina { get; set; }
