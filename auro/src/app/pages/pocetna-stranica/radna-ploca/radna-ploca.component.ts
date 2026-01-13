@@ -151,6 +151,10 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
   };
   dataTable: any[] = [];
+  regionOptions: Array<{ label: string; value: string }> = [];
+  areaManagerOptions: Array<{ label: string; value: string }> = [];
+  selectedRegion: string | null = null;
+  selectedAreaManager: string | null = null;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
   source: LocalDataSource = new LocalDataSource();
@@ -282,18 +286,41 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   resetFilter() {
     this.positiveFilterActive = false;
     this.negativeFilterActive = false;
-    this.source.load(this.dataTable);
+    this.selectedRegion = null;
+    this.selectedAreaManager = null;
+    this.updateFilterOptions();
+    this.applyFilters();
     this.toggleAllColumns(true);
   }
 
   applyFilters() {
-    if (this.positiveFilterActive) {
-      this.source.load(this.dataTable.filter(r => r.razlikaPromet > 0));
-    } else if (this.negativeFilterActive) {
-      this.source.load(this.dataTable.filter(r => r.razlikaPromet < 0));
-    } else {
+    const hasFilters = this.positiveFilterActive
+      || this.negativeFilterActive
+      || !!this.selectedRegion
+      || !!this.selectedAreaManager;
+
+    if (!hasFilters) {
       this.source.load(this.dataTable);
+      return;
     }
+
+    let filteredRows = this.getFilterBaseRows();
+
+    if (this.selectedRegion) {
+      filteredRows = filteredRows.filter(row => this.normalizeFilterValue(row.regija) === this.selectedRegion);
+    }
+
+    if (this.selectedAreaManager) {
+      filteredRows = filteredRows.filter(row => this.normalizeFilterValue(row.podrucniVoditelj) === this.selectedAreaManager);
+    }
+
+    if (this.positiveFilterActive) {
+      filteredRows = filteredRows.filter(row => row.razlikaPromet > 0);
+    } else if (this.negativeFilterActive) {
+      filteredRows = filteredRows.filter(row => row.razlikaPromet < 0);
+    }
+
+    this.source.load(filteredRows);
   }
 
   currencyFormat = (value: any) => {
@@ -376,6 +403,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         next: (response: any[]) => {
           if (!response || !Array.isArray(response)) {
             this.dataTable = this.getEmptyRows(this.PAGE_SIZE);
+            this.updateFilterOptions();
+            this.applyFilters();
             return;
           }
           const aggregatedMetrics = response.length ? this.calculateAggregatedMetrics(response) : null;
@@ -383,6 +412,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.dataTable = this.getEmptyRows(this.PAGE_SIZE);
+          this.updateFilterOptions();
+          this.applyFilters();
         }
       });
   }
@@ -395,7 +426,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       : mappedData;
 
     this.dataTable = filledData;
-    this.source.load(this.dataTable);
+    this.updateFilterOptions();
+    this.applyFilters();
 
     if (!this.rangeComparisonActive && !this.baselineDataTable) {
       this.baselineDataTable = [...this.dataTable];
@@ -404,6 +436,58 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     if (!this.selectedStoreId && aggregatedMetrics) {
       this.applyAggregatedMetrics(aggregatedMetrics);
     }
+  }
+
+  onRegionFilterChange(value: string | null): void {
+    this.selectedRegion = value;
+    this.updateAreaManagerOptions();
+    this.applyFilters();
+  }
+
+  onAreaManagerFilterChange(value: string | null): void {
+    this.selectedAreaManager = value;
+    this.applyFilters();
+  }
+
+  private updateFilterOptions(): void {
+    const rows = this.getFilterBaseRows();
+    this.regionOptions = this.buildUniqueOptions(rows, 'regija');
+    this.updateAreaManagerOptions(rows);
+  }
+
+  private updateAreaManagerOptions(rows: any[] = this.getFilterBaseRows()): void {
+    const filteredRows = this.selectedRegion
+      ? rows.filter(row => this.normalizeFilterValue(row.regija) === this.selectedRegion)
+      : rows;
+
+    this.areaManagerOptions = this.buildUniqueOptions(filteredRows, 'podrucniVoditelj');
+
+    if (this.selectedAreaManager && !this.areaManagerOptions.some(option => option.value === this.selectedAreaManager)) {
+      this.selectedAreaManager = null;
+    }
+  }
+
+  private buildUniqueOptions(rows: any[], key: 'regija' | 'podrucniVoditelj'): Array<{ label: string; value: string }> {
+    const values = new Set<string>();
+
+    rows.forEach(row => {
+      const value = this.normalizeFilterValue(row?.[key]);
+      if (value) {
+        values.add(value);
+      }
+    });
+
+    return Array.from(values)
+      .sort((a, b) => a.localeCompare(b))
+      .map(value => ({ label: value, value }));
+  }
+
+  private getFilterBaseRows(): any[] {
+    return (this.dataTable ?? []).filter(row => row && !row._isEmpty);
+  }
+
+  private normalizeFilterValue(value: any): string {
+    return String(value ?? '').trim();
   }
 
   private mapPrometRows(items: any[]): any[] {
@@ -741,7 +825,8 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
     if (this.baselineDataTable?.length) {
       this.dataTable = [...this.baselineDataTable];
-      this.source.load(this.dataTable);
+      this.updateFilterOptions();
+      this.applyFilters();
     }
 
     if (this.baselineDashboardSummary) {
