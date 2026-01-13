@@ -158,4 +158,13 @@
       </div>
     </ng-template>
   </nb-card-body>
+  <nb-card-footer>
+    <button nbButton status="basic" (click)="zatvori()">Zatvori</button>
+    <button nbButton status="success" (click)="sacuvaj()" *ngIf="mozeUrediti()" [disabled]="!mozeSpasiti()">
+      <nb-spinner *ngIf="saving" size="tiny"></nb-spinner>
+      <span *ngIf="!saving">
+        <nb-icon icon="save-outline"></nb-icon> Spremi artikle
+      </span>
+    </button>
+  </nb-card-footer>
 </nb-card>
