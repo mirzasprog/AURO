@@ -61,6 +61,7 @@ import { AkcijaStavka } from '../data/akcija-stavka';
 import { PrometHistoryRow } from '../data/promet-history';
 import { PagedResult, ServiceInvoice, ServiceInvoiceListItem } from '../data/service-invoice';
 import { ProdajnePozicijeResponse, ProdajnePozicijeUpsertRequest, ProdavnicaOption } from '../data/prodajne-pozicije';
+import { KategorijaPrometResponse } from '../data/kategorija-promet';
 @Injectable({
   providedIn: 'root'
 })
@@ -299,6 +300,14 @@ export class DataService {
 
   public getPrometCijelaMreza(): Observable<Prometi[]> {
     return this.posaljiRequest<Prometi[]>("GET", this.baseUrl + `/api/prometi/`)
+  }
+
+  public getPrometKategorijeMreze(): Observable<KategorijaPrometResponse[]> {
+    return this.posaljiRequest<KategorijaPrometResponse[]>("GET", this.baseUrl + `/api/prometi/kategorije`);
+  }
+
+  public getPrometPoKategoriji(brojProd: string): Observable<KategorijaPrometResponse[]> {
+    return this.posaljiRequest<KategorijaPrometResponse[]>("GET", this.baseUrl + `/api/prometi/${brojProd}/kategorije`);
   }
 
   public prikaziDetaljeNeuslovnaRoba(brojNeuslovneRobe: string): Observable<DetaljiNeuslovneRobe[]> {

@@ -415,6 +415,17 @@ namespace backend.Data
             return value?.Trim()?.TrimStart('0') ?? string.Empty;
         }
 
+        public async Task<IEnumerable<KategorijaPrometResponse>> GetPrometCijeleMrezePoKategorijiAsync()
+        {
+            var result = await _context.PrometPoKategoriji
+                .FromSqlRaw(@"SELECT Kategorija, SUM(Promet) AS PrometPoKategoriji
+                              FROM Prometi_Kategorije_Artikal_IPIS
+                              GROUP BY Kategorija")
+                .AsNoTracking()
+                .ToListAsync();
+
+            return result;
+        }
 
         public async Task<IEnumerable<KategorijaPrometResponse>> GetPrometProdavnicePoKategorijiAsync(string brojProdavnice)
         {

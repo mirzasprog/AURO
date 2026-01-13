@@ -165,6 +165,13 @@ namespace backend.Controllers
             return Ok(response);
         }
 
+        [HttpGet("kategorije")]
+        public async Task<ActionResult<IEnumerable<KategorijaPrometResponse>>> GetPrometMrezePoKategoriji()
+        {
+            var data = await _repo.GetPrometCijeleMrezePoKategorijiAsync();
+            return Ok(data);
+        }
+
         [HttpGet("{brojProdavnice}/kategorije")]
         public async Task<ActionResult<IEnumerable<KategorijaPrometResponse>>> GetPrometPoKategoriji(string brojProdavnice)
         {
