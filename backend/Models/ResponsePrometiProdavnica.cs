@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 public class ResponsePrometiProdavnica
@@ -28,4 +29,6 @@ public class ResponsePrometiProdavnica
 
     [NotMapped]
     public decimal? PrometPoUposleniku { get; set; }
+    [Required]
+    public string PodrucniVoditelj { get; set; } = null!;
 }
