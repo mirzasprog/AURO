@@ -21,6 +21,14 @@ interface ShiftFormContext {
   styleUrls: ['./shift-form-dialog.component.scss']
 })
 export class ShiftFormDialogComponent {
+  title: string;
+  shift?: ShiftDto;
+  employees: ShiftEmployee[];
+  stores: DailyTaskStore[];
+  shiftTypes: string[];
+  shiftStatuses: string[];
+  storeId?: number;
+  canSelectStore: boolean;
   readonly form = this.fb.group({
     storeId: [this.context.storeId ?? this.context.shift?.storeId ?? 0, this.context.canSelectStore ? Validators.required : []],
     employeeId: [this.context.shift?.employeeId ?? null, Validators.required],
@@ -39,26 +47,15 @@ export class ShiftFormDialogComponent {
     private readonly dialogRef: NbDialogRef<ShiftFormDialogComponent>,
     private readonly fb: FormBuilder,
     @Inject(NB_DIALOG_CONFIG) public context: ShiftFormContext
-  ) {}
-
-  get employees(): ShiftEmployee[] {
-    return this.context.employees;
-  }
-
-  get stores(): DailyTaskStore[] {
-    return this.context.stores;
-  }
-
-  get shiftTypes(): string[] {
-    return this.context.shiftTypes;
-  }
-
-  get shiftStatuses(): string[] {
-    return this.context.shiftStatuses;
-  }
-
-  get canSelectStore(): boolean {
-    return this.context.canSelectStore;
+  ) {
+    this.title = context.title;
+    this.shift = context.shift;
+    this.employees = context.employees;
+    this.stores = context.stores;
+    this.shiftTypes = context.shiftTypes;
+    this.shiftStatuses = context.shiftStatuses;
+    this.storeId = context.storeId;
+    this.canSelectStore = context.canSelectStore;
   }
 
   close(): void {

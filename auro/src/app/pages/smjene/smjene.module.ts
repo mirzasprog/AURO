@@ -30,7 +30,7 @@ import { PublishDialogComponent } from './publish-dialog/publish-dialog.componen
     NbTabsetModule,
     NbTooltipModule,
     NbSpinnerModule,
-    NbDatepickerModule.forChild(),
+    NbDatepickerModule,
     NbDialogModule.forChild(),
   ],
 })
