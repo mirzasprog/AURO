@@ -15,6 +15,7 @@ import { MatSort } from '@angular/material/sort';
 import { PreuzmiUExcelService } from '../../../@core/utils/preuzmiExcel.service';
 import { LocalDataSource } from 'ng2-smart-table';
 import { PrometRangeResponse, PrometRangeDayRow } from '../../../@core/data/promet-range';
+import { KategorijaPrometResponse } from '../../../@core/data/kategorija-promet';
 
 interface QuickAction {
   title: string;
@@ -121,6 +122,55 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   categoryOptions: CategoryShareItem[] = [];
   selectedCategories: string[] = [];
   categoryShareValue = 0;
+  categoryLegend = [
+    { code: 'PV', name: 'VINO' },
+    { code: 'NK', name: 'KU]NE POTREP[ I SVIJE]E' },
+    { code: 'MS', name: 'CRVENO MESO PAKIRANO' },
+    { code: 'SG', name: 'GASTRO PROGRAM' },
+    { code: 'NS', name: 'SREDST ZA PRANJE I ^I[]' },
+    { code: 'SS', name: 'SMRZNUTO' },
+    { code: 'DK', name: 'TEKSTIL KU]ANSKI' },
+    { code: 'VS', name: 'SUHO VO]E I POVR]E' },
+    { code: 'ST', name: 'SVJE@A TJESTENINA I SPEC.' },
+    { code: 'NH', name: 'HIGIJ I PAPIRNATI PROIZV' },
+    { code: 'NP', name: 'PARTY PROGRAM' },
+    { code: 'MR', name: 'CRVENO MESO RINFUZA' },
+    { code: 'DV', name: 'OPREMA ZA KU]ANSTVO' },
+    { code: 'ND', name: 'DJE^JI SVIJET' },
+    { code: 'DP', name: 'POSU\\E' },
+    { code: 'SE', name: 'DELIKATESE MESNE PRERA' },
+    { code: 'MF', name: 'MESO PERADI RINFUZA' },
+    { code: 'LP', name: 'LOYALTY PROGRAMI' },
+    { code: 'PA', name: 'PIVO' },
+    { code: 'NT', name: 'KIOSK' },
+    { code: 'PD', name: 'DORU^AK' },
+    { code: 'MZ', name: 'RIBA RINFUZA' },
+    { code: 'DS', name: 'UKRASI I PRIGODNI PROGRAM' },
+    { code: 'DU', name: 'URADI SAM AUTO NAMJE[TAJ' },
+    { code: 'DA', name: '[KOLA, URED, MEDIJA' },
+    { code: 'PN', name: 'NAMIRNICE ZA PRIPREMU JELA' },
+    { code: 'SD', name: 'DELIKATESE - SIR' },
+    { code: 'DI', name: 'IGRA^KE' },
+    { code: 'VV', name: 'VO]E' },
+    { code: 'PK', name: 'KONZERVIRANO' },
+    { code: 'NL', name: 'LJEPOTA I NJEGA' },
+    { code: 'DF', name: 'F&F TEKSTIL' },
+    { code: 'PB', name: 'BEZALKOHOLNA PI]A' },
+    { code: 'DE', name: 'KU]ANSKI APARATI' },
+    { code: 'VP', name: 'POVR]E' },
+    { code: 'PP', name: 'KU]NI LJUBIMCI' },
+    { code: 'SP', name: 'PEKARSKI PROIZVODI' },
+    { code: 'DO', name: 'TEKSTIL ODJEVNI' },
+    { code: 'SM', name: 'MLIJE^NI PROIZVODI' },
+    { code: 'SF', name: 'DELIKATESE SVJE@I SIR' },
+    { code: 'SR', name: 'RIBA PAKIRANA' },
+    { code: 'MP', name: 'MESO PERADI PAKIRANO' },
+    { code: 'PS', name: 'SLATKI[I I GRICKALICE' },
+    { code: 'PO', name: 'OSNOVNE NAMIRNICE' },
+    { code: 'CC', name: 'CVIJE]E' },
+    { code: 'PI', name: 'INTERNACIONALNA KUHINJA' },
+    { code: 'PZ', name: 'ZDRAVA HRANA' }
+  ];
   settings: any = {
     actions: false,
     pager: { display: true, perPage: 20 },
@@ -182,7 +232,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupStoreSelectionBalancer();
-    this.initializeCategoryShareData();
+    this.loadCategoryShareForNetwork();
     this.initializeDefaultRanges();
 
     this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
@@ -363,6 +413,13 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
           return forkJoin({
             promet: this.dataService.getPromet(storeCode),
             stats: this.getStoreChartsObservable(storeCode),
+            categories: this.dataService.getPrometPoKategoriji(storeCode).pipe(
+              catchError(err => {
+                const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
+                Swal.fire('Greška', 'Greška prilikom učitavanja kategorija: ' + greska, 'error');
+                return of([]);
+              })
+            )
           }).pipe(
             finalize(() => {
               this.isDashboardLoading = false;
@@ -378,13 +435,14 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe({
-        next: ({ promet, stats }) => {
+        next: ({ promet, stats, categories }) => {
           if (promet) {
             this.applyPrometResponse(promet);
             this.loadPrometDetalji();
           }
 
           this.applyStoreChartsData(stats);
+          this.updateCategoryShareData(categories);
         }
       });
   }
@@ -1000,21 +1058,6 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     this.renderMonthComparisonChart?.();
   }
 
-  private initializeCategoryShareData(): void {
-    this.categoryOptions = [
-      { category: 'Voće i povrće', share: 0.18, promet: 54000 },
-      { category: 'Mesni proizvodi', share: 0.24, promet: 72000 },
-      { category: 'Mlijeko i mliječni', share: 0.16, promet: 48000 },
-      { category: 'Pića', share: 0.14, promet: 43000 },
-      { category: 'Higijena', share: 0.12, promet: 36000 },
-      { category: 'Dječija njega', share: 0.09, promet: 27000 },
-      { category: 'Kućne potrepštine', share: 0.07, promet: 21000 }
-    ];
-
-    this.selectedCategories = this.categoryOptions.slice(0, 3).map(c => c.category);
-    this.updateCategoryShareValue();
-  }
-
   toggleCategorySelection(category: string, checked: boolean): void {
     if (checked) {
       if (!this.selectedCategories.includes(category)) {
@@ -1050,6 +1093,77 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     }
 
     return this.categoryOptions.filter(c => this.selectedCategories.includes(c.category));
+  }
+
+  private loadCategoryShareForNetwork(): void {
+    this.dataService.getPrometKategorijeMreze()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => this.updateCategoryShareData(response),
+        error: (err) => {
+          const poruka = err?.error?.poruka ?? err?.statusText ?? err?.message;
+          Swal.fire('Greška', 'Nije moguće učitati kategorije mreže: ' + poruka, 'error');
+        }
+      });
+  }
+
+  private updateCategoryShareData(response: KategorijaPrometResponse[] = []): void {
+    this.categoryOptions = this.buildCategoryShareOptions(response);
+    this.applyDefaultCategorySelection();
+    this.updateCategoryShareValue();
+  }
+
+  private buildCategoryShareOptions(response: KategorijaPrometResponse[]): CategoryShareItem[] {
+    const totals = new Map<string, number>();
+
+    (response ?? []).forEach(item => {
+      const rawCategory = (item as any)?.kategorija ?? (item as any)?.Kategorija ?? '';
+      const code = this.trimCategoryCode(rawCategory);
+      const promet = Number((item as any)?.prometPoKategoriji ?? (item as any)?.PrometPoKategoriji ?? 0);
+
+      if (!code) {
+        return;
+      }
+
+      totals.set(code, (totals.get(code) ?? 0) + promet);
+    });
+
+    const totalPromet = Array.from(totals.values()).reduce((acc, value) => acc + value, 0);
+
+    return Array.from(totals.entries())
+      .map(([category, promet]) => ({
+        category,
+        promet,
+        share: totalPromet ? promet / totalPromet : 0
+      }))
+      .sort((a, b) => b.promet - a.promet);
+  }
+
+  private trimCategoryCode(value: string): string {
+    if (!value) return '';
+    return value.trim().slice(0, 2).toUpperCase();
+  }
+
+  private applyDefaultCategorySelection(): void {
+    if (!this.categoryOptions.length) {
+      this.selectedCategories = [];
+      return;
+    }
+
+    const available = this.categoryOptions.map(option => option.category);
+    const filtered = this.selectedCategories.filter(category => available.includes(category));
+
+    if (filtered.length) {
+      this.selectedCategories = filtered;
+      return;
+    }
+
+    if (available.includes('VP')) {
+      this.selectedCategories = ['VP'];
+      return;
+    }
+
+    this.selectedCategories = [available[0]];
   }
 
   preuzmiExcel() {
@@ -1337,6 +1451,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
     // poziv tvoje funkcije koja učitava podatke za cijelu mrežu
     this.loadGodisnjiPromet();
     this.loadSviPrometi();
+    this.loadCategoryShareForNetwork();
   }
 
   private loadStoreCharts(storeId?: string | number | null): void {

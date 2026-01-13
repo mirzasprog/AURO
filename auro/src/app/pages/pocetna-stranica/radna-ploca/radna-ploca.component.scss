@@ -654,6 +654,24 @@ body[data-theme='dark'] .charts-loading {
   overflow: auto;
 }
 
+.category-share__legend {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--dashboard-card-border);
+  border-radius: 0.65rem;
+  background: var(--dashboard-card-background);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.category-share__legend ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
 .category-share__item {
   display: flex;
   align-items: center;

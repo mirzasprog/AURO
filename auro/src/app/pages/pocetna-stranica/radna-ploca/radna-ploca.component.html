@@ -340,7 +340,7 @@
           <div class="category-share__summary">
             <p class="eyebrow">Odabrane kategorije</p>
             <h3>{{ categoryShareValue | number: '1.1-1' }}%</h3>
-            <p class="muted">Trenutno koristimo privremene podatke dok se ne poveže stvarni izvor.</p>
+            <p class="muted">Udio selektovanih kategorija u ukupnom prometu.</p>
           </div>
           <div class="category-share__list">
             <label class="category-share__item" *ngFor="let category of categoryOptions">
@@ -351,6 +351,14 @@
                 <small>{{ (category.share * 100) | number: '1.0-1' }}% / {{ category.promet | number:'1.0-0' }} KM</small>
               </div>
             </label>
+          </div>
+          <div class="category-share__legend">
+            <p class="eyebrow">Legenda kategorija</p>
+            <ul>
+              <li *ngFor="let legend of categoryLegend">
+                <strong>{{ legend.code }}</strong> - {{ legend.name }}
+              </li>
+            </ul>
           </div>
         </div>
 
