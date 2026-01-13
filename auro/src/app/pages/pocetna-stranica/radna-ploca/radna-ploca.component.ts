@@ -129,6 +129,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
       brojProdavnice: { title: 'Broj prodavnice', filter: true, hide: false },
       adresa: { title: 'Adresa', filter: true, hide: false },
       regija: { title: 'Regija', filter: true, hide: false },
+      podrucniVoditelj: { title: 'Područni voditelj', filter: true, hide: false },
       format: { title: 'Format', filter: true, hide: false },
       promet: { title: 'Promet', type: 'number', hide: false, valuePrepareFunction: v => this.currencyFormat(v) },
       prometProslaGodina: { title: 'Promet PG', type: 'number', hide: false, valuePrepareFunction: v => this.currencyFormat(v) },
