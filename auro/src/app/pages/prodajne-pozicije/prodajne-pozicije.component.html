@@ -104,7 +104,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let stavka of statistikaPoTipu">
+                <tr *ngFor="let stavka of paginatedStatistikaPoTipu">
                   <td>{{ stavka.tip }}</td>
                   <td>{{ stavka.broj }}</td>
                   <td>KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
@@ -114,6 +114,25 @@
                 </tr>
               </tbody>
             </table>
+            <div class="table-pagination" *ngIf="statistikaPoTipu.length > statistikaPoTipuPageSize">
+              <div class="pagination-meta">
+                Stranica {{ statistikaPoTipuPage }} od {{ totalStatistikaPoTipuPages }}
+              </div>
+              <div class="pagination-actions">
+                <button nbButton size="small" status="primary"
+                        (click)="goToStatistikaPoTipuPage('prev')"
+                        [disabled]="statistikaPoTipuPage === 1">
+                  <nb-icon icon="arrow-back-outline"></nb-icon>
+                  Prethodna
+                </button>
+                <button nbButton size="small" status="primary"
+                        (click)="goToStatistikaPoTipuPage('next')"
+                        [disabled]="statistikaPoTipuPage === totalStatistikaPoTipuPages">
+                  Sljedeća
+                  <nb-icon icon="arrow-forward-outline"></nb-icon>
+                </button>
+              </div>
+            </div>
           </nb-card-body>
         </nb-card>
 
@@ -129,7 +148,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr *ngFor="let stavka of statistikaPoNazivu">
+                <tr *ngFor="let stavka of paginatedStatistikaPoNazivu">
                   <td>{{ stavka.naziv }}</td>
                   <td>{{ stavka.broj }}</td>
                   <td>KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
@@ -139,6 +158,25 @@
                 </tr>
               </tbody>
             </table>
+            <div class="table-pagination" *ngIf="statistikaPoNazivu.length > statistikaPoNazivuPageSize">
+              <div class="pagination-meta">
+                Stranica {{ statistikaPoNazivuPage }} od {{ totalStatistikaPoNazivuPages }}
+              </div>
+              <div class="pagination-actions">
+                <button nbButton size="small" status="primary"
+                        (click)="goToStatistikaPoNazivuPage('prev')"
+                        [disabled]="statistikaPoNazivuPage === 1">
+                  <nb-icon icon="arrow-back-outline"></nb-icon>
+                  Prethodna
+                </button>
+                <button nbButton size="small" status="primary"
+                        (click)="goToStatistikaPoNazivuPage('next')"
+                        [disabled]="statistikaPoNazivuPage === totalStatistikaPoNazivuPages">
+                  Sljedeća
+                  <nb-icon icon="arrow-forward-outline"></nb-icon>
+                </button>
+              </div>
+            </div>
           </nb-card-body>
         </nb-card>
       </div>

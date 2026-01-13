@@ -44,6 +44,14 @@ export class ProdajnePozicijeComponent implements OnInit {
   iskoristenost = 0;
   statistikaPoTipu: TipStatistika[] = [];
   statistikaPoNazivu: NazivStatistika[] = [];
+  statistikaPoTipuPage = 1;
+  statistikaPoTipuPageSize = 5;
+  totalStatistikaPoTipuPages = 1;
+  paginatedStatistikaPoTipu: TipStatistika[] = [];
+  statistikaPoNazivuPage = 1;
+  statistikaPoNazivuPageSize = 5;
+  totalStatistikaPoNazivuPages = 1;
+  paginatedStatistikaPoNazivu: NazivStatistika[] = [];
 
   constructor(
     private readonly dataService: DataService,
@@ -242,6 +250,10 @@ private osvjeziEditor(): void {
     });
 
     this.statistikaPoNazivu = Object.values(grupisanoPoNazivu);
+    this.statistikaPoTipuPage = 1;
+    this.statistikaPoNazivuPage = 1;
+    this.updateTipPagination();
+    this.updateNazivPagination();
   }
 
   private jeUgovorUskoro(zakupDo?: string | null): boolean {
@@ -257,6 +269,46 @@ private osvjeziEditor(): void {
     const granica = new Date();
     granica.setDate(granica.getDate() + 30);
     return parsed <= granica;
+  }
+
+  goToStatistikaPoTipuPage(direction: 'prev' | 'next'): void {
+    if (direction === 'prev' && this.statistikaPoTipuPage > 1) {
+      this.statistikaPoTipuPage -= 1;
+    }
+
+    if (direction === 'next' && this.statistikaPoTipuPage < this.totalStatistikaPoTipuPages) {
+      this.statistikaPoTipuPage += 1;
+    }
+
+    this.updateTipPagination();
+  }
+
+  goToStatistikaPoNazivuPage(direction: 'prev' | 'next'): void {
+    if (direction === 'prev' && this.statistikaPoNazivuPage > 1) {
+      this.statistikaPoNazivuPage -= 1;
+    }
+
+    if (direction === 'next' && this.statistikaPoNazivuPage < this.totalStatistikaPoNazivuPages) {
+      this.statistikaPoNazivuPage += 1;
+    }
+
+    this.updateNazivPagination();
+  }
+
+  private updateTipPagination(): void {
+    const totalRows = this.statistikaPoTipu.length;
+    this.totalStatistikaPoTipuPages = Math.max(Math.ceil(totalRows / this.statistikaPoTipuPageSize), 1);
+    this.statistikaPoTipuPage = Math.min(this.statistikaPoTipuPage, this.totalStatistikaPoTipuPages);
+    const startIndex = (this.statistikaPoTipuPage - 1) * this.statistikaPoTipuPageSize;
+    this.paginatedStatistikaPoTipu = this.statistikaPoTipu.slice(startIndex, startIndex + this.statistikaPoTipuPageSize);
+  }
+
+  private updateNazivPagination(): void {
+    const totalRows = this.statistikaPoNazivu.length;
+    this.totalStatistikaPoNazivuPages = Math.max(Math.ceil(totalRows / this.statistikaPoNazivuPageSize), 1);
+    this.statistikaPoNazivuPage = Math.min(this.statistikaPoNazivuPage, this.totalStatistikaPoNazivuPages);
+    const startIndex = (this.statistikaPoNazivuPage - 1) * this.statistikaPoNazivuPageSize;
+    this.paginatedStatistikaPoNazivu = this.statistikaPoNazivu.slice(startIndex, startIndex + this.statistikaPoNazivuPageSize);
   }
 
 }
