@@ -428,7 +428,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
             catchError(err => {
               const greska = err?.error?.poruka ?? err?.statusText ?? err?.message;
               Swal.fire('Greška', 'Greška prilikom učitavanja prodavnice: ' + greska, 'error');
-              return of({ promet: null, stats: [] });
+              return of({ promet: null, stats: [], categories: [] });
             })
           );
         }),
