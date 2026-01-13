@@ -480,6 +480,20 @@
       <nb-icon icon="trending-down" status="danger"></nb-icon> Negativni promet
     </nb-toggle>
 
+    <div class="filter-select">
+      <p-dropdown class="filter-dropdown" [options]="regionOptions" [(ngModel)]="selectedRegion"
+        optionLabel="label" optionValue="value" placeholder="Regija" [showClear]="true"
+        (onChange)="onRegionFilterChange($event.value)" appendTo="body">
+      </p-dropdown>
+    </div>
+
+    <div class="filter-select">
+      <p-dropdown class="filter-dropdown" [options]="areaManagerOptions" [(ngModel)]="selectedAreaManager"
+        optionLabel="label" optionValue="value" placeholder="Područni voditelj" [showClear]="true"
+        [disabled]="!areaManagerOptions.length" (onChange)="onAreaManagerFilterChange($event.value)" appendTo="body">
+      </p-dropdown>
+    </div>
+
     <button nbButton size="tiny" status="warning" (click)="resetFilter()">
       <nb-icon icon="sync"></nb-icon> Reset filtera
     </button>
