@@ -1570,6 +1570,183 @@ namespace backend.Migrations
                     b.ToTable("ServiceInvoiceItems", (string)null);
                 });
 
+            modelBuilder.Entity("backend.Entities.Shift", b =>
+                {
+                    b.Property<int>("ShiftId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ShiftId"), 1L, 1);
+
+                    b.Property<int?>("CreatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DepartmentId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("BreakMinutes")
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("ShiftDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ShiftType")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("UpdatedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("ShiftId");
+
+                    b.HasIndex("EmployeeId", "ShiftDate")
+                        .HasDatabaseName("IX_Shift_EmployeeId_ShiftDate");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_Shift_Status");
+
+                    b.HasIndex("StoreId", "ShiftDate")
+                        .HasDatabaseName("IX_Shift_StoreId_ShiftDate");
+
+                    b.ToTable("Shift", (string)null);
+                });
+
+            modelBuilder.Entity("backend.Entities.ShiftAudit", b =>
+                {
+                    b.Property<int>("AuditId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AuditId"), 1L, 1);
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<string>("AfterJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ActorUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BeforeJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EntityId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("AuditId");
+
+                    b.ToTable("ShiftAudit", (string)null);
+                });
+
+            modelBuilder.Entity("backend.Entities.ShiftRequest", b =>
+                {
+                    b.Property<int>("RequestId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestId"), 1L, 1);
+
+                    b.Property<int?>("ApprovedBy")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("EmployeeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ManagerNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("RelatedShiftId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RequestedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("RequestId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("RelatedShiftId");
+
+                    b.HasIndex("StoreId", "Status")
+                        .HasDatabaseName("IX_ShiftRequest_StoreId_Status");
+
+                    b.ToTable("ShiftRequest", (string)null);
+                });
+
             modelBuilder.Entity("backend.Entities.Status", b =>
                 {
                     b.Property<int>("Id")
@@ -3657,6 +3834,47 @@ namespace backend.Migrations
                     b.Navigation("Prodavnica");
 
                     b.Navigation("Template");
+                });
+
+            modelBuilder.Entity("backend.Entities.Shift", b =>
+                {
+                    b.HasOne("backend.Entities.Korisnik", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .HasConstraintName("FK_Shift_Korisnik");
+
+                    b.HasOne("backend.Entities.Prodavnica", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .HasConstraintName("FK_Shift_Prodavnica");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("Store");
+                });
+
+            modelBuilder.Entity("backend.Entities.ShiftRequest", b =>
+                {
+                    b.HasOne("backend.Entities.Korisnik", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId")
+                        .HasConstraintName("FK_ShiftRequest_Korisnik");
+
+                    b.HasOne("backend.Entities.Shift", "RelatedShift")
+                        .WithMany()
+                        .HasForeignKey("RelatedShiftId")
+                        .HasConstraintName("FK_ShiftRequest_Shift");
+
+                    b.HasOne("backend.Entities.Prodavnica", "Store")
+                        .WithMany()
+                        .HasForeignKey("StoreId")
+                        .HasConstraintName("FK_ShiftRequest_Prodavnica");
+
+                    b.Navigation("Employee");
+
+                    b.Navigation("RelatedShift");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("backend.Entities.ProdajniLayout", b =>

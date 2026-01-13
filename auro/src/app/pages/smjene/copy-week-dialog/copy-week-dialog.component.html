@@ -1,0 +1,23 @@
+<nb-card>
+  <nb-card-header>Kopiraj sedmicu</nb-card-header>
+  <nb-card-body>
+    <form [formGroup]="form" class="dialog-form">
+      <label class="field">
+        <span>Izvorna sedmica</span>
+        <input nbInput type="date" formControlName="sourceWeekStart" />
+      </label>
+      <label class="field">
+        <span>Ciljna sedmica</span>
+        <input nbInput type="date" formControlName="targetWeekStart" />
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="overwrite" />
+        <span>Prepiši postojeće smjene</span>
+      </label>
+    </form>
+  </nb-card-body>
+  <nb-card-footer class="dialog-actions">
+    <button nbButton status="basic" (click)="close()">Odustani</button>
+    <button nbButton status="primary" (click)="submit()">Kopiraj</button>
+  </nb-card-footer>
+</nb-card>

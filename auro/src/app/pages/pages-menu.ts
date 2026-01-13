@@ -12,6 +12,11 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: "checkmark-circle-outline",
     link: "/pages/dnevni-zadaci"
   },
+  {
+    title: "Smjene",
+    icon: "calendar-outline",
+    link: "/pages/smjene"
+  },
   //Otpis -- rola: prodavnica [1]
   {
     title: "Otpis",
