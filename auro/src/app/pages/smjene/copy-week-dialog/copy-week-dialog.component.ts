@@ -13,6 +13,7 @@ interface CopyWeekContext {
   styleUrls: ['./copy-week-dialog.component.scss']
 })
 export class CopyWeekDialogComponent {
+  weekStart: Date;
   readonly form = this.fb.group({
     sourceWeekStart: [this.formatDateInput(this.context.weekStart), Validators.required],
     targetWeekStart: ['', Validators.required],
@@ -23,7 +24,9 @@ export class CopyWeekDialogComponent {
     private readonly dialogRef: NbDialogRef<CopyWeekDialogComponent>,
     private readonly fb: FormBuilder,
     @Inject(NB_DIALOG_CONFIG) public context: CopyWeekContext
-  ) {}
+  ) {
+    this.weekStart = context.weekStart;
+  }
 
   close(): void {
     this.dialogRef.close();

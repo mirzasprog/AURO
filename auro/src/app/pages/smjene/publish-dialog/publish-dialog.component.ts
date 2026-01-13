@@ -13,6 +13,7 @@ interface PublishContext {
   styleUrls: ['./publish-dialog.component.scss']
 })
 export class PublishDialogComponent {
+  weekStart: Date;
   readonly form = this.fb.group({
     from: [this.formatDateInput(this.context.weekStart), Validators.required],
     to: [this.formatDateInput(this.addDays(this.context.weekStart, 6)), Validators.required]
@@ -22,7 +23,9 @@ export class PublishDialogComponent {
     private readonly dialogRef: NbDialogRef<PublishDialogComponent>,
     private readonly fb: FormBuilder,
     @Inject(NB_DIALOG_CONFIG) public context: PublishContext
-  ) {}
+  ) {
+    this.weekStart = context.weekStart;
+  }
 
   close(): void {
     this.dialogRef.close();
