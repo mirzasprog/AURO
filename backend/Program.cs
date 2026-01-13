@@ -52,6 +52,7 @@ builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IPrometiRepository, PrometiRepository>();
 builder.Services.AddScoped<IVikendAkcijeRepository, VikendAkcijeRepository>();
 builder.Services.AddScoped<IServiceInvoiceRepository, ServiceInvoiceRepository>();
+builder.Services.AddScoped<IShiftRepository, ShiftRepository>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -73,6 +74,7 @@ builder.Services.AddHttpClient<OpenAiEmbeddingService>();
 builder.Services.AddScoped<KnowledgeBaseService>();
 builder.Services.Configure<CompanyInfoOptions>(builder.Configuration.GetSection(CompanyInfoOptions.SectionName));
 builder.Services.AddSingleton<ICompanyInfoProvider, CompanyInfoProvider>();
+builder.Services.Configure<backend.Models.Shifts.ShiftOptions>(builder.Configuration.GetSection(backend.Models.Shifts.ShiftOptions.SectionName));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {

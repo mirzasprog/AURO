@@ -226,6 +226,142 @@ namespace backend.Entities
                 entity.Property(e => e.LineTotalWithTax)
                     .HasColumnType("decimal(18, 2)");
             });
+
+            modelBuilder.Entity<Shift>(entity =>
+            {
+                entity.ToTable("Shift");
+
+                entity.HasKey(e => e.ShiftId);
+
+                entity.Property(e => e.ShiftId)
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ShiftDate)
+                    .HasColumnType("date");
+
+                entity.Property(e => e.StartTime)
+                    .HasColumnType("time");
+
+                entity.Property(e => e.EndTime)
+                    .HasColumnType("time");
+
+                entity.Property(e => e.BreakMinutes)
+                    .HasDefaultValue(0);
+
+                entity.Property(e => e.ShiftType)
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.Note)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime2");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasColumnType("datetime2");
+
+                entity.Property(e => e.IsDeleted)
+                    .HasDefaultValue(false);
+
+                entity.HasOne(d => d.Store)
+                    .WithMany()
+                    .HasForeignKey(d => d.StoreId)
+                    .HasConstraintName("FK_Shift_Prodavnica");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany()
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK_Shift_Korisnik");
+
+                entity.HasIndex(e => new { e.StoreId, e.ShiftDate })
+                    .HasDatabaseName("IX_Shift_StoreId_ShiftDate");
+
+                entity.HasIndex(e => new { e.EmployeeId, e.ShiftDate })
+                    .HasDatabaseName("IX_Shift_EmployeeId_ShiftDate");
+
+                entity.HasIndex(e => e.Status)
+                    .HasDatabaseName("IX_Shift_Status");
+            });
+
+            modelBuilder.Entity<ShiftRequest>(entity =>
+            {
+                entity.ToTable("ShiftRequest");
+
+                entity.HasKey(e => e.RequestId);
+
+                entity.Property(e => e.RequestId)
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.Type)
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.Message)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.ManagerNote)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime2");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasColumnType("datetime2");
+
+                entity.Property(e => e.ApprovedAt)
+                    .HasColumnType("datetime2");
+
+                entity.HasOne(d => d.Store)
+                    .WithMany()
+                    .HasForeignKey(d => d.StoreId)
+                    .HasConstraintName("FK_ShiftRequest_Prodavnica");
+
+                entity.HasOne(d => d.Employee)
+                    .WithMany()
+                    .HasForeignKey(d => d.EmployeeId)
+                    .HasConstraintName("FK_ShiftRequest_Korisnik");
+
+                entity.HasOne(d => d.RelatedShift)
+                    .WithMany()
+                    .HasForeignKey(d => d.RelatedShiftId)
+                    .HasConstraintName("FK_ShiftRequest_Shift");
+
+                entity.HasIndex(e => new { e.StoreId, e.Status })
+                    .HasDatabaseName("IX_ShiftRequest_StoreId_Status");
+            });
+
+            modelBuilder.Entity<ShiftAudit>(entity =>
+            {
+                entity.ToTable("ShiftAudit");
+
+                entity.HasKey(e => e.AuditId);
+
+                entity.Property(e => e.AuditId)
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.EntityName)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.EntityId)
+                    .HasMaxLength(64);
+
+                entity.Property(e => e.Action)
+                    .HasMaxLength(32);
+
+                entity.Property(e => e.BeforeJson)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.AfterJson)
+                    .HasColumnType("nvarchar(max)");
+
+                entity.Property(e => e.Timestamp)
+                    .HasColumnType("datetime2");
+            });
         }
     }
 }

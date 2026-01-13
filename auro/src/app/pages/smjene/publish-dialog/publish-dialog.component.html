@@ -1,0 +1,19 @@
+<nb-card>
+  <nb-card-header>Objavi smjene</nb-card-header>
+  <nb-card-body>
+    <form [formGroup]="form" class="dialog-form">
+      <label class="field">
+        <span>Datum od</span>
+        <input nbInput type="date" formControlName="from" />
+      </label>
+      <label class="field">
+        <span>Datum do</span>
+        <input nbInput type="date" formControlName="to" />
+      </label>
+    </form>
+  </nb-card-body>
+  <nb-card-footer class="dialog-actions">
+    <button nbButton status="basic" (click)="close()">Odustani</button>
+    <button nbButton status="success" (click)="submit()">Objavi</button>
+  </nb-card-footer>
+</nb-card>
