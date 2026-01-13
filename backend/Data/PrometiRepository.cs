@@ -30,6 +30,7 @@ namespace backend.Data
 
             if (r != null)
             {
+                r.PodrucniVoditelj ??= DohvatiPodrucnogVoditelja(r.BrojProdavnice);
                 r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
                 r.BrojZaposlenih = DohvatiBrojZaposlenih(r.BrojProdavnice);
                 r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
@@ -47,6 +48,7 @@ namespace backend.Data
 
             if (r != null)
             {
+                r.PodrucniVoditelj ??= DohvatiPodrucnogVoditelja(r.BrojProdavnice);
                 r.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(r.BrojProdavnice);
                 r.BrojZaposlenih = DohvatiBrojZaposlenih(r.BrojProdavnice);
                 r.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(r.Promet, r.NetoKvadraturaObjekta);
@@ -66,8 +68,10 @@ namespace backend.Data
 
             if (r != null)
             {
+                var podrucniVoditelji = DohvatiPodrucneVoditelje();
                 foreach (var prodavnica in r)
                 {
+                    prodavnica.PodrucniVoditelj ??= DohvatiPodrucnogVoditelja(prodavnica.BrojProdavnice, podrucniVoditelji);
                     prodavnica.NetoKvadraturaObjekta = DohvatiNetoKvadraturu(prodavnica.BrojProdavnice);
                     prodavnica.BrojZaposlenih = DohvatiBrojZaposlenih(prodavnica.BrojProdavnice);
                     prodavnica.PrometPoNetoKvadraturi = IzracunajPrometPoKvadraturi(prodavnica.Promet, prodavnica.NetoKvadraturaObjekta);
@@ -331,6 +335,52 @@ namespace backend.Data
                 .FirstOrDefault(x => AreSameStore(x.BrojProdavnice, brojProdavnice))?.BrojZaposlenih;
 
             return brojZaposlenih.HasValue ? brojZaposlenih.Value : 0;
+        }
+
+        private string DohvatiPodrucnogVoditelja(string? brojProdavnice, Dictionary<string, string>? lookup = null)
+        {
+            var normalizedId = NormalizeStoreId(brojProdavnice);
+            if (string.IsNullOrWhiteSpace(normalizedId))
+            {
+                return "-";
+            }
+
+            if (lookup != null && lookup.TryGetValue(normalizedId, out var cached))
+            {
+                return cached;
+            }
+
+            var localLookup = DohvatiPodrucneVoditelje();
+            return localLookup.TryGetValue(normalizedId, out var voditelj) ? voditelj : "-";
+        }
+
+        private Dictionary<string, string> DohvatiPodrucneVoditelje()
+        {
+            return _context.ParcijalnaInventuraImportZaposlenika
+                .AsNoTracking()
+                .AsEnumerable()
+                .Select(z => new
+                {
+                    BrojProdavnice = NormalizeStoreId(IzvuciBrojProdavnice(z.OznakaOJ)),
+                    Voditelj = z.PodrucniVoditelj
+                })
+                .Where(x => !string.IsNullOrWhiteSpace(x.BrojProdavnice))
+                .GroupBy(x => x.BrojProdavnice)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.Voditelj).FirstOrDefault(v => !string.IsNullOrWhiteSpace(v)) ?? "-"
+                );
+        }
+
+        private static string? IzvuciBrojProdavnice(string? oznakaOj)
+        {
+            if (string.IsNullOrWhiteSpace(oznakaOj))
+            {
+                return string.Empty;
+            }
+
+            var trimmed = oznakaOj.Trim();
+            return trimmed.Length <= 3 ? trimmed : trimmed.Substring(trimmed.Length - 3);
         }
 
         private decimal IzracunajPrometPoZaposlenom(decimal? promet, decimal? brojZaposlenih)
