@@ -85,7 +85,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   get canManageRequests(): boolean {
-    return this.role !== 'prodavnica';
+    return this.role !== 'prodavnica' && this.role !== 'uprava';
+  }
+
+  get canEditShifts(): boolean {
+    return this.role !== 'uprava';
   }
 
   get weekDays(): Date[] {
@@ -285,6 +289,10 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   openAddShift(): void {
+    if (!this.canEditShifts) {
+      Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
+      return;
+    }
     if (!this.canManageStores && !this.currentStoreId) {
       Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za kreiranje smjene.', 'info');
       return;
@@ -348,6 +356,10 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   openEditShift(shift: ShiftDto): void {
+    if (!this.canEditShifts) {
+      Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
+      return;
+    }
     const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
       context: {
         title: 'Uredi smjenu',
@@ -385,6 +397,10 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   deleteShift(shift: ShiftDto): void {
+    if (!this.canEditShifts) {
+      Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
+      return;
+    }
     Swal.fire({
       title: 'Obrisati smjenu?',
       text: 'Smjena će biti označena kao obrisana.',
@@ -412,6 +428,10 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   openCopyWeek(): void {
+    if (!this.canEditShifts) {
+      Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
+      return;
+    }
     if (!this.canManageStores && !this.currentStoreId) {
       Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za kopiranje sedmice.', 'info');
       return;
@@ -444,6 +464,10 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   openPublish(): void {
+    if (!this.canEditShifts) {
+      Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
+      return;
+    }
     if (!this.canManageStores && !this.currentStoreId) {
       Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za objavu smjena.', 'info');
       return;

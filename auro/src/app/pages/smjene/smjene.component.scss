@@ -1,3 +1,15 @@
+.role-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 1rem;
+  border-radius: 0.75rem;
+  background: rgba(255, 215, 0, 0.12);
+  color: #f5a623;
+  font-weight: 600;
+}
+
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -33,6 +45,10 @@
 .monthly-table {
   width: 100%;
   border-collapse: collapse;
+  background: #fff;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(25, 34, 71, 0.08);
 }
 
 .weekly-table th,
@@ -42,8 +58,15 @@
 .monthly-table th,
 .monthly-table td {
   border-bottom: 1px solid #edf1f7;
-  padding: 0.5rem;
+  padding: 0.65rem 0.75rem;
   vertical-align: top;
+}
+
+.weekly-table th,
+.requests-table th,
+.monthly-table th {
+  background: #f7f9fc;
+  font-weight: 700;
 }
 
 .employee-cell {
@@ -61,11 +84,14 @@
   justify-content: space-between;
   width: 100%;
   text-align: left;
+  border-radius: 0.6rem;
+  background: rgba(143, 155, 179, 0.08);
 }
 
 .shift-chip .status {
   font-size: 0.65rem;
   opacity: 0.7;
+  text-transform: uppercase;
 }
 
 .daily-toolbar {
@@ -83,8 +109,10 @@
   justify-content: space-between;
   align-items: center;
   border: 1px solid #edf1f7;
-  border-radius: 0.5rem;
-  padding: 0.75rem;
+  border-radius: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(25, 34, 71, 0.08);
 }
 
 .daily-main .title {

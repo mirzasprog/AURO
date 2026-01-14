@@ -36,7 +36,7 @@ export class ShiftFormDialogComponent {
     startTime: [this.formatTimeInput(this.context.shift?.startTime), Validators.required],
     endTime: [this.formatTimeInput(this.context.shift?.endTime), Validators.required],
     breakMinutes: [this.context.shift?.breakMinutes ?? 0, [Validators.min(0)]],
-    shiftType: [this.context.shift?.shiftType ?? this.context.shiftTypes[0], Validators.required],
+    shiftType: [this.context.shift?.shiftType ?? this.context.shiftTypes?.[0] ?? '', Validators.required],
     departmentId: [this.context.shift?.departmentId ?? null],
     status: [this.context.shift?.status ?? 'Draft', Validators.required],
     note: [this.context.shift?.note ?? ''],
