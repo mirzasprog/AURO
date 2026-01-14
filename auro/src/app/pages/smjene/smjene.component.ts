@@ -5,7 +5,7 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { DailyTaskStore } from '../../@core/data/daily-task';
-import { ShiftCopyWeekRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftPublishRequest, ShiftRequestDto } from '../../@core/data/shifts';
+import { ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftPublishRequest, ShiftRequestDto, ShiftUpdateRequest } from '../../@core/data/shifts';
 import { DailyTaskService } from '../../@core/utils/daily-task.service';
 import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
@@ -140,6 +140,40 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       }
     }
     return undefined;
+  }
+
+  private normalizeStoreIdPayload(payload: ShiftCreateRequest | ShiftUpdateRequest | null | undefined): ShiftCreateRequest | ShiftUpdateRequest | null {
+    if (!payload) {
+      return null;
+    }
+    const storeId = this.resolveStoreIdValue(payload.storeId);
+    if (!storeId) {
+      return null;
+    }
+    return { ...payload, storeId };
+  }
+
+  private normalizeStoreIdPayloads(payloads: Array<ShiftCreateRequest | ShiftUpdateRequest>): ShiftCreateRequest[] {
+    const normalized: ShiftCreateRequest[] = [];
+    payloads.forEach((payload) => {
+      const resolved = this.normalizeStoreIdPayload(payload);
+      if (resolved) {
+        normalized.push(resolved as ShiftCreateRequest);
+      }
+    });
+    return normalized;
+  }
+
+  private resolveStoreIdValue(storeId?: number | null): number | null {
+    const parsed = Number(storeId);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+    const fallback = Number(this.selectedStoreId ?? this.currentStoreId);
+    if (Number.isFinite(fallback) && fallback > 0) {
+      return fallback;
+    }
+    return null;
   }
 
   get weeklyRows(): WeeklyEmployeeRow[] {
@@ -400,7 +434,13 @@ export class SmjeneComponent implements OnInit, OnDestroy {
             return;
           }
 
-          const requests = payloads.map((item) => this.shiftsService.createShift(item).pipe(catchError((err) => of({ error: err }))));
+          const normalizedPayloads = this.normalizeStoreIdPayloads(payloads);
+          if (!normalizedPayloads.length) {
+            Swal.fire('Greška', 'Nije moguće odrediti prodavnicu za kreiranje smjene.', 'error');
+            return;
+          }
+
+          const requests = normalizedPayloads.map((item) => this.shiftsService.createShift(item).pipe(catchError((err) => of({ error: err }))));
 
           forkJoin(requests)
             .pipe(takeUntil(this.destroy$))
@@ -466,7 +506,13 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shiftsService.updateShift(shift.shiftId, result.payload)
+      const normalizedPayload = this.normalizeStoreIdPayload(result.payload);
+      if (!normalizedPayload) {
+        Swal.fire('Greška', 'Nije moguće odrediti prodavnicu za ažuriranje smjene.', 'error');
+        return;
+      }
+
+      this.shiftsService.updateShift(shift.shiftId, normalizedPayload)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
           next: (response) => {
