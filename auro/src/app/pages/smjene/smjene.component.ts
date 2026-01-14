@@ -227,7 +227,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees(): void {
-    const storeId = this.canManageStores ? this.selectedStoreId : undefined;
+    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
     this.shiftsService.getEmployees(storeId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -253,6 +253,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
           if (!this.canManageStores && this.shifts.length && !this.currentStoreId) {
             this.currentStoreId = this.shifts[0].storeId;
             this.selectedStoreId = this.selectedStoreId ?? this.currentStoreId;
+            this.loadEmployees();
           }
           this.loading = false;
         },
