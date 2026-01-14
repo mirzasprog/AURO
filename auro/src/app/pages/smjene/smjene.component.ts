@@ -11,8 +11,6 @@ import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
 import { PublishDialogComponent } from './publish-dialog/publish-dialog.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
-import { DataService } from '../../@core/utils/data.service';
-import { Zaposlenici } from '../../@core/data/zaposlenici';
 
 interface WeeklyEmployeeRow {
   employeeId: number;
@@ -55,8 +53,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     private readonly authService: NbAuthService,
     private readonly dialogService: NbDialogService,
     private readonly dailyTaskService: DailyTaskService,
-    private readonly shiftsService: ShiftsService,
-    private dataService: DataService
+    private readonly shiftsService: ShiftsService
   ) {}
 
   ngOnInit(): void {
@@ -439,19 +436,22 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   private loadEmployeesForStore() {
-    return this.dataService.pregledajZaposlenike(this.user.name)
-      .pipe(map((employees) => this.mapEmployees(employees)));
+    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
+    return this.shiftsService.getEmployees(storeId)
+      .pipe(map((employees) => this.normalizeEmployees(employees)));
   }
 
-  private mapEmployees(employees: Zaposlenici[]): ShiftEmployee[] {
-    return employees.map((employee) => {
-      const parsedId = Number.parseInt(String(employee.brojIzDESa), 10);
+  private normalizeEmployees(employees: ShiftEmployee[]): ShiftEmployee[] {
+    return (employees ?? []).map((employee) => {
+      const fullName = (employee.employeeName ?? '').trim();
+      const nameParts = fullName.split(' ').filter(Boolean);
+      const inferredFirstName = nameParts[0] ?? '';
+      const inferredLastName = nameParts.slice(1).join(' ');
       return {
-        employeeId: Number.isNaN(parsedId) ? 0 : parsedId,
-        employeeName: `${employee.ime} ${employee.prezime}`.trim(),
-        firstName: employee.ime,
-        lastName: employee.prezime,
-        brojIzDESa: String(employee.brojIzDESa),
+        ...employee,
+        firstName: employee.firstName ?? (inferredFirstName || fullName),
+        lastName: employee.lastName ?? inferredLastName,
+        brojIzDESa: employee.brojIzDESa ?? (employee.employeeId ? String(employee.employeeId) : null),
       };
     });
   }
