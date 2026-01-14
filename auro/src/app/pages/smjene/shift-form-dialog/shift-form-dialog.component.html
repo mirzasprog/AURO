@@ -102,7 +102,9 @@
           <table class="employee-table">
             <thead>
               <tr>
-                <th>Uposlenik</th>
+                <th>IDHR</th>
+                <th>Ime</th>
+                <th>Prezime</th>
                 <th>Prva smjena</th>
                 <th>Druga smjena</th>
                 <th>Custom</th>
@@ -111,7 +113,9 @@
             <tbody>
               <ng-container *ngFor="let item of pagedEmployees">
                 <tr>
-                  <td class="employee-name">{{ item.employee.employeeName }}</td>
+                  <td class="employee-name">{{ item.employee.brojIzDESa || item.employee.employeeId }}</td>
+                  <td class="employee-name">{{ item.employee.firstName || item.employee.employeeName }}</td>
+                  <td class="employee-name">{{ item.employee.lastName || '' }}</td>
                   <td>
                     <button nbButton size="tiny" [status]="item.choice === 'first' ? 'primary' : 'basic'" (click)="selectChoice(item, 'first')">
                       Prva smjena
