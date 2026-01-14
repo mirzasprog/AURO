@@ -11,11 +11,21 @@ import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
 import { PublishDialogComponent } from './publish-dialog/publish-dialog.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
+import { DataService } from '../../@core/utils/data.service';
 
 interface WeeklyEmployeeRow {
   employeeId: number;
   employeeName: string;
   shiftsByDay: Record<string, ShiftDto[]>;
+}
+
+interface DaySchedule {
+  date: Date;
+  dateString: string;
+  dayName: string;
+  shifts: ShiftDto[];
+  shiftsFirstShift: ShiftDto[];
+  shiftsSecondShift: ShiftDto[];
 }
 
 @Component({
@@ -25,7 +35,7 @@ interface WeeklyEmployeeRow {
 })
 export class SmjeneComponent implements OnInit, OnDestroy {
   stores: DailyTaskStore[] = [];
-  employees: ShiftEmployee[] = [];
+  employees: any[] = [];
   shifts: ShiftDto[] = [];
   monthShifts: ShiftDto[] = [];
   requests: ShiftRequestDto[] = [];
@@ -42,7 +52,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   requestsLoading = false;
   role: string | null = null;
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
-  // Trenutni korisnik
   user: any;
   private destroy$ = new Subject<void>();
 
@@ -53,7 +62,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     private readonly authService: NbAuthService,
     private readonly dialogService: NbDialogService,
     private readonly dailyTaskService: DailyTaskService,
-    private readonly shiftsService: ShiftsService
+    private readonly shiftsService: ShiftsService,
+    private readonly dataService: DataService
   ) {}
 
   ngOnInit(): void {
@@ -62,7 +72,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     this.authService.getToken()
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
-           this.user = token.getPayload();
+        this.user = token.getPayload();
         this.role = token.getPayload()?.['role'] ?? null;
         const storeIdPayload = token.getPayload()?.['prodavnicaId'] ?? token.getPayload()?.['storeId'];
         const resolvedStoreId = this.resolveStoreId(storeIdPayload, token);
@@ -99,6 +109,21 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       const day = new Date(this.weekStart);
       day.setDate(this.weekStart.getDate() + index);
       return day;
+    });
+  }
+
+  get daySchedules(): DaySchedule[] {
+    return this.weekDays.map(date => {
+      const dateString = this.formatDateInput(date);
+      const dayShifts = this.filteredShifts.filter(s => this.formatDateInput(new Date(s.shiftDate)) === dateString);
+      return {
+        date,
+        dateString,
+        dayName: this.formatDayName(date),
+        shifts: dayShifts,
+        shiftsFirstShift: dayShifts.filter(s => s.shiftType?.toLowerCase() === 'morning'),
+        shiftsSecondShift: dayShifts.filter(s => s.shiftType?.toLowerCase() === 'afternoon')
+      };
     });
   }
 
@@ -229,14 +254,24 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees(): void {
-    this.loadEmployeesForStore()
+    // Koristi dataService umjesto shiftsService
+    if (!this.user?.name) {
+      console.warn('Korisnik nije dostupan za učitavanje zaposlenika');
+      return;
+    }
+
+    console.log('Počinje učitavanje zaposlenika za:', this.user.name);
+    this.dataService.pregledajZaposlenike(this.user.name)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (employees) => {
-          this.employees = employees;
+          console.log('Podaci iz API-ja:', employees);
+          this.employees = employees || [];
+          console.log('Zaposlenici postavljeni:', this.employees);
         },
         error: (err) => {
-          const poruka = err.error?.poruka ?? err.statusText;
+          const poruka = err.error?.poruka ?? err.statusText ?? 'Nepoznata greška';
+          console.error('Greška pri učitavanju zaposlenika:', err);
           Swal.fire('Greška', `Ne možemo preuzeti zaposlenike: ${poruka}`, 'error');
         }
       });
@@ -322,76 +357,87 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za kreiranje smjene.', 'info');
       return;
     }
+
     const employeesReady$ = this.employees.length
       ? of(this.employees)
-      : this.loadEmployeesForStore().pipe(tap((employees) => {
-        this.employees = employees;
-      }));
+      : this.dataService.pregledajZaposlenike(this.user.name).pipe(
+        tap((employees) => {
+          this.employees = employees || [];
+        })
+      );
 
-    employeesReady$.pipe(takeUntil(this.destroy$)).subscribe((employees) => {
-      const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
-        context: {
-          title: 'Nova smjena',
-          employees,
-          stores: this.stores,
-          shiftTypes: this.shiftTypes,
-          shiftStatuses: this.shiftStatuses,
-          storeId: this.selectedStoreId ?? this.currentStoreId,
-          canSelectStore: this.canManageStores,
-        },
-        closeOnBackdropClick: false,
-      });
+    employeesReady$.pipe(takeUntil(this.destroy$)).subscribe(
+      (employees) => {
+        const mappedEmployees = this.mapEmployeesToShiftEmployees(employees);
+        console.log('Mapirani zaposlenici za dialog:', mappedEmployees);
+        
+        // Otvaramo dialog bez podataka - dialog će sam učitati zaposlenike
+        const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
+          context: {
+            title: 'Nova smjena',
+            shiftTypes: this.shiftTypes,
+            shiftStatuses: this.shiftStatuses,
+            storeId: this.selectedStoreId ?? this.currentStoreId,
+            canSelectStore: this.canManageStores,
+            userName: this.user?.name, // Prosleđujemo userName
+          },
+          closeOnBackdropClick: false,
+          hasBackdrop: true,
+          closeOnEsc: false,
+        });
 
-      dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((result) => {
-        if (!result) {
-          return;
-        }
+        dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((result) => {
+          if (!result) {
+            return;
+          }
 
-        const payloads = Array.isArray(result.payloads)
-          ? result.payloads
-          : result.payload
-            ? [result.payload]
-            : [];
-        if (!payloads.length) {
-          return;
-        }
+          const payloads = Array.isArray(result.payloads)
+            ? result.payloads
+            : result.payload
+              ? [result.payload]
+              : [];
+          if (!payloads.length) {
+            return;
+          }
 
-        const requests = payloads.map((item) => this.shiftsService.createShift(item).pipe(catchError((err) => of({ error: err }))));
+          const requests = payloads.map((item) => this.shiftsService.createShift(item).pipe(catchError((err) => of({ error: err }))));
 
-        forkJoin(requests)
-          .pipe(takeUntil(this.destroy$))
-          .subscribe((responses) => {
-            const created: ShiftDto[] = [];
-            const warnings: string[] = [];
-            responses.forEach((response: any) => {
-              if (response?.error) {
-                const poruka = response.error?.error?.poruka ?? response.error?.statusText;
-                Swal.fire('Greška', `Ne možemo kreirati smjenu: ${poruka}`, 'error');
-                return;
+          forkJoin(requests)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe((responses) => {
+              const created: ShiftDto[] = [];
+              const warnings: string[] = [];
+              responses.forEach((response: any) => {
+                if (response?.error) {
+                  const poruka = response.error?.error?.poruka ?? response.error?.statusText;
+                  Swal.fire('Greška', `Ne možemo kreirati smjenu: ${poruka}`, 'error');
+                  return;
+                }
+                const mutation = response as ShiftMutationResponse;
+                if (mutation.shift) {
+                  created.push(mutation.shift);
+                }
+                if (mutation.warning) {
+                  warnings.push(mutation.warning);
+                }
+              });
+
+              if (created.length) {
+                this.shifts = [...this.shifts, ...created];
+                this.loadShifts();
               }
-              const mutation = response as ShiftMutationResponse;
-              if (mutation.shift) {
-                created.push(mutation.shift);
-              }
-              if (mutation.warning) {
-                warnings.push(mutation.warning);
+
+              if (warnings.length) {
+                Swal.fire('Upozorenje', warnings.join('\n'), 'warning');
               }
             });
-
-            if (created.length) {
-              this.shifts = [...this.shifts, ...created];
-              this.loadShifts();
-            }
-
-            if (warnings.length) {
-              Swal.fire('Upozorenje', warnings.join('\n'), 'warning');
-            }
-          });
-      });
-    }, (err) => {
-      const poruka = err.error?.poruka ?? err.statusText;
-      Swal.fire('Greška', `Ne možemo preuzeti zaposlenike: ${poruka}`, 'error');
-    });
+        });
+      },
+      (err) => {
+        const poruka = err.error?.poruka ?? err.statusText;
+        Swal.fire('Greška', `Ne možemo preuzeti zaposlenike: ${poruka}`, 'error');
+      }
+    );
   }
 
   openEditShift(shift: ShiftDto): void {
@@ -399,18 +445,20 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
       return;
     }
+    
     const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
       context: {
         title: 'Uredi smjenu',
         shift,
-        employees: this.employees,
-        stores: this.stores,
         shiftTypes: this.shiftTypes,
         shiftStatuses: this.shiftStatuses,
         storeId: shift.storeId,
         canSelectStore: this.canManageStores,
+        userName: this.user?.name, // Prosleđujemo userName
       },
       closeOnBackdropClick: false,
+      hasBackdrop: true,
+      closeOnEsc: false,
     });
 
     dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((result) => {
@@ -432,27 +480,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
             Swal.fire('Greška', `Ne možemo ažurirati smjenu: ${poruka}`, 'error');
           }
         });
-    });
-  }
-
-  private loadEmployeesForStore() {
-    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
-    return this.shiftsService.getEmployees(storeId)
-      .pipe(map((employees) => this.normalizeEmployees(employees)));
-  }
-
-  private normalizeEmployees(employees: ShiftEmployee[]): ShiftEmployee[] {
-    return (employees ?? []).map((employee) => {
-      const fullName = (employee.employeeName ?? '').trim();
-      const nameParts = fullName.split(' ').filter(Boolean);
-      const inferredFirstName = nameParts[0] ?? '';
-      const inferredLastName = nameParts.slice(1).join(' ');
-      return {
-        ...employee,
-        firstName: employee.firstName ?? (inferredFirstName || fullName),
-        lastName: employee.lastName ?? inferredLastName,
-        brojIzDESa: employee.brojIzDESa ?? (employee.employeeId ? String(employee.employeeId) : null),
-      };
     });
   }
 
@@ -628,10 +655,30 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return new Date(copy.setDate(diff));
   }
 
+  private formatDayName(date: Date): string {
+    const days = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
+    return days[date.getDay()];
+  }
+
   formatDateInput(date: Date): string {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private mapEmployeesToShiftEmployees(employees: any[]): ShiftEmployee[] {
+    console.log('Mapiranje zaposlenika:', employees);
+    return (employees || []).map((emp) => {
+      const mapped: ShiftEmployee = {
+        employeeId: Number(emp.brojIzDESa) || emp.employeeId,
+        employeeName: `${emp.ime} ${emp.prezime}`.trim(),
+        firstName: emp.ime || '',
+        lastName: emp.prezime || '',
+        brojIzDESa: String(emp.brojIzDESa),
+      };
+      console.log('Mapirani zaposlenik:', mapped);
+      return mapped;
+    });
   }
 }

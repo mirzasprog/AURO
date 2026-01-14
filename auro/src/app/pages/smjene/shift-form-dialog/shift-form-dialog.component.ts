@@ -1,18 +1,21 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
 import { NB_DIALOG_CONFIG, NbDialogRef } from '@nebular/theme';
 import { ShiftDto, ShiftEmployee, ShiftCreateRequest } from '../../../@core/data/shifts';
 import { DailyTaskStore } from '../../../@core/data/daily-task';
+import { DataService } from '../../../@core/utils/data.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 
 interface ShiftFormContext {
   title: string;
   shift?: ShiftDto;
-  employees: ShiftEmployee[];
-  stores: DailyTaskStore[];
   shiftTypes: string[];
   shiftStatuses: string[];
   storeId?: number;
   canSelectStore: boolean;
+  userName?: string; // Dodajemo userName za učitavanje zaposlenika
 }
 
 type EmployeeShiftChoice = 'first' | 'second' | 'custom' | null;
@@ -31,68 +34,178 @@ interface EmployeeShiftSelection {
   templateUrl: './shift-form-dialog.component.html',
   styleUrls: ['./shift-form-dialog.component.scss']
 })
-export class ShiftFormDialogComponent {
-  title: string;
+export class ShiftFormDialogComponent implements OnInit, OnDestroy {
+  title: string = '';
   shift?: ShiftDto;
-  employees: ShiftEmployee[];
-  stores: DailyTaskStore[];
-  shiftTypes: string[];
-  shiftStatuses: string[];
+  employees: ShiftEmployee[] = [];
+  stores: DailyTaskStore[] = [];
+  shiftTypes: string[] = [];
+  shiftStatuses: string[] = [];
   storeId?: number;
-  canSelectStore: boolean;
+  canSelectStore: boolean = false;
+  userName?: string;
+  
   readonly form = this.fb.group({
-    storeId: [this.context.storeId ?? this.context.shift?.storeId ?? 0, this.context.canSelectStore ? Validators.required : []],
-    employeeId: [this.context.shift?.employeeId ?? null, Validators.required],
-    shiftDate: [this.formatDateInput(this.context.shift?.shiftDate), Validators.required],
-    startTime: [this.formatTimeInput(this.context.shift?.startTime), Validators.required],
-    endTime: [this.formatTimeInput(this.context.shift?.endTime), Validators.required],
-    breakMinutes: [this.context.shift?.breakMinutes ?? 0, [Validators.min(0)]],
-    shiftType: [this.context.shift?.shiftType ?? this.context.shiftTypes?.[0] ?? '', Validators.required],
-    departmentId: [this.context.shift?.departmentId ?? null],
-    status: [this.context.shift?.status ?? 'Draft', Validators.required],
-    note: [this.context.shift?.note ?? ''],
+    storeId: [0, []],
+    employeeId: [null, Validators.required],
+    shiftDate: ['', Validators.required],
+    startTime: ['', Validators.required],
+    endTime: ['', Validators.required],
+    breakMinutes: [0, [Validators.min(0)]],
+    shiftType: ['', Validators.required],
+    departmentId: [null],
+    status: ['Draft', Validators.required],
+    note: [''],
   });
+
   readonly bulkForm = this.fb.group({
-    storeId: [this.context.storeId ?? this.context.stores?.[0]?.id ?? null, Validators.required],
-    startDate: [this.formatDateInput(), Validators.required],
-    endDate: [this.formatDateInput(), Validators.required],
+    storeId: [null, Validators.required],
+    startDate: ['', Validators.required],
+    endDate: ['', Validators.required],
     firstStart: ['08:00', Validators.required],
     firstEnd: ['16:00', Validators.required],
     secondStart: ['16:00', Validators.required],
     secondEnd: ['23:00', Validators.required],
   });
+
   employeeSelections: EmployeeShiftSelection[] = [];
   pageSize = 5;
   currentPage = 1;
   validationMessage = '';
   minDate = '';
   maxDate = '';
+  loading = false;
+  user: any;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private readonly dialogRef: NbDialogRef<ShiftFormDialogComponent>,
     private readonly fb: FormBuilder,
+    private readonly dataService: DataService,
+    private readonly authService: NbAuthService,
     @Inject(NB_DIALOG_CONFIG) public context: ShiftFormContext
   ) {
-    this.title = context.title;
-    this.shift = context.shift;
-    this.employees = context.employees ?? [];
-    this.stores = context.stores ?? [];
-    this.shiftTypes = context.shiftTypes ?? [];
-    this.shiftStatuses = context.shiftStatuses ?? [];
-    this.storeId = context.storeId;
-    this.canSelectStore = context.canSelectStore;
+        this.authService.getToken()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((token: NbAuthJWTToken) => {
+            this.user = token.getPayload();
+          })
+
+
+    console.log('=== DIALOG KONSTRUKTOR POZVAN ===');
+    console.log('Context:', context);
+  }
+
+  ngOnInit(): void {
+    console.log('=== ngOnInit POZVAN ===');
+    
+    this.title = this.context.title || 'Smjena';
+    this.shift = this.context.shift;
+    this.shiftTypes = this.context.shiftTypes ?? [];
+    this.shiftStatuses = this.context.shiftStatuses ?? [];
+    this.storeId = this.context.storeId;
+    this.canSelectStore = this.context.canSelectStore ?? false;
+    this.userName = this.user?.name;
+
     const today = new Date();
     this.minDate = this.formatDate(today);
     const maxDate = new Date(today);
     maxDate.setDate(maxDate.getDate() + 10);
     this.maxDate = this.formatDate(maxDate);
-    this.employeeSelections = this.employees.map((employee) => ({
-      employee,
-      choice: null,
-      customStartDate: this.formatDate(today),
-      customEndDate: this.formatDate(today),
-      customStartTime: '',
-      customEndTime: '',
+
+    // Inicijaliziram form
+    this.form.patchValue({
+      storeId: this.storeId ?? 0,
+      shiftType: this.shiftTypes?.[0] ?? '',
+      status: this.shift?.status ?? 'Draft',
+    });
+
+    if (this.shift) {
+      this.form.patchValue({
+        shiftDate: this.formatDateInput(this.shift.shiftDate),
+        employeeId: this.shift.employeeId,
+        startTime: this.formatTimeInput(this.shift.startTime),
+        endTime: this.formatTimeInput(this.shift.endTime),
+        breakMinutes: this.shift.breakMinutes ?? 0,
+        shiftType: this.shift.shiftType,
+        departmentId: this.shift.departmentId,
+        note: this.shift.note ?? '',
+      });
+    } else {
+      this.form.patchValue({
+        shiftDate: this.formatDateInput(),
+        startTime: '08:00',
+        endTime: '16:00',
+      });
+    }
+
+    this.bulkForm.patchValue({
+      storeId: this.storeId,
+      startDate: this.formatDateInput(),
+      endDate: this.formatDateInput(),
+    });
+
+    // Učitavam zaposlenike direktno
+    this.loadEmployees();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadEmployees(): void {
+    if (!this.userName) {
+      console.error('userName nije dostupan!');
+      return;
+    }
+
+    console.log('Počinje učitavanje zaposlenika za:', this.userName);
+    this.loading = true;
+
+    this.dataService.pregledajZaposlenike(this.userName)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (rawEmployees) => {
+          console.log('Podaci iz API-ja (modal):', rawEmployees);
+          
+          // Mapiranje podataka
+          this.employees = this.mapEmployees(rawEmployees);
+          console.log('Mapirani zaposlenici (modal):', this.employees);
+
+          // Inicijalizujem employee selections
+          const today = new Date();
+          this.employeeSelections = this.employees.map((employee, idx) => {
+            const selection: EmployeeShiftSelection = {
+              employee,
+              choice: null,
+              customStartDate: this.formatDate(today),
+              customEndDate: this.formatDate(today),
+              customStartTime: '',
+              customEndTime: '',
+            };
+            console.log(`Zaposljenik ${idx}:`, selection.employee.employeeName);
+            return selection;
+          });
+
+          console.log('=== INICIJALIZACIJA ZAVRŠENA ===');
+          console.log('Ukupno zaposlenika za prikaz:', this.employeeSelections.length);
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error('Greška pri učitavanju zaposlenika u modalu:', err);
+          this.loading = false;
+        }
+      });
+  }
+
+  private mapEmployees(rawEmployees: any[]): ShiftEmployee[] {
+    return (rawEmployees || []).map((emp) => ({
+      employeeId: Number(emp.brojIzDESa) || emp.employeeId,
+      employeeName: `${emp.ime} ${emp.prezime}`.trim(),
+      firstName: emp.ime || '',
+      lastName: emp.prezime || '',
+      brojIzDESa: String(emp.brojIzDESa),
     }));
   }
 
@@ -102,7 +215,9 @@ export class ShiftFormDialogComponent {
 
   get pagedEmployees(): EmployeeShiftSelection[] {
     const start = (this.currentPage - 1) * this.pageSize;
-    return this.employeeSelections.slice(start, start + this.pageSize);
+    const paged = this.employeeSelections.slice(start, start + this.pageSize);
+    console.log(`Stranica ${this.currentPage}: ${paged.length} zaposlenika od ukupno ${this.employeeSelections.length}`);
+    return paged;
   }
 
   get totalPages(): number {
