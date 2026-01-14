@@ -11,6 +11,7 @@ import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
 import { PublishDialogComponent } from './publish-dialog/publish-dialog.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
+import { DataService } from '../../@core/utils/data.service';
 
 interface WeeklyEmployeeRow {
   employeeId: number;
@@ -42,7 +43,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   requestsLoading = false;
   role: string | null = null;
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
-
+  // Trenutni korisnik
+  user: any;
   private destroy$ = new Subject<void>();
 
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
@@ -53,6 +55,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     private readonly dialogService: NbDialogService,
     private readonly dailyTaskService: DailyTaskService,
     private readonly shiftsService: ShiftsService,
+    private dataService: DataService
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +64,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     this.authService.getToken()
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
+           this.user = token.getPayload();
         this.role = token.getPayload()?.['role'] ?? null;
         const storeIdPayload = token.getPayload()?.['prodavnicaId'] ?? token.getPayload()?.['storeId'];
         const resolvedStoreId = this.resolveStoreId(storeIdPayload, token);
@@ -227,6 +231,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees(): void {
+
+    // Učitavanje zaposlenika i postavljanje početnih vrijednosti [Paricijalne inventure]
+    this.dataService.pregledajZaposlenike(this.user.name).subscribe();
+
+
     const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
     this.shiftsService.getEmployees(storeId)
       .pipe(takeUntil(this.destroy$))
