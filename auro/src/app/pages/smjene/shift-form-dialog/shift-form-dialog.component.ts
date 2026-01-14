@@ -145,6 +145,12 @@ export class ShiftFormDialogComponent implements OnInit, OnDestroy {
       endDate: this.formatDateInput(),
     });
 
+     const storeIdControl = this.bulkForm.get('storeId');
+    if (!this.canSelectStore) {
+      storeIdControl?.clearValidators();
+      storeIdControl?.updateValueAndValidity();
+    }
+
     // Učitavam zaposlenike direktno
     this.loadEmployees();
   }
