@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { NbDialogService } from '@nebular/theme';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, takeUntil } from 'rxjs/operators';
+import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { DailyTaskStore } from '../../@core/data/daily-task';
 import { ShiftCopyWeekRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftPublishRequest, ShiftRequestDto } from '../../@core/data/shifts';
@@ -12,6 +12,7 @@ import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.com
 import { PublishDialogComponent } from './publish-dialog/publish-dialog.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { DataService } from '../../@core/utils/data.service';
+import { Zaposlenici } from '../../@core/data/zaposlenici';
 
 interface WeeklyEmployeeRow {
   employeeId: number;
@@ -231,22 +232,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees(): void {
-
-    // Učitavanje zaposlenika i postavljanje početnih vrijednosti [Paricijalne inventure]
-    this.dataService.pregledajZaposlenike(this.user.name)
+    this.loadEmployeesForStore()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (employees) => {
-          this.employees = employees.map((employee) => {
-            const parsedId = Number.parseInt(employee.brojIzDESa, 10);
-            return {
-              employeeId: Number.isNaN(parsedId) ? 0 : parsedId,
-              employeeName: `${employee.ime} ${employee.prezime}`.trim(),
-              firstName: employee.ime,
-              lastName: employee.prezime,
-              brojIzDESa: employee.brojIzDESa,
-            };
-          });
+          this.employees = employees;
         },
         error: (err) => {
           const poruka = err.error?.poruka ?? err.statusText;
@@ -335,64 +325,75 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za kreiranje smjene.', 'info');
       return;
     }
-    const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
-      context: {
-        title: 'Nova smjena',
-        employees: this.employees,
-        stores: this.stores,
-        shiftTypes: this.shiftTypes,
-        shiftStatuses: this.shiftStatuses,
-        storeId: this.selectedStoreId ?? this.currentStoreId,
-        canSelectStore: this.canManageStores,
-      },
-      closeOnBackdropClick: false,
-    });
+    const employeesReady$ = this.employees.length
+      ? of(this.employees)
+      : this.loadEmployeesForStore().pipe(tap((employees) => {
+        this.employees = employees;
+      }));
 
-    dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((result) => {
-      if (!result) {
-        return;
-      }
+    employeesReady$.pipe(takeUntil(this.destroy$)).subscribe((employees) => {
+      const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
+        context: {
+          title: 'Nova smjena',
+          employees,
+          stores: this.stores,
+          shiftTypes: this.shiftTypes,
+          shiftStatuses: this.shiftStatuses,
+          storeId: this.selectedStoreId ?? this.currentStoreId,
+          canSelectStore: this.canManageStores,
+        },
+        closeOnBackdropClick: false,
+      });
 
-      const payloads = Array.isArray(result.payloads)
-        ? result.payloads
-        : result.payload
-          ? [result.payload]
-          : [];
-      if (!payloads.length) {
-        return;
-      }
+      dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((result) => {
+        if (!result) {
+          return;
+        }
 
-      const requests = payloads.map((item) => this.shiftsService.createShift(item).pipe(catchError((err) => of({ error: err }))));
+        const payloads = Array.isArray(result.payloads)
+          ? result.payloads
+          : result.payload
+            ? [result.payload]
+            : [];
+        if (!payloads.length) {
+          return;
+        }
 
-      forkJoin(requests)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((responses) => {
-          const created: ShiftDto[] = [];
-          const warnings: string[] = [];
-          responses.forEach((response: any) => {
-            if (response?.error) {
-              const poruka = response.error?.error?.poruka ?? response.error?.statusText;
-              Swal.fire('Greška', `Ne možemo kreirati smjenu: ${poruka}`, 'error');
-              return;
+        const requests = payloads.map((item) => this.shiftsService.createShift(item).pipe(catchError((err) => of({ error: err }))));
+
+        forkJoin(requests)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((responses) => {
+            const created: ShiftDto[] = [];
+            const warnings: string[] = [];
+            responses.forEach((response: any) => {
+              if (response?.error) {
+                const poruka = response.error?.error?.poruka ?? response.error?.statusText;
+                Swal.fire('Greška', `Ne možemo kreirati smjenu: ${poruka}`, 'error');
+                return;
+              }
+              const mutation = response as ShiftMutationResponse;
+              if (mutation.shift) {
+                created.push(mutation.shift);
+              }
+              if (mutation.warning) {
+                warnings.push(mutation.warning);
+              }
+            });
+
+            if (created.length) {
+              this.shifts = [...this.shifts, ...created];
+              this.loadShifts();
             }
-            const mutation = response as ShiftMutationResponse;
-            if (mutation.shift) {
-              created.push(mutation.shift);
-            }
-            if (mutation.warning) {
-              warnings.push(mutation.warning);
+
+            if (warnings.length) {
+              Swal.fire('Upozorenje', warnings.join('\n'), 'warning');
             }
           });
-
-          if (created.length) {
-            this.shifts = [...this.shifts, ...created];
-            this.loadShifts();
-          }
-
-          if (warnings.length) {
-            Swal.fire('Upozorenje', warnings.join('\n'), 'warning');
-          }
-        });
+      });
+    }, (err) => {
+      const poruka = err.error?.poruka ?? err.statusText;
+      Swal.fire('Greška', `Ne možemo preuzeti zaposlenike: ${poruka}`, 'error');
     });
   }
 
@@ -434,6 +435,24 @@ export class SmjeneComponent implements OnInit, OnDestroy {
             Swal.fire('Greška', `Ne možemo ažurirati smjenu: ${poruka}`, 'error');
           }
         });
+    });
+  }
+
+  private loadEmployeesForStore() {
+    return this.dataService.pregledajZaposlenike(this.user.name)
+      .pipe(map((employees) => this.mapEmployees(employees)));
+  }
+
+  private mapEmployees(employees: Zaposlenici[]): ShiftEmployee[] {
+    return employees.map((employee) => {
+      const parsedId = Number.parseInt(String(employee.brojIzDESa), 10);
+      return {
+        employeeId: Number.isNaN(parsedId) ? 0 : parsedId,
+        employeeName: `${employee.ime} ${employee.prezime}`.trim(),
+        firstName: employee.ime,
+        lastName: employee.prezime,
+        brojIzDESa: String(employee.brojIzDESa),
+      };
     });
   }
 
