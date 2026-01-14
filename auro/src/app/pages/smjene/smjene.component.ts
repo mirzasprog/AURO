@@ -147,7 +147,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       return null;
     }
     const storeId = this.resolveStoreIdValue(payload.storeId);
-    if (!storeId) {
+    if (storeId === null || storeId === undefined) {
       return null;
     }
     return { ...payload, storeId };
@@ -165,6 +165,9 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   private resolveStoreIdValue(storeId?: number | null): number | null {
+    if (!this.canManageStores) {
+      return 0;
+    }
     const parsed = Number(storeId);
     if (Number.isFinite(parsed) && parsed > 0) {
       return parsed;
@@ -411,7 +414,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
             title: 'Nova smjena',
             shiftTypes: this.shiftTypes,
             shiftStatuses: this.shiftStatuses,
-            storeId: this.selectedStoreId ?? this.currentStoreId,
+            storeId: this.canManageStores ? (this.selectedStoreId ?? this.currentStoreId) : 0,
             canSelectStore: this.canManageStores,
             userName: this.user?.name, // Prosleđujemo userName
           },
@@ -579,7 +582,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         return;
       }
 
-      payload.storeId = this.canManageStores ? (this.selectedStoreId ?? 0) : (this.currentStoreId ?? payload.storeId);
+      payload.storeId = this.canManageStores ? (this.selectedStoreId ?? 0) : 0;
 
       this.shiftsService.copyWeek(payload)
         .pipe(takeUntil(this.destroy$))
@@ -615,7 +618,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         return;
       }
 
-      payload.storeId = this.canManageStores ? (this.selectedStoreId ?? 0) : (this.currentStoreId ?? payload.storeId);
+      payload.storeId = this.canManageStores ? (this.selectedStoreId ?? 0) : 0;
 
       this.shiftsService.publish(payload)
         .pipe(takeUntil(this.destroy$))
