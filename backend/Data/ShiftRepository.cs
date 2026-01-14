@@ -87,9 +87,11 @@ namespace backend.Data
                 .Take(pageSize)
                 .ToListAsync();
 
+            var importLookup = await GetImportedEmployeeLookupAsync(items.Select(item => item.EmployeeId));
+
             return new PagedResult<ShiftDto>
             {
-                Items = items.Select(MapShift).ToList(),
+                Items = items.Select(item => MapShift(item, importLookup)).ToList(),
                 TotalCount = total
             };
         }
@@ -136,7 +138,8 @@ namespace backend.Data
                 .ThenBy(s => s.StartTime)
                 .ToListAsync();
 
-            return items.Select(MapShift).ToList();
+            var importLookup = await GetImportedEmployeeLookupAsync(items.Select(item => item.EmployeeId));
+            return items.Select(item => MapShift(item, importLookup)).ToList();
         }
 
         public async Task<IEnumerable<ShiftDto>> GetMyShiftsAsync(DateTime? from, DateTime? to)
@@ -168,30 +171,43 @@ namespace backend.Data
                 .ThenBy(s => s.StartTime)
                 .ToListAsync();
 
-            return items.Select(MapShift).ToList();
+            var importLookup = await GetImportedEmployeeLookupAsync(items.Select(item => item.EmployeeId));
+            return items.Select(item => MapShift(item, importLookup)).ToList();
         }
 
         public async Task<IEnumerable<ShiftEmployeeDto>> GetEmployeesAsync(int? storeId)
         {
             await ResolveStoreIdAsync(storeId);
 
-            var employees = await _context.Korisnik
-                .AsNoTracking()
-                .Where(k => k.Aktivan)
-                .OrderBy(k => k.KorisnickoIme)
+            var storeCode = await ResolveStoreCodeAsync(storeId);
+            var query = _context.ParcijalnaInventuraImportZaposlenika
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(storeCode))
+            {
+                query = query.Where(e => e.OznakaOJ != null && e.OznakaOJ.EndsWith(storeCode));
+            }
+
+            var employees = await query
+                .OrderBy(e => e.Prezime)
+                .ThenBy(e => e.Ime)
                 .ToListAsync();
 
             return employees.Select(e => new ShiftEmployeeDto
             {
-                EmployeeId = e.KorisnikId,
-                EmployeeName = e.KorisnickoIme,
-                Email = e.Email,
-                Role = e.Uloga
+                EmployeeId = e.BrojIzMaticneKnjige,
+                EmployeeName = $"{e.Ime} {e.Prezime}".Trim(),
+                Role = e.RadnoMjesto
             }).ToList();
         }
 
         public async Task<ShiftOperationResult> CreateShiftAsync(ShiftCreateRequest request)
         {
+            if (IsReadOnlyRole())
+            {
+                return ShiftOperationResult.Failed("Rola uprava može samo pregledati smjene.");
+            }
+
             var storeId = await ResolveStoreIdAsync(request.StoreId);
             var storeExists = await _context.Prodavnica.AnyAsync(p => p.KorisnikId == storeId.Value);
             if (!storeExists)
@@ -199,10 +215,18 @@ namespace backend.Data
                 return ShiftOperationResult.Failed("Prodavnica nije pronađena.");
             }
 
-            var employeeExists = await _context.Korisnik.AnyAsync(k => k.KorisnikId == request.EmployeeId);
-            if (!employeeExists)
+            if (!await EmployeeExistsAsync(request.EmployeeId))
             {
                 return ShiftOperationResult.Failed("Zaposlenik nije pronađen.");
+            }
+
+            if (IsStoreRole())
+            {
+                var storeCode = await ResolveStoreCodeAsync(storeId);
+                if (!await EmployeeBelongsToStoreAsync(request.EmployeeId, storeCode))
+                {
+                    return ShiftOperationResult.Failed("Zaposlenik ne pripada odabranoj prodavnici.");
+                }
             }
 
             var validationError = await ValidateShiftAsync(null, request.EmployeeId, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
@@ -243,11 +267,17 @@ namespace backend.Data
             await AddShiftAuditAsync(shift, "CREATE", null);
             await _context.SaveChangesAsync();
 
-            return ShiftOperationResult.Ok(MapShift(shift), warning);
+            var importLookup = await GetImportedEmployeeLookupAsync(new[] { shift.EmployeeId });
+            return ShiftOperationResult.Ok(MapShift(shift, importLookup), warning);
         }
 
         public async Task<ShiftOperationResult> UpdateShiftAsync(int shiftId, ShiftUpdateRequest request)
         {
+            if (IsReadOnlyRole())
+            {
+                return ShiftOperationResult.Failed("Rola uprava može samo pregledati smjene.");
+            }
+
             var storeId = await ResolveStoreIdAsync(request.StoreId);
             var shift = await _context.Shift
                 .Include(s => s.Employee)
@@ -272,6 +302,20 @@ namespace backend.Data
             if (shift.StoreId != storeId)
             {
                 return ShiftOperationResult.Failed("Smjena ne pripada odabranoj prodavnici.");
+            }
+
+            if (!await EmployeeExistsAsync(request.EmployeeId))
+            {
+                return ShiftOperationResult.Failed("Zaposlenik nije pronađen.");
+            }
+
+            if (IsStoreRole())
+            {
+                var storeCode = await ResolveStoreCodeAsync(storeId);
+                if (!await EmployeeBelongsToStoreAsync(request.EmployeeId, storeCode))
+                {
+                    return ShiftOperationResult.Failed("Zaposlenik ne pripada odabranoj prodavnici.");
+                }
             }
 
             var validationError = await ValidateShiftAsync(shiftId, request.EmployeeId, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
@@ -308,11 +352,17 @@ namespace backend.Data
             await AddShiftAuditAsync(shift, "UPDATE", before);
             await _context.SaveChangesAsync();
 
-            return ShiftOperationResult.Ok(MapShift(shift), warning);
+            var importLookup = await GetImportedEmployeeLookupAsync(new[] { shift.EmployeeId });
+            return ShiftOperationResult.Ok(MapShift(shift, importLookup), warning);
         }
 
         public async Task<ShiftOperationResult> DeleteShiftAsync(int shiftId)
         {
+            if (IsReadOnlyRole())
+            {
+                return ShiftOperationResult.Failed("Rola uprava može samo pregledati smjene.");
+            }
+
             var shift = await _context.Shift
                 .Include(s => s.Employee)
                 .Include(s => s.Store)
@@ -352,6 +402,11 @@ namespace backend.Data
 
         public async Task<ShiftOperationResult> CopyWeekAsync(ShiftCopyWeekRequest request)
         {
+            if (IsReadOnlyRole())
+            {
+                return ShiftOperationResult.Failed("Rola uprava može samo pregledati smjene.");
+            }
+
             var storeId = await ResolveStoreIdAsync(request.StoreId);
             var sourceStart = request.SourceWeekStart.Date;
             var targetStart = request.TargetWeekStart.Date;
@@ -429,6 +484,11 @@ namespace backend.Data
 
         public async Task<ShiftOperationResult> PublishAsync(ShiftPublishRequest request)
         {
+            if (IsReadOnlyRole())
+            {
+                return ShiftOperationResult.Failed("Rola uprava može samo pregledati smjene.");
+            }
+
             var storeId = await ResolveStoreIdAsync(request.StoreId);
             var fromDate = request.From.Date;
             var toDate = request.To.Date;
@@ -613,19 +673,30 @@ namespace backend.Data
         private bool CanManagePublished()
         {
             var role = GetCurrentRole();
-            return string.Equals(role, RoleAdmin, StringComparison.OrdinalIgnoreCase)
-                || string.Equals(role, RolePodrucni, StringComparison.OrdinalIgnoreCase)
+            return string.Equals(role, RolePodrucni, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(role, RoleRegional, StringComparison.OrdinalIgnoreCase);
         }
 
         private bool CanManageRequests()
         {
-            return !string.Equals(GetCurrentRole(), RoleStore, StringComparison.OrdinalIgnoreCase);
+            var role = GetCurrentRole();
+            return !string.Equals(role, RoleStore, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(role, RoleAdmin, StringComparison.OrdinalIgnoreCase);
         }
 
         private string? GetCurrentRole()
         {
             return _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.Role);
+        }
+
+        private bool IsReadOnlyRole()
+        {
+            return string.Equals(GetCurrentRole(), RoleAdmin, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsStoreRole()
+        {
+            return string.Equals(GetCurrentRole(), RoleStore, StringComparison.OrdinalIgnoreCase);
         }
 
         private async Task<int?> ResolveStoreIdAsync(int? storeId)
@@ -768,15 +839,21 @@ namespace backend.Data
             return Math.Max(0, (end - start).TotalHours - (breakMinutes / 60.0));
         }
 
-        private ShiftDto MapShift(Shift shift)
+        private ShiftDto MapShift(Shift shift, IReadOnlyDictionary<int, string>? importLookup = null)
         {
+            var employeeName = shift.Employee?.KorisnickoIme;
+            if (string.IsNullOrWhiteSpace(employeeName) && importLookup != null && importLookup.TryGetValue(shift.EmployeeId, out var importedName))
+            {
+                employeeName = importedName;
+            }
+
             return new ShiftDto
             {
                 ShiftId = shift.ShiftId,
                 StoreId = shift.StoreId,
                 StoreLabel = shift.Store != null ? $"{shift.Store.BrojProdavnice} - {shift.Store.Mjesto}" : null,
                 EmployeeId = shift.EmployeeId,
-                EmployeeName = shift.Employee?.KorisnickoIme,
+                EmployeeName = employeeName,
                 ShiftDate = shift.ShiftDate,
                 StartTime = shift.StartTime,
                 EndTime = shift.EndTime,
@@ -851,6 +928,85 @@ namespace backend.Data
             };
 
             _context.ShiftAudit.Add(audit);
+        }
+
+        private async Task<Dictionary<int, string>> GetImportedEmployeeLookupAsync(IEnumerable<int> employeeIds)
+        {
+            var idList = employeeIds.Distinct().ToList();
+            if (!idList.Any())
+            {
+                return new Dictionary<int, string>();
+            }
+
+            return await _context.ParcijalnaInventuraImportZaposlenika
+                .AsNoTracking()
+                .Where(e => idList.Contains(e.BrojIzMaticneKnjige))
+                .GroupBy(e => e.BrojIzMaticneKnjige)
+                .ToDictionaryAsync(
+                    group => group.Key,
+                    group => $"{group.First().Ime} {group.First().Prezime}".Trim());
+        }
+
+        private async Task<bool> EmployeeExistsAsync(int employeeId)
+        {
+            var existsInUsers = await _context.Korisnik.AnyAsync(k => k.KorisnikId == employeeId);
+            if (existsInUsers)
+            {
+                return true;
+            }
+
+            return await _context.ParcijalnaInventuraImportZaposlenika
+                .AsNoTracking()
+                .AnyAsync(e => e.BrojIzMaticneKnjige == employeeId);
+        }
+
+        private async Task<bool> EmployeeBelongsToStoreAsync(int employeeId, string? storeCode)
+        {
+            if (string.IsNullOrWhiteSpace(storeCode))
+            {
+                return false;
+            }
+
+            return await _context.ParcijalnaInventuraImportZaposlenika
+                .AsNoTracking()
+                .AnyAsync(e => e.BrojIzMaticneKnjige == employeeId
+                    && e.OznakaOJ != null
+                    && e.OznakaOJ.EndsWith(storeCode));
+        }
+
+        private async Task<string?> ResolveStoreCodeAsync(int? storeId)
+        {
+            if (IsStoreRole())
+            {
+                var currentUser = await GetCurrentUserAsync();
+                return ExtractStoreCode(currentUser?.KorisnickoIme);
+            }
+
+            if (storeId.HasValue)
+            {
+                var store = await _context.Prodavnica
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(p => p.KorisnikId == storeId.Value);
+                return ExtractStoreCode(store?.BrojProdavnice);
+            }
+
+            return null;
+        }
+
+        private static string? ExtractStoreCode(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            var trimmed = value.Trim();
+            if (trimmed.Length <= 4)
+            {
+                return trimmed;
+            }
+
+            return trimmed.Substring(trimmed.Length - 4);
         }
     }
 }

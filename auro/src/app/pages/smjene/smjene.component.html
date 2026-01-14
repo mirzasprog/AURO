@@ -1,6 +1,10 @@
 <nb-card>
   <nb-card-header>Smjene</nb-card-header>
   <nb-card-body>
+    <div class="role-banner" *ngIf="!canEditShifts">
+      <nb-icon icon="info-outline"></nb-icon>
+      <span>Rola uprava ima samo pregled postojećih smjena.</span>
+    </div>
     <div class="toolbar">
       <div class="filters">
         <nb-select *ngIf="canManageStores" placeholder="Prodavnica" [(ngModel)]="selectedStoreId" (selectedChange)="onStoreChange()">
@@ -23,9 +27,9 @@
         <input nbInput placeholder="Pretraga zaposlenika" [(ngModel)]="employeeSearch" />
       </div>
       <div class="actions">
-        <button nbButton status="primary" (click)="openAddShift()">Dodaj smjenu</button>
-        <button nbButton status="info" (click)="openCopyWeek()">Kopiraj sedmicu</button>
-        <button nbButton status="success" (click)="openPublish()">Objavi</button>
+        <button nbButton status="primary" (click)="openAddShift()" [disabled]="!canEditShifts">Dodaj smjenu</button>
+        <button nbButton status="info" (click)="openCopyWeek()" [disabled]="!canEditShifts">Kopiraj sedmicu</button>
+        <button nbButton status="success" (click)="openPublish()" [disabled]="!canEditShifts">Objavi</button>
         <nb-select class="format-select" [(ngModel)]="exportFormat">
           <nb-option value="xlsx">XLSX</nb-option>
           <nb-option value="csv">CSV</nb-option>
@@ -58,7 +62,8 @@
                       size="tiny"
                       class="shift-chip"
                       *ngFor="let shift of row.shiftsByDay[formatDateInput(day)]"
-                      (click)="openEditShift(shift)">
+                      (click)="openEditShift(shift)"
+                      [disabled]="!canEditShifts">
                       <span>{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
                       <span class="status">{{ shift.status }}</span>
                     </button>
@@ -85,8 +90,8 @@
               <div class="meta">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }} · {{ shift.shiftType }} · {{ shift.status }}</div>
             </div>
             <div class="daily-actions">
-              <button nbButton status="info" size="tiny" (click)="openEditShift(shift)">Uredi</button>
-              <button nbButton status="danger" size="tiny" (click)="deleteShift(shift)">Obriši</button>
+              <button nbButton status="info" size="tiny" (click)="openEditShift(shift)" [disabled]="!canEditShifts">Uredi</button>
+              <button nbButton status="danger" size="tiny" (click)="deleteShift(shift)" [disabled]="!canEditShifts">Obriši</button>
             </div>
           </div>
         </div>
@@ -141,7 +146,7 @@
                 <td>{{ request.status }}</td>
                 <td>{{ request.message }}</td>
                 <td>
-                  <input nbInput fullWidth placeholder="Napomena" [(ngModel)]="request.managerNote" />
+                  <input nbInput fullWidth placeholder="Napomena" [(ngModel)]="request.managerNote" [disabled]="!canManageRequests" />
                 </td>
                 <td>
                   <button nbButton size="tiny" status="success" (click)="approveRequest(request)" [disabled]="!canManageRequests">Odobri</button>
