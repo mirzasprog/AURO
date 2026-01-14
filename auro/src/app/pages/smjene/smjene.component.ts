@@ -210,8 +210,14 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (stores) => {
           this.stores = stores;
+          const previousStoreId = this.selectedStoreId;
           if (!this.selectedStoreId && stores.length) {
             this.selectedStoreId = stores[0].id;
+          }
+          if (this.selectedStoreId && this.selectedStoreId !== previousStoreId) {
+            this.loadEmployees();
+            this.loadShifts();
+            this.loadRequests();
           }
         },
         error: () => {
