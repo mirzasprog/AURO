@@ -330,8 +330,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const { payload, repeatDays } = result;
-      const payloads = this.expandRepeat(payload, repeatDays);
+      const payloads = Array.isArray(result.payloads)
+        ? result.payloads
+        : result.payload
+          ? [result.payload]
+          : [];
       if (!payloads.length) {
         return;
       }
@@ -566,19 +569,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     if (event.tabTitle === 'Mjesečni') {
       this.loadMonthShifts();
     }
-  }
-
-  private expandRepeat(payload: any, repeatDays: number): any[] {
-    const days = Math.max(0, Number(repeatDays) || 0);
-    if (!days) {
-      return [payload];
-    }
-    const baseDate = new Date(payload.shiftDate);
-    return Array.from({ length: days + 1 }, (_, index) => {
-      const date = new Date(baseDate);
-      date.setDate(baseDate.getDate() + index);
-      return { ...payload, shiftDate: this.formatDateInput(date) };
-    });
   }
 
   private replaceShift(updated: ShiftDto): void {
