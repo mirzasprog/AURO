@@ -208,7 +208,21 @@ namespace backend.Data
                 return ShiftOperationResult.Failed("Rola uprava može samo pregledati smjene.");
             }
 
-            var storeId = await ResolveStoreIdAsync(request.StoreId);
+            int? storeId;
+            try
+            {
+                storeId = await ResolveStoreIdAsync(request.StoreId);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ShiftOperationResult.Failed(ex.Message);
+            }
+
+            if (!storeId.HasValue)
+            {
+                return ShiftOperationResult.Failed("Prodavnica nije odabrana.");
+            }
+
             var storeExists = await _context.Prodavnica.AnyAsync(p => p.KorisnikId == storeId.Value);
             if (!storeExists)
             {
