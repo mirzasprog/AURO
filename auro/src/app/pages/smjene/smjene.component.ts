@@ -63,9 +63,9 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .subscribe((token: NbAuthJWTToken) => {
         this.role = token.getPayload()?.['role'] ?? null;
         const storeIdPayload = token.getPayload()?.['prodavnicaId'] ?? token.getPayload()?.['storeId'];
-        if (storeIdPayload) {
-          const parsed = Number(storeIdPayload);
-          this.currentStoreId = Number.isNaN(parsed) ? undefined : parsed;
+        const resolvedStoreId = this.resolveStoreId(storeIdPayload, token);
+        if (resolvedStoreId) {
+          this.currentStoreId = resolvedStoreId;
           this.selectedStoreId = this.currentStoreId;
         }
         this.loadStores();
@@ -98,6 +98,21 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       day.setDate(this.weekStart.getDate() + index);
       return day;
     });
+  }
+
+  private resolveStoreId(storeIdPayload: unknown, token: NbAuthJWTToken): number | undefined {
+    if (storeIdPayload) {
+      const parsed = Number(storeIdPayload);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    }
+    if (this.role === 'prodavnica') {
+      const username = token.getPayload()?.['name'] ?? token.getPayload()?.['korisnickoIme'];
+      if (typeof username === 'string') {
+        const parsed = Number.parseInt(username, 10);
+        return Number.isNaN(parsed) ? undefined : parsed;
+      }
+    }
+    return undefined;
   }
 
   get weeklyRows(): WeeklyEmployeeRow[] {
