@@ -23,6 +23,9 @@ export interface ShiftEmployee {
   employeeName: string;
   email?: string | null;
   role?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  brojIzDESa?: string | null;
 }
 
 export interface ShiftRequestDto {

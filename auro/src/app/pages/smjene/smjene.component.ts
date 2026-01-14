@@ -233,14 +233,21 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   loadEmployees(): void {
 
     // Učitavanje zaposlenika i postavljanje početnih vrijednosti [Paricijalne inventure]
-    this.dataService.pregledajZaposlenike(this.user.name).subscribe();
-
-
-    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
-    this.shiftsService.getEmployees(storeId)
+    this.dataService.pregledajZaposlenike(this.user.name)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (employees) => this.employees = employees,
+        next: (employees) => {
+          this.employees = employees.map((employee) => {
+            const parsedId = Number.parseInt(employee.brojIzDESa, 10);
+            return {
+              employeeId: Number.isNaN(parsedId) ? 0 : parsedId,
+              employeeName: `${employee.ime} ${employee.prezime}`.trim(),
+              firstName: employee.ime,
+              lastName: employee.prezime,
+              brojIzDESa: employee.brojIzDESa,
+            };
+          });
+        },
         error: (err) => {
           const poruka = err.error?.poruka ?? err.statusText;
           Swal.fire('Greška', `Ne možemo preuzeti zaposlenike: ${poruka}`, 'error');
