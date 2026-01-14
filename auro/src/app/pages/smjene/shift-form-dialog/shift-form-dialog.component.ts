@@ -75,10 +75,10 @@ export class ShiftFormDialogComponent {
   ) {
     this.title = context.title;
     this.shift = context.shift;
-    this.employees = context.employees;
-    this.stores = context.stores;
-    this.shiftTypes = context.shiftTypes;
-    this.shiftStatuses = context.shiftStatuses;
+    this.employees = context.employees ?? [];
+    this.stores = context.stores ?? [];
+    this.shiftTypes = context.shiftTypes ?? [];
+    this.shiftStatuses = context.shiftStatuses ?? [];
     this.storeId = context.storeId;
     this.canSelectStore = context.canSelectStore;
     const today = new Date();
