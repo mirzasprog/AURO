@@ -1,63 +1,173 @@
 <nb-card>
   <nb-card-header>{{ context.title }}</nb-card-header>
   <nb-card-body>
-    <form [formGroup]="form" class="shift-form">
-      <nb-select formControlName="storeId" placeholder="Prodavnica" *ngIf="canSelectStore">
-        <nb-option *ngFor="let store of stores" [value]="store.id">
-          {{ store.name }}
-        </nb-option>
-      </nb-select>
+    <ng-container *ngIf="isEditMode; else bulkTemplate">
+      <form [formGroup]="form" class="shift-form">
+        <nb-select formControlName="storeId" placeholder="Prodavnica" *ngIf="canSelectStore">
+          <nb-option *ngFor="let store of stores" [value]="store.id">
+            {{ store.name }}
+          </nb-option>
+        </nb-select>
 
-      <nb-select formControlName="employeeId" placeholder="Zaposlenik">
-        <nb-option *ngFor="let employee of employees" [value]="employee.employeeId">
-          {{ employee.employeeName }}
-        </nb-option>
-      </nb-select>
+        <nb-select formControlName="employeeId" placeholder="Zaposlenik">
+          <nb-option *ngFor="let employee of employees" [value]="employee.employeeId">
+            {{ employee.employeeName }}
+          </nb-option>
+        </nb-select>
 
-      <label class="field">
-        <span>Datum</span>
-        <input nbInput type="date" formControlName="shiftDate" />
-      </label>
-
-      <div class="time-row">
         <label class="field">
-          <span>Početak</span>
-          <input nbInput type="time" formControlName="startTime" />
+          <span>Datum</span>
+          <input nbInput type="date" formControlName="shiftDate" />
         </label>
+
+        <div class="time-row">
+          <label class="field">
+            <span>Početak</span>
+            <input nbInput type="time" formControlName="startTime" />
+          </label>
+          <label class="field">
+            <span>Kraj</span>
+            <input nbInput type="time" formControlName="endTime" />
+          </label>
+        </div>
+
+        <nb-select formControlName="shiftType" placeholder="Tip smjene">
+          <nb-option *ngFor="let type of shiftTypes" [value]="type">{{ type }}</nb-option>
+        </nb-select>
+
+        <nb-select formControlName="status" placeholder="Status">
+          <nb-option *ngFor="let status of shiftStatuses" [value]="status">{{ status }}</nb-option>
+        </nb-select>
+
         <label class="field">
-          <span>Kraj</span>
-          <input nbInput type="time" formControlName="endTime" />
+          <span>Napomena</span>
+          <textarea nbInput rows="3" formControlName="note"></textarea>
         </label>
-      </div>
+      </form>
+    </ng-container>
 
-      <label class="field">
-        <span>Pauza (min)</span>
-        <input nbInput type="number" min="0" formControlName="breakMinutes" />
-      </label>
+    <ng-template #bulkTemplate>
+      <form [formGroup]="bulkForm" class="shift-form bulk-form">
+        <div class="bulk-header">
+          <div class="header-row">
+            <nb-select formControlName="storeId" placeholder="Prodavnica" *ngIf="canSelectStore">
+              <nb-option *ngFor="let store of stores" [value]="store.id">
+                {{ store.name }}
+              </nb-option>
+            </nb-select>
 
-      <nb-select formControlName="shiftType" placeholder="Tip smjene">
-        <nb-option *ngFor="let type of shiftTypes" [value]="type">{{ type }}</nb-option>
-      </nb-select>
+            <label class="field">
+              <span>Datum od</span>
+              <input nbInput type="date" formControlName="startDate" [min]="minDate" [max]="maxDate" />
+            </label>
 
-      <label class="field">
-        <span>Odjel</span>
-        <input nbInput type="number" min="0" formControlName="departmentId" />
-      </label>
+            <label class="field">
+              <span>Datum do</span>
+              <input nbInput type="date" formControlName="endDate" [min]="minDate" [max]="maxDate" />
+            </label>
+          </div>
 
-      <nb-select formControlName="status" placeholder="Status">
-        <nb-option *ngFor="let status of shiftStatuses" [value]="status">{{ status }}</nb-option>
-      </nb-select>
+          <div class="shift-time-grid">
+            <div class="shift-time-block">
+              <div class="shift-label">Prva smjena</div>
+              <div class="time-row">
+                <label class="field">
+                  <span>Od</span>
+                  <input nbInput type="time" formControlName="firstStart" />
+                </label>
+                <label class="field">
+                  <span>Do</span>
+                  <input nbInput type="time" formControlName="firstEnd" />
+                </label>
+              </div>
+            </div>
+            <div class="shift-time-block">
+              <div class="shift-label">Druga smjena</div>
+              <div class="time-row">
+                <label class="field">
+                  <span>Od</span>
+                  <input nbInput type="time" formControlName="secondStart" />
+                </label>
+                <label class="field">
+                  <span>Do</span>
+                  <input nbInput type="time" formControlName="secondEnd" />
+                </label>
+              </div>
+            </div>
+          </div>
+          <p class="helper">Unos smjena je moguć za raspon do 10 dana unaprijed.</p>
+        </div>
 
-      <label class="field">
-        <span>Napomena</span>
-        <textarea nbInput rows="3" formControlName="note"></textarea>
-      </label>
+        <div class="table-wrapper">
+          <table class="employee-table">
+            <thead>
+              <tr>
+                <th>Uposlenik</th>
+                <th>Prva smjena</th>
+                <th>Druga smjena</th>
+                <th>Custom</th>
+              </tr>
+            </thead>
+            <tbody>
+              <ng-container *ngFor="let item of pagedEmployees">
+                <tr>
+                  <td class="employee-name">{{ item.employee.employeeName }}</td>
+                  <td>
+                    <button nbButton size="tiny" [status]="item.choice === 'first' ? 'primary' : 'basic'" (click)="selectChoice(item, 'first')">
+                      Prva smjena
+                    </button>
+                  </td>
+                  <td>
+                    <button nbButton size="tiny" [status]="item.choice === 'second' ? 'primary' : 'basic'" (click)="selectChoice(item, 'second')">
+                      Druga smjena
+                    </button>
+                  </td>
+                  <td>
+                    <button nbButton size="tiny" [status]="item.choice === 'custom' ? 'info' : 'basic'" (click)="selectChoice(item, 'custom')">
+                      Custom
+                    </button>
+                  </td>
+                </tr>
+                <tr *ngIf="item.choice === 'custom'">
+                  <td colspan="4">
+                    <div class="custom-row">
+                      <label class="field">
+                        <span>Datum od</span>
+                        <input nbInput type="date" [min]="minDate" [max]="maxDate" [(ngModel)]="item.customStartDate" [ngModelOptions]="{standalone: true}" />
+                      </label>
+                      <label class="field">
+                        <span>Datum do</span>
+                        <input nbInput type="date" [min]="minDate" [max]="maxDate" [(ngModel)]="item.customEndDate" [ngModelOptions]="{standalone: true}" />
+                      </label>
+                      <label class="field">
+                        <span>Od</span>
+                        <input nbInput type="time" [(ngModel)]="item.customStartTime" [ngModelOptions]="{standalone: true}" />
+                      </label>
+                      <label class="field">
+                        <span>Do</span>
+                        <input nbInput type="time" [(ngModel)]="item.customEndTime" [ngModelOptions]="{standalone: true}" />
+                      </label>
+                    </div>
+                  </td>
+                </tr>
+              </ng-container>
+            </tbody>
+          </table>
+        </div>
 
-      <label class="field" *ngIf="!context.shift">
-        <span>Ponovi (broj dodatnih dana)</span>
-        <input nbInput type="number" min="0" formControlName="repeatDays" />
-      </label>
-    </form>
+        <div class="pagination">
+          <button nbButton size="tiny" status="basic" (click)="previousPage()" [disabled]="currentPage === 1">
+            Nazad
+          </button>
+          <span>Stranica {{ currentPage }} / {{ totalPages }}</span>
+          <button nbButton size="tiny" status="basic" (click)="nextPage()" [disabled]="currentPage === totalPages">
+            Naprijed
+          </button>
+        </div>
+
+        <div class="validation" *ngIf="validationMessage">{{ validationMessage }}</div>
+      </form>
+    </ng-template>
   </nb-card-body>
   <nb-card-footer class="dialog-actions">
     <button nbButton status="basic" (click)="close()">Odustani</button>

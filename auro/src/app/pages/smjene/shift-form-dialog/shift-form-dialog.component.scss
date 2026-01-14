@@ -4,6 +4,10 @@
   gap: 0.75rem;
 }
 
+.bulk-form {
+  gap: 1rem;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -15,6 +19,92 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 0.75rem;
+}
+
+.bulk-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.header-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.shift-time-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.shift-time-block {
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: rgba(143, 155, 179, 0.08);
+}
+
+.shift-label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.helper {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #8f9bb3;
+}
+
+.table-wrapper {
+  border: 1px solid rgba(143, 155, 179, 0.3);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.employee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.employee-table th,
+.employee-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid rgba(143, 155, 179, 0.2);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.employee-table thead {
+  background: rgba(143, 155, 179, 0.1);
+}
+
+.employee-name {
+  font-weight: 600;
+}
+
+.custom-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  background: rgba(143, 155, 179, 0.08);
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+}
+
+.validation {
+  color: #ff3d71;
+  font-size: 0.8rem;
 }
 
 .dialog-actions {
