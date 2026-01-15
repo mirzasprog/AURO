@@ -963,15 +963,7 @@ namespace backend.Data
 
         private async Task<bool> EmployeeExistsAsync(int employeeId)
         {
-            var existsInUsers = await _context.Korisnik.AnyAsync(k => k.KorisnikId == employeeId);
-            if (existsInUsers)
-            {
-                return true;
-            }
-
-            return await _context.ParcijalnaInventuraImportZaposlenika
-                .AsNoTracking()
-                .AnyAsync(e => e.BrojIzMaticneKnjige == employeeId);
+            return await _context.Korisnik.AnyAsync(k => k.KorisnikId == employeeId);
         }
 
         private async Task<bool> EmployeeBelongsToStoreAsync(int employeeId, string? storeCode)
