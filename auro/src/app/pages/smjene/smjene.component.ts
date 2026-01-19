@@ -5,11 +5,10 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { DailyTaskStore } from '../../@core/data/daily-task';
-import { ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftPublishRequest, ShiftRequestDto, ShiftUpdateRequest } from '../../@core/data/shifts';
+import { ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftRequestDto, ShiftUpdateRequest } from '../../@core/data/shifts';
 import { DailyTaskService } from '../../@core/utils/daily-task.service';
 import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
-import { PublishDialogComponent } from './publish-dialog/publish-dialog.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { DataService } from '../../@core/utils/data.service';
 
@@ -316,7 +315,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   loadShifts(): void {
     this.loading = true;
-    const storeId = this.canManageStores ? this.selectedStoreId : undefined;
+    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
     const from = this.formatDateInput(this.weekStart);
     const to = this.formatDateInput(this.weekDays[this.weekDays.length - 1]);
 
@@ -345,7 +344,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       return;
     }
     this.monthLoading = true;
-    const storeId = this.canManageStores ? this.selectedStoreId : undefined;
+    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
     const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
     const monthEnd = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth() + 1, 0);
 
@@ -369,7 +368,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       return;
     }
     this.requestsLoading = true;
-    const storeId = this.canManageStores ? this.selectedStoreId : undefined;
+    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
     this.shiftsService.getRequests({ storeId })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
@@ -466,8 +465,15 @@ export class SmjeneComponent implements OnInit, OnDestroy {
               });
 
               if (created.length) {
+                const firstShiftDate = new Date(created[0].shiftDate);
+                if (!Number.isNaN(firstShiftDate.getTime())) {
+                  this.weekStart = this.getWeekStart(firstShiftDate);
+                  this.weekPicker = this.formatDateInput(this.weekStart);
+                  this.selectedDay = new Date(this.weekStart);
+                }
                 this.shifts = [...this.shifts, ...created];
                 this.loadShifts();
+                Swal.fire('Uspjeh', `Kreirano ${created.length} smjena.`, 'success');
               }
 
               if (warnings.length) {
@@ -520,6 +526,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             this.replaceShift(response.shift);
+            Swal.fire('Uspjeh', 'Smjena je ažurirana.', 'success');
             if (response.warning) {
               Swal.fire('Upozorenje', response.warning, 'warning');
             }
@@ -594,42 +601,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
           error: (err) => {
             const poruka = err.error?.poruka ?? err.statusText;
             Swal.fire('Greška', `Ne možemo kopirati sedmicu: ${poruka}`, 'error');
-          }
-        });
-    });
-  }
-
-  openPublish(): void {
-    if (!this.canEditShifts) {
-      Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
-      return;
-    }
-    if (!this.canManageStores && !this.currentStoreId) {
-      Swal.fire('Informacija', 'Nismo uspjeli odrediti prodavnicu za objavu smjena.', 'info');
-      return;
-    }
-    const dialogRef = this.dialogService.open(PublishDialogComponent, {
-      context: { weekStart: this.weekStart },
-      closeOnBackdropClick: false,
-    });
-
-    dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((payload: ShiftPublishRequest | null) => {
-      if (!payload) {
-        return;
-      }
-
-      payload.storeId = this.canManageStores ? (this.selectedStoreId ?? 0) : 0;
-
-      this.shiftsService.publish(payload)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.loadShifts();
-            Swal.fire('Uspjeh', 'Smjene su objavljene.', 'success');
-          },
-          error: (err) => {
-            const poruka = err.error?.poruka ?? err.statusText;
-            Swal.fire('Greška', `Ne možemo objaviti smjene: ${poruka}`, 'error');
           }
         });
     });
