@@ -32,7 +32,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   prodavnicaFilter = '';
   filterStatus: 'sve' | 'naručeno' | 'nenaručeno' = 'sve';
   trenutnaStranica = 1;
-  readonly pageSize = 5;
+  readonly pageSize = 3;
   readonly komentariOpcije = ['-', 'Nije u asortimanu', 'Ima dovoljno na zalihi'];
   readonly komentariBezNarudzbe = ['Nije u asortimanu', 'Ima dovoljno na zalihi'];
   loading = false;

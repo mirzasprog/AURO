@@ -130,7 +130,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       this.greska = 'Akcija je istekla. Pregled i izmjena narudžbi nisu dostupni.';
       return;
     }
-    this.otvoriAzuriranjeStavki(akcija, true);
+    this.otvoriAzuriranjeStavki(akcija);
   }
 
   prikaziAdminZonu(): boolean {
@@ -178,8 +178,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     this.kreiranjeLoading = true;
     const tijelo = {
       opis: this.novaAkcija.opis,
-      pocetak: new Date(this.novaAkcija.pocetak).toISOString(),
-      kraj: new Date(this.novaAkcija.kraj).toISOString()
+      pocetak: this.formatLocalDateTime(this.novaAkcija.pocetak),
+      kraj: this.formatLocalDateTime(this.novaAkcija.kraj)
     };
 
     this.dataService.kreirajVikendAkciju(tijelo)
@@ -247,16 +247,21 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stavke) => {
-          const stavkeZaExport = stavke.filter(s => (Number(s.kolicina) || 0) > 0);
+          const stavkeZaSintetiku = stavke.map(stavka => ({
+            ...stavka,
+            kolicina: Number(stavka.kolicina) || 0,
+            komentar: stavka.komentar ?? ''
+          }));
+          const stavkeZaAnalitiku = stavkeZaSintetiku.filter(s => (Number(s.kolicina) || 0) > 0);
 
-          if (!stavkeZaExport.length) {
-            this.greska = 'Nema dostupnih stavki sa naručenom količinom za odabranu akciju.';
+          if (!stavkeZaSintetiku.length) {
+            this.greska = 'Nema dostupnih stavki za odabranu akciju.';
             this.preuzimanjeAkcijaId = '';
             return;
           }
 
-          const analitika = this.kreirajAnalitiku(stavkeZaExport);
-          const sintetika = this.kreirajSintetiku(stavkeZaExport, akcija);
+          const analitika = this.kreirajAnalitiku(stavkeZaAnalitiku);
+          const sintetika = this.kreirajSintetiku(stavkeZaSintetiku, akcija);
 
           const workbook: XLSX.WorkBook = {
             Sheets: {
@@ -374,6 +379,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
       'Akcijska MPC': stavka.akcijskaMpc ?? 0,
       'Zaliha': stavka.zaliha ?? 0,
       'Količina': Number(stavka.kolicina) || 0,
+      'Komentar': stavka.komentar ?? '',
       Period: period,
     }));
   }
@@ -577,6 +583,20 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
 
   private artikalKljuc(stavka: VikendAkcijaStavka): string {
     return (stavka.sifra ?? stavka.naziv ?? stavka.id ?? '').toString().trim().toLowerCase();
+  }
+
+  private formatLocalDateTime(vrijednost: string): string {
+    if (!vrijednost) {
+      return vrijednost;
+    }
+
+    const datum = new Date(vrijednost);
+    if (Number.isNaN(datum.getTime())) {
+      return vrijednost;
+    }
+
+    const pad = (broj: number) => broj.toString().padStart(2, '0');
+    return `${datum.getFullYear()}-${pad(datum.getMonth() + 1)}-${pad(datum.getDate())}T${pad(datum.getHours())}:${pad(datum.getMinutes())}:${pad(datum.getSeconds())}`;
   }
 
   otvoriStavke(akcija: VikendAkcija): void {
