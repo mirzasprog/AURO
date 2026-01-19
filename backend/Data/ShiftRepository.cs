@@ -235,17 +235,7 @@ namespace backend.Data
                 return ShiftOperationResult.Failed("Zaposlenik nije pronađen.");
             }
 
-            var validationError = await ValidateShiftAsync(null, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
-            if (!string.IsNullOrWhiteSpace(validationError))
-            {
-                return ShiftOperationResult.Failed(validationError);
-            }
-
-            var warning = await ValidateWeeklyHoursAsync(null, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
-            if (!string.IsNullOrWhiteSpace(warning) && !IsAdmin())
-            {
-                return ShiftOperationResult.Failed(warning);
-            }
+            var warning = string.Empty;
 
             var shift = new Shift
             {
@@ -316,17 +306,7 @@ namespace backend.Data
                 return ShiftOperationResult.Failed("Zaposlenik nije pronađen.");
             }
 
-            var validationError = await ValidateShiftAsync(shiftId, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
-            if (!string.IsNullOrWhiteSpace(validationError))
-            {
-                return ShiftOperationResult.Failed(validationError);
-            }
-
-            var warning = await ValidateWeeklyHoursAsync(shiftId, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
-            if (!string.IsNullOrWhiteSpace(warning) && !IsAdmin())
-            {
-                return ShiftOperationResult.Failed(warning);
-            }
+            var warning = string.Empty;
 
             var before = CloneShift(shift);
 
