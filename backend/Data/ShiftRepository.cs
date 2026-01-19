@@ -682,11 +682,6 @@ namespace backend.Data
                     throw new InvalidOperationException("Korisnik nema dodijeljenu prodavnicu.");
                 }
 
-                if (storeId.HasValue && storeId.Value > 0 && storeId.Value != currentStoreId.Value)
-                {
-                    throw new InvalidOperationException("Nemate pristup odabranoj prodavnici.");
-                }
-
                 return currentStoreId.Value;
             }
 
