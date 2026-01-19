@@ -72,7 +72,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
         this.user = token.getPayload();
-        this.role = token.getPayload()?.['role'] ?? null;
+        const rawRole = token.getPayload()?.['role'];
+        this.role = typeof rawRole === 'string' ? rawRole.toLowerCase() : null;
         const storeIdPayload = token.getPayload()?.['prodavnicaId'] ?? token.getPayload()?.['storeId'];
         const resolvedStoreId = this.resolveStoreId(storeIdPayload, token);
         if (resolvedStoreId) {
