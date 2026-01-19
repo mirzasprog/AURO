@@ -58,7 +58,7 @@
   </div>
 
   <!-- Tabs -->
-  <nb-tabset class="tabs-section">
+  <nb-tabset class="tabs-section" (changeTab)="onTabChange($event)">
     <!-- Tjedni pregled -->
     <nb-tab tabTitle="Tjedni pregled">
       <ng-template nbTabContent>
@@ -72,7 +72,15 @@
           <!-- Calendar View -->
           <div *ngIf="!loading" class="calendar-view">
             <div class="calendar-grid">
-              <div *ngFor="let daySchedule of daySchedules" class="day-card">
+              <div
+                *ngFor="let daySchedule of daySchedules"
+                class="day-card"
+                role="button"
+                tabindex="0"
+                (dblclick)="openDayDetails(daySchedule)"
+                (keydown.enter)="openDayDetails(daySchedule)"
+                (keydown.space)="openDayDetails(daySchedule)"
+              >
                 <div class="day-header">
                   <h3>{{ daySchedule.dayName }}</h3>
                   <span class="day-date">{{ daySchedule.date | date: 'dd.MM' }}</span>
@@ -127,6 +135,7 @@
                     </div>
                   </div>
                 </div>
+                <div class="day-hint">Dvaput kliknite za detaljan pregled smjena</div>
               </div>
             </div>
           </div>
@@ -195,73 +204,45 @@
             <p>Učitavanje mjesečnog pregleda...</p>
           </div>
 
-          <div *ngIf="!monthLoading">
-            <div *ngIf="monthSummary.length === 0" class="empty-state">
+          <div *ngIf="!monthLoading" class="month-calendar-wrapper">
+            <div class="month-header">
+              <div>
+                <h3>{{ monthLabel }}</h3>
+                <p class="month-subtitle">Pregled smjena po danima u mjesecu</p>
+              </div>
+              <div class="month-hint">Dvaput kliknite na dan za detalje</div>
+            </div>
+
+            <div *ngIf="monthShifts.length === 0" class="empty-state">
               <nb-icon icon="calendar-outline" size="large"></nb-icon>
               <p>Nema smjena u odabranom mjesecu</p>
             </div>
 
-            <div *ngIf="monthSummary.length" class="monthly-stats">
-              <div *ngFor="let day of monthSummary" class="stat-card">
-                <div class="stat-date">{{ day.date | date: 'dd.MM.yyyy' }}</div>
-                <div class="stat-count">{{ day.count }}</div>
-                <div class="stat-label">smjena</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </ng-template>
-    </nb-tab>
-
-    <!-- Zahtjevi -->
-    <nb-tab tabTitle="Zahtjevi">
-      <ng-template nbTabContent>
-        <div class="tab-content">
-          <div *ngIf="requestsLoading" class="loading-state">
-            <nb-spinner size="large"></nb-spinner>
-            <p>Učitavanje zahtjeva...</p>
-          </div>
-
-          <div *ngIf="!requestsLoading">
-            <div *ngIf="requests.length === 0" class="empty-state">
-              <nb-icon icon="inbox-outline" size="large"></nb-icon>
-              <p>Nema zahtjeva</p>
+            <div class="month-weekdays">
+              <div *ngFor="let label of weekDayLabels" class="weekday-label">{{ label }}</div>
             </div>
 
-            <div *ngIf="requests.length" class="requests-list">
-              <div *ngFor="let request of requests" class="request-card">
-                <div class="request-header">
-                  <div class="request-employee">
-                    <h4>{{ request.employeeName || ('#' + request.employeeId) }}</h4>
-                    <span class="request-type">{{ request.type }}</span>
+            <div class="month-grid">
+              <div
+                *ngFor="let day of monthCalendarDays"
+                class="month-day"
+                [class.outside]="!day.inMonth"
+                role="button"
+                tabindex="0"
+                (dblclick)="openDayDetails(day.schedule)"
+                (keydown.enter)="openDayDetails(day.schedule)"
+                (keydown.space)="openDayDetails(day.schedule)"
+              >
+                <div class="month-date">{{ day.date | date: 'd' }}</div>
+                <div class="month-shift-preview">
+                  <div class="shift-preview shift-preview--first">
+                    <span class="label">Prva</span>
+                    <span class="value">{{ formatShiftPreview(day.schedule.shiftsFirstShift) }}</span>
                   </div>
-                  <span class="request-badge" [ngClass]="'status-' + (request.status | lowercase)">{{ request.status }}</span>
-                </div>
-
-                <div class="request-body">
-                  <div class="request-field">
-                    <label>Datum:</label>
-                    <span>{{ request.requestedDate | date: 'dd.MM.yyyy' }}</span>
+                  <div class="shift-preview shift-preview--second">
+                    <span class="label">Druga</span>
+                    <span class="value">{{ formatShiftPreview(day.schedule.shiftsSecondShift) }}</span>
                   </div>
-                  <div class="request-field">
-                    <label>Poruka:</label>
-                    <span>{{ request.message }}</span>
-                  </div>
-                  <div class="request-field">
-                    <label>Napomena menadžera:</label>
-                    <textarea nbInput [(ngModel)]="request.managerNote" [disabled]="!canManageRequests" placeholder="Unesite napomenu..."></textarea>
-                  </div>
-                </div>
-
-                <div class="request-actions">
-                  <button nbButton status="success" (click)="approveRequest(request)" [disabled]="!canManageRequests">
-                    <nb-icon icon="checkmark-outline"></nb-icon>
-                    Odobri
-                  </button>
-                  <button nbButton status="danger" (click)="rejectRequest(request)" [disabled]="!canManageRequests">
-                    <nb-icon icon="close-outline"></nb-icon>
-                    Odbij
-                  </button>
                 </div>
               </div>
             </div>
@@ -270,4 +251,36 @@
       </ng-template>
     </nb-tab>
   </nb-tabset>
+
+  <ng-template #dayDetailsDialog let-data let-ref="dialogRef">
+    <div class="day-details-modal">
+      <div class="modal-header">
+        <div>
+          <h3>{{ data.schedule.dayName }}</h3>
+          <span>{{ data.schedule.date | date: 'dd.MM.yyyy' }}</span>
+        </div>
+        <button nbButton ghost status="basic" size="tiny" (click)="dialogRef.close()" aria-label="Zatvori">
+          <nb-icon icon="close-outline"></nb-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-column">
+          <h4>Prva smjena</h4>
+          <div *ngIf="data.schedule.shiftsFirstShift.length === 0" class="modal-empty">Nema zaposlenih</div>
+          <div *ngFor="let shift of data.schedule.shiftsFirstShift" class="modal-shift">
+            <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
+            <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
+          </div>
+        </div>
+        <div class="modal-column">
+          <h4>Druga smjena</h4>
+          <div *ngIf="data.schedule.shiftsSecondShift.length === 0" class="modal-empty">Nema zaposlenih</div>
+          <div *ngFor="let shift of data.schedule.shiftsSecondShift" class="modal-shift">
+            <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
+            <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 </div>

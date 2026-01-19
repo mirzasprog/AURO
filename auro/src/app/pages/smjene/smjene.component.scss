@@ -260,11 +260,17 @@ $radius-lg: 1rem;
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: $shadow-sm;
+  cursor: pointer;
 
   &:hover {
     border-color: $primary-color;
     box-shadow: $shadow-md;
     transform: translateY(-4px);
+  }
+
+  &:focus {
+    outline: 3px solid rgba(51, 102, 255, 0.3);
+    outline-offset: 2px;
   }
 }
 
@@ -292,6 +298,13 @@ $radius-lg: 1rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+.day-hint {
+  padding: 0.75rem 1.5rem 1.25rem;
+  font-size: 0.8rem;
+  color: $text-secondary;
+  text-align: center;
 }
 
 .shift-section {
@@ -551,6 +564,195 @@ $radius-lg: 1rem;
   }
 }
 
+// Monthly Calendar
+.month-calendar-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.month-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: $text-primary;
+  }
+
+  .month-subtitle {
+    margin: 0.25rem 0 0;
+    color: $text-secondary;
+    font-size: 0.9rem;
+  }
+
+  .month-hint {
+    font-size: 0.85rem;
+    color: $text-secondary;
+    background: $bg-light;
+    padding: 0.5rem 1rem;
+    border-radius: $radius-md;
+  }
+}
+
+.month-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+  text-align: center;
+  font-weight: 600;
+  color: $text-secondary;
+  font-size: 0.85rem;
+}
+
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.75rem;
+}
+
+.month-day {
+  background: $bg-card;
+  border: 2px solid $border-color;
+  border-radius: $radius-md;
+  padding: 0.75rem;
+  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: $primary-color;
+    box-shadow: $shadow-md;
+  }
+
+  &:focus {
+    outline: 3px solid rgba(51, 102, 255, 0.3);
+    outline-offset: 2px;
+  }
+
+  &.outside {
+    background: $bg-light;
+    color: $text-secondary;
+  }
+
+  .month-date {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: $text-primary;
+  }
+}
+
+.month-shift-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.shift-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  border-radius: $radius-sm;
+  background: $bg-light;
+  border-left: 3px solid $primary-color;
+
+  .label {
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .value {
+    color: $text-secondary;
+    font-size: 0.78rem;
+  }
+
+  &.shift-preview--second {
+    border-left-color: $info-color;
+  }
+}
+
+// Day Details Modal
+.day-details-modal {
+  min-width: 320px;
+  max-width: 700px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid $border-color;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: $text-primary;
+  }
+
+  span {
+    font-size: 0.9rem;
+    color: $text-secondary;
+  }
+}
+
+.modal-body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.modal-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+
+  h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: $text-primary;
+  }
+}
+
+.modal-empty {
+  font-size: 0.85rem;
+  color: $text-secondary;
+  padding: 0.75rem;
+  border-radius: $radius-md;
+  background: $bg-light;
+  border: 1px dashed $border-color;
+  text-align: center;
+}
+
+.modal-shift {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: $bg-light;
+  border-radius: $radius-md;
+  font-size: 0.85rem;
+
+  .name {
+    font-weight: 600;
+    color: $text-primary;
+  }
+
+  .time {
+    color: $text-secondary;
+  }
+}
+
 // Requests
 .requests-list {
   display: flex;
@@ -748,5 +950,9 @@ $radius-lg: 1rem;
   .toolbar-section {
     padding: 1rem;
     gap: 1rem;
+  }
+
+  .modal-body {
+    grid-template-columns: 1fr;
   }
 }

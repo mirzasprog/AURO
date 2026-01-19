@@ -1,11 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { NbDialogService } from '@nebular/theme';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { DailyTaskStore } from '../../@core/data/daily-task';
-import { PagedResult, ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftRequestDto, ShiftUpdateRequest } from '../../@core/data/shifts';
+import { PagedResult, ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftUpdateRequest } from '../../@core/data/shifts';
 import { DailyTaskService } from '../../@core/utils/daily-task.service';
 import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
@@ -27,6 +27,12 @@ interface DaySchedule {
   shiftsSecondShift: ShiftDto[];
 }
 
+interface CalendarDay {
+  date: Date;
+  inMonth: boolean;
+  schedule: DaySchedule;
+}
+
 @Component({
   selector: 'ngx-smjene',
   templateUrl: './smjene.component.html',
@@ -37,7 +43,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   employees: any[] = [];
   shifts: ShiftDto[] = [];
   monthShifts: ShiftDto[] = [];
-  requests: ShiftRequestDto[] = [];
   selectedStoreId?: number;
   currentStoreId?: number;
   weekStart = this.getWeekStart(new Date());
@@ -48,7 +53,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   statusFilter = '';
   loading = false;
   monthLoading = false;
-  requestsLoading = false;
   role: string | null = null;
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
   user: any;
@@ -56,6 +60,9 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
   readonly shiftStatuses = ['Draft', 'Published', 'Completed', 'Cancelled'];
+  readonly weekDayLabels = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
+
+  @ViewChild('dayDetailsDialog', { static: true }) dayDetailsDialog!: TemplateRef<{ schedule: DaySchedule }>;
 
   constructor(
     private readonly authService: NbAuthService,
@@ -83,7 +90,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         this.loadStores();
         this.loadEmployees();
         this.loadShifts();
-        this.loadRequests();
       });
   }
 
@@ -94,10 +100,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   get canManageStores(): boolean {
     return this.role !== 'prodavnica';
-  }
-
-  get canManageRequests(): boolean {
-    return this.role !== 'prodavnica' && this.role !== 'uprava';
   }
 
   get canEditShifts(): boolean {
@@ -113,18 +115,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   get daySchedules(): DaySchedule[] {
-    return this.weekDays.map(date => {
-      const dateString = this.formatDateInput(date);
-      const dayShifts = this.filteredShifts.filter(s => this.toDateKey(s.shiftDate) === dateString);
-      return {
-        date,
-        dateString,
-        dayName: this.formatDayName(date),
-        shifts: dayShifts,
-        shiftsFirstShift: dayShifts.filter(s => s.shiftType?.toLowerCase() === 'morning'),
-        shiftsSecondShift: dayShifts.filter(s => s.shiftType?.toLowerCase() === 'afternoon')
-      };
-    });
+    return this.weekDays.map((date) => this.buildDaySchedule(date, this.filteredShifts));
   }
 
   private resolveStoreId(storeIdPayload: unknown, token: NbAuthJWTToken): number | undefined {
@@ -243,6 +234,25 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .sort((a, b) => a.date.localeCompare(b.date));
   }
 
+  get monthLabel(): string {
+    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
+    return monthStart.toLocaleDateString('bs-BA', { month: 'long', year: 'numeric' });
+  }
+
+  get monthCalendarDays(): CalendarDay[] {
+    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
+    const calendarStart = this.getWeekStart(monthStart);
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(calendarStart);
+      date.setDate(calendarStart.getDate() + index);
+      return {
+        date,
+        inMonth: date.getMonth() === monthStart.getMonth(),
+        schedule: this.buildDaySchedule(date, this.monthShifts),
+      };
+    });
+  }
+
   get departments(): string[] {
     const ids = new Set<string>();
     this.shifts.forEach((shift) => {
@@ -273,7 +283,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   onStoreChange(): void {
     this.loadEmployees();
     this.loadShifts();
-    this.loadRequests();
   }
 
   loadStores(): void {
@@ -293,7 +302,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
           if (this.selectedStoreId && this.selectedStoreId !== previousStoreId) {
             this.loadEmployees();
             this.loadShifts();
-            this.loadRequests();
           }
         },
         error: () => {
@@ -372,27 +380,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
           this.monthLoading = false;
           const poruka = err.error?.poruka ?? err.statusText;
           Swal.fire('Greška', `Ne možemo preuzeti mjesečni pregled: ${poruka}`, 'error');
-        }
-      });
-  }
-
-  loadRequests(): void {
-    if (!this.canManageRequests && !this.canManageStores) {
-      return;
-    }
-    this.requestsLoading = true;
-    const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
-    this.shiftsService.getRequests({ storeId })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (requests) => {
-          this.requests = requests;
-          this.requestsLoading = false;
-        },
-        error: (err) => {
-          this.requestsLoading = false;
-          const poruka = err.error?.poruka ?? err.statusText;
-          Swal.fire('Greška', `Ne možemo preuzeti zahtjeve: ${poruka}`, 'error');
         }
       });
   }
@@ -641,44 +628,14 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       });
   }
 
-  approveRequest(request: ShiftRequestDto): void {
-    const managerNote = request.managerNote ?? '';
-    this.shiftsService.approveRequest(request.requestId, { managerNote })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (updated) => this.replaceRequest(updated),
-        error: (err) => {
-          const poruka = err.error?.poruka ?? err.statusText;
-          Swal.fire('Greška', `Ne možemo odobriti zahtjev: ${poruka}`, 'error');
-        }
-      });
-  }
-
-  rejectRequest(request: ShiftRequestDto): void {
-    const managerNote = request.managerNote ?? '';
-    this.shiftsService.rejectRequest(request.requestId, { managerNote })
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (updated) => this.replaceRequest(updated),
-        error: (err) => {
-          const poruka = err.error?.poruka ?? err.statusText;
-          Swal.fire('Greška', `Ne možemo odbiti zahtjev: ${poruka}`, 'error');
-        }
-      });
-  }
-
   onTabChange(event: { tabTitle?: string }): void {
-    if (event.tabTitle === 'Mjesečni') {
+    if (event.tabTitle === 'Mjesečni pregled') {
       this.loadMonthShifts();
     }
   }
 
   private replaceShift(updated: ShiftDto): void {
     this.shifts = this.shifts.map((item) => item.shiftId === updated.shiftId ? updated : item);
-  }
-
-  private replaceRequest(updated: ShiftRequestDto): void {
-    this.requests = this.requests.map((item) => item.requestId === updated.requestId ? updated : item);
   }
 
   private getWeekStart(date: Date): Date {
@@ -716,6 +673,36 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  openDayDetails(schedule: DaySchedule): void {
+    this.dialogService.open(this.dayDetailsDialog, {
+      context: { schedule },
+      closeOnBackdropClick: true,
+    });
+  }
+
+  formatShiftPreview(shifts: ShiftDto[], limit = 2): string {
+    if (!shifts.length) {
+      return 'Nema';
+    }
+    const names = shifts.map((shift) => shift.employeeName || `#${shift.employeeId}`);
+    const preview = names.slice(0, limit).join(', ');
+    const remaining = names.length - limit;
+    return remaining > 0 ? `${preview} +${remaining}` : preview;
+  }
+
+  private buildDaySchedule(date: Date, shifts: ShiftDto[]): DaySchedule {
+    const dateString = this.formatDateInput(date);
+    const dayShifts = shifts.filter((shift) => this.toDateKey(shift.shiftDate) === dateString);
+    return {
+      date,
+      dateString,
+      dayName: this.formatDayName(date),
+      shifts: dayShifts,
+      shiftsFirstShift: dayShifts.filter((shift) => shift.shiftType?.toLowerCase() === 'morning'),
+      shiftsSecondShift: dayShifts.filter((shift) => shift.shiftType?.toLowerCase() === 'afternoon'),
+    };
   }
 
   private mapEmployeesToShiftEmployees(employees: any[]): ShiftEmployee[] {
