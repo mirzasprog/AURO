@@ -1,22 +1,15 @@
 <div class="smjene-container">
-  <!-- Header Banner -->
-  <div class="header-section">
-    <div class="header-content">
-      <h1>Upravljanje smjenama</h1>
-      <p class="subtitle">Efikasno planiranje i pregled raspokupljenih smjena</p>
-    </div>
-    <div class="role-banner" *ngIf="!canEditShifts">
-      <nb-icon icon="info-outline"></nb-icon>
-      <span>Rola uprava ima samo pregled postojećih smjena.</span>
-    </div>
-  </div>
-
-  <!-- Toolbar -->
+  <!-- TOOLBAR -->
   <div class="toolbar-section">
     <div class="toolbar-left">
       <div class="field-group">
         <label>Prodavnica</label>
-        <nb-select *ngIf="canManageStores" placeholder="Odaberite prodavnicu" [(ngModel)]="selectedStoreId" (selectedChange)="onStoreChange()" class="select-input">
+        <nb-select 
+          *ngIf="canManageStores" 
+          placeholder="Odaberite prodavnicu" 
+          [(ngModel)]="selectedStoreId" 
+          (selectedChange)="onStoreChange()" 
+          class="select-input">
           <nb-option *ngFor="let store of stores" [value]="store.id">
             {{ store.name }}
           </nb-option>
@@ -28,47 +21,56 @@
 
       <div class="field-group">
         <label>Sedmica od</label>
-        <input nbInput type="date" [(ngModel)]="weekPicker" (change)="onWeekChange(weekPicker)" class="date-input" />
+        <input 
+          nbInput 
+          type="date" 
+          [(ngModel)]="weekPicker" 
+          (change)="onWeekChange(weekPicker)" 
+          class="date-input" />
       </div>
     </div>
 
     <div class="toolbar-right">
-      <button nbButton status="primary" size="small" (click)="openAddShift()" [disabled]="!canEditShifts" class="action-btn">
+      <button 
+        nbButton 
+        status="primary" 
+        size="small" 
+        (click)="openAddShift()" 
+        [disabled]="!canEditShifts" 
+        class="action-btn">
         <nb-icon icon="plus-outline"></nb-icon>
         Nova smjena
       </button>
-      <button nbButton status="info" size="small" (click)="openCopyWeek()" [disabled]="!canEditShifts" class="action-btn">
-        <nb-icon icon="copy-outline"></nb-icon>
-        Kopiraj sedmicu
-      </button>
+
       <div class="export-group">
-        <nb-select [(ngModel)]="exportFormat" class="format-select">
+        <nb-select [(ngModel)]="exportFormat" style="margin-left: 10px;">
           <nb-option value="xlsx">XLSX</nb-option>
           <nb-option value="csv">CSV</nb-option>
         </nb-select>
-        <button nbButton status="basic" size="small" (click)="exportShifts()" class="action-btn">
+        <button  
+          nbButton 
+          status="success" 
+          size="small" 
+          (click)="exportShifts()" 
+          class="action-btn">
           <nb-icon icon="download-outline"></nb-icon>
           Export
         </button>
       </div>
-      <div class="toolbar-hint">
-        Smjene se spremaju odmah kao <strong>Draft</strong> i odmah su vidljive u tabeli.
-      </div>
     </div>
   </div>
 
-  <!-- Tabs -->
-  <nb-tabset class="tabs-section" (changeTab)="onTabChange($event)">
-    <!-- Tjedni pregled -->
-    <nb-tab tabTitle="Tjedni pregled">
+  <!-- TABS -->
+  <nb-tabset class="tabs-section" (changeTab)="onTabChange($event.tabTitle)">
+    
+    <!-- Sedmični PREGLED -->
+    <nb-tab tabTitle="📆 Sedmični Pregled">
       <div class="tab-content">
-        <!-- Loading -->
         <div *ngIf="loading" class="loading-state">
           <nb-spinner size="large"></nb-spinner>
           <p>Učitavanje smjena...</p>
         </div>
 
-        <!-- Calendar View -->
         <div *ngIf="!loading" class="calendar-view">
           <div class="calendar-grid">
             <div
@@ -77,18 +79,17 @@
               role="button"
               tabindex="0"
               (dblclick)="openDayDetails(daySchedule)"
-              (keydown.enter)="openDayDetails(daySchedule)"
-              (keydown.space)="openDayDetails(daySchedule)"
-            >
+              (keydown.enter)="openDayDetails(daySchedule)">
+              
               <div class="day-header">
                 <h3>{{ daySchedule.dayName }}</h3>
                 <span class="day-date">{{ daySchedule.date | date: 'dd.MM' }}</span>
               </div>
 
               <div class="shifts-container">
-                <!-- Prva smjena -->
+                <!-- PRVA SMJENA -->
                 <div class="shift-section">
-                  <div class="shift-title">Prva smjena</div>
+                  <div class="shift-title">⏰ Prva smjena</div>
                   <div class="shift-list">
                     <div *ngIf="daySchedule.shiftsFirstShift.length === 0" class="empty-slot">
                       <span class="empty-text">Nema zaposlenih</span>
@@ -98,21 +99,13 @@
                         <div class="employee-name">{{ shift.employeeName }}</div>
                         <div class="shift-time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</div>
                       </div>
-                      <div class="shift-actions">
-                        <button nbButton ghost size="tiny" status="info" (click)="openEditShift(shift)" [disabled]="!canEditShifts" nbTooltip="Uredi">
-                          <nb-icon icon="edit-2-outline"></nb-icon>
-                        </button>
-                        <button nbButton ghost size="tiny" status="danger" (click)="deleteShift(shift)" [disabled]="!canEditShifts" nbTooltip="Obriši">
-                          <nb-icon icon="trash-2-outline"></nb-icon>
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
 
-                <!-- Druga smjena -->
+                <!-- DRUGA SMJENA -->
                 <div class="shift-section">
-                  <div class="shift-title">Druga smjena</div>
+                  <div class="shift-title">⏰ Druga smjena</div>
                   <div class="shift-list">
                     <div *ngIf="daySchedule.shiftsSecondShift.length === 0" class="empty-slot">
                       <span class="empty-text">Nema zaposlenih</span>
@@ -122,32 +115,30 @@
                         <div class="employee-name">{{ shift.employeeName }}</div>
                         <div class="shift-time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</div>
                       </div>
-                      <div class="shift-actions">
-                        <button nbButton ghost size="tiny" status="info" (click)="openEditShift(shift)" [disabled]="!canEditShifts" nbTooltip="Uredi">
-                          <nb-icon icon="edit-2-outline"></nb-icon>
-                        </button>
-                        <button nbButton ghost size="tiny" status="danger" (click)="deleteShift(shift)" [disabled]="!canEditShifts" nbTooltip="Obriši">
-                          <nb-icon icon="trash-2-outline"></nb-icon>
-                        </button>
-                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-              <div class="day-hint">Dvaput kliknite za detaljan pregled smjena</div>
+
+              <div class="day-hint">Dvaput kliknite za detaljni pregled</div>
             </div>
           </div>
         </div>
       </div>
     </nb-tab>
 
-    <!-- Dnevni pregled -->
-    <nb-tab tabTitle="Dnevni pregled">
+    <!-- DNEVNI PREGLED -->
+    <nb-tab tabTitle="📅 Dnevni Pregled">
       <div class="tab-content">
         <div class="daily-header">
           <div class="field-group">
             <label>Odaberite datum</label>
-            <input nbInput type="date" [ngModel]="formatDateInput(selectedDay)" (ngModelChange)="onDayChange($event)" class="date-input" />
+            <input 
+              nbInput 
+              type="date" 
+              [ngModel]="formatDateInput(selectedDay)" 
+              (ngModelChange)="onDayChange($event)" 
+              class="date-input" />
           </div>
         </div>
 
@@ -161,7 +152,9 @@
             <div class="shift-main-info">
               <div class="shift-header">
                 <h4>{{ shift.employeeName || ('#' + shift.employeeId) }}</h4>
-                <span class="shift-badge" [ngClass]="'status-' + (shift.status | lowercase)">{{ shift.status }}</span>
+                <span class="shift-badge" [ngClass]="'status-' + (shift.status | lowercase)">
+                  {{ shift.status }}
+                </span>
               </div>
               <div class="shift-details">
                 <span class="detail">
@@ -178,21 +171,13 @@
                 </span>
               </div>
             </div>
-            <div class="shift-actions-right">
-              <button nbButton status="info" size="small" (click)="openEditShift(shift)" [disabled]="!canEditShifts">
-                Uredi
-              </button>
-              <button nbButton status="danger" size="small" (click)="deleteShift(shift)" [disabled]="!canEditShifts">
-                Obriši
-              </button>
-            </div>
           </div>
         </div>
       </div>
     </nb-tab>
 
-    <!-- Mjesečni pregled -->
-    <nb-tab tabTitle="Mjesečni pregled">
+    <!-- MJESEČNI PREGLED -->
+    <nb-tab tabTitle="📊 Mjesečni Pregled">
       <div class="tab-content">
         <div *ngIf="monthLoading" class="loading-state">
           <nb-spinner size="large"></nb-spinner>
@@ -201,11 +186,16 @@
 
         <div *ngIf="!monthLoading" class="month-calendar-wrapper">
           <div class="month-header">
-            <div>
-              <h3>{{ monthLabel }}</h3>
+            <button nbButton status="basic" size="small" (click)="prevMonth()" class="month-nav-btn">
+              <nb-icon icon="chevron-left-outline"></nb-icon>
+            </button>
+            <div class="month-title-section">
+              <h3>{{ currentMonth | date: 'MMMM yyyy' | uppercase }}</h3>
               <p class="month-subtitle">Pregled smjena po danima u mjesecu</p>
             </div>
-            <div class="month-hint">Dvaput kliknite na dan za detalje</div>
+            <button nbButton status="basic" size="small" (click)="nextMonth()" class="month-nav-btn">
+              <nb-icon icon="chevron-right-outline"></nb-icon>
+            </button>
           </div>
 
           <div *ngIf="monthShifts.length === 0" class="empty-state">
@@ -225,9 +215,8 @@
               role="button"
               tabindex="0"
               (dblclick)="openDayDetails(day.schedule)"
-              (keydown.enter)="openDayDetails(day.schedule)"
-              (keydown.space)="openDayDetails(day.schedule)"
-            >
+              (keydown.enter)="openDayDetails(day.schedule)">
+              
               <div class="month-date">{{ day.date | date: 'd' }}</div>
               <div class="month-shift-preview">
                 <div class="shift-preview shift-preview--first">
@@ -244,8 +233,10 @@
         </div>
       </div>
     </nb-tab>
+
   </nb-tabset>
 
+  <!-- DAY DETAILS MODAL -->
   <ng-template #dayDetailsDialog let-data let-ref="dialogRef">
     <div class="day-details-modal">
       <div class="modal-header">
@@ -253,22 +244,32 @@
           <h3>{{ data.schedule.dayName }}</h3>
           <span>{{ data.schedule.date | date: 'dd.MM.yyyy' }}</span>
         </div>
-        <button nbButton ghost status="basic" size="tiny" (click)="dialogRef.close()" aria-label="Zatvori">
+        <button 
+          nbButton 
+          ghost 
+          status="basic" 
+          size="tiny" 
+          (click)="ref.close()" 
+          aria-label="Zatvori">
           <nb-icon icon="close-outline"></nb-icon>
         </button>
       </div>
       <div class="modal-body">
         <div class="modal-column">
-          <h4>Prva smjena</h4>
-          <div *ngIf="data.schedule.shiftsFirstShift.length === 0" class="modal-empty">Nema zaposlenih</div>
+          <h4>👤 Prva smjena</h4>
+          <div *ngIf="data.schedule.shiftsFirstShift.length === 0" class="modal-empty">
+            Nema zaposlenih
+          </div>
           <div *ngFor="let shift of data.schedule.shiftsFirstShift" class="modal-shift">
             <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
             <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
           </div>
         </div>
         <div class="modal-column">
-          <h4>Druga smjena</h4>
-          <div *ngIf="data.schedule.shiftsSecondShift.length === 0" class="modal-empty">Nema zaposlenih</div>
+          <h4>👤 Druga smjena</h4>
+          <div *ngIf="data.schedule.shiftsSecondShift.length === 0" class="modal-empty">
+            Nema zaposlenih
+          </div>
           <div *ngFor="let shift of data.schedule.shiftsSecondShift" class="modal-shift">
             <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
             <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
@@ -277,4 +278,5 @@
       </div>
     </div>
   </ng-template>
+
 </div>

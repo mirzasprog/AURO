@@ -56,6 +56,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   role: string | null = null;
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
   user: any;
+  currentTab = 'weekly';
+  currentMonth: Date = new Date();
   private destroy$ = new Subject<void>();
 
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
@@ -93,6 +95,18 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       });
   }
 
+  nextMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
+    this.loadMonthShifts();
+  }
+
+  prevMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
+    this.loadMonthShifts();
+  }  
+
+
+
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
@@ -116,6 +130,104 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   get daySchedules(): DaySchedule[] {
     return this.weekDays.map((date) => this.buildDaySchedule(date, this.filteredShifts));
+  }
+
+  get weeklyRows(): WeeklyEmployeeRow[] {
+    const filtered = this.filteredShifts;
+    const grouped = new Map<number, WeeklyEmployeeRow>();
+    filtered.forEach((shift) => {
+      const employeeId = shift.employeeId;
+      const employeeName = shift.employeeName || `#${shift.employeeId}`;
+      if (!grouped.has(employeeId)) {
+        grouped.set(employeeId, { employeeId, employeeName, shiftsByDay: {} });
+      }
+      const row = grouped.get(employeeId)!;
+      const key = this.toDateKey(shift.shiftDate);
+      if (!row.shiftsByDay[key]) {
+        row.shiftsByDay[key] = [];
+      }
+      row.shiftsByDay[key].push(shift);
+    });
+    return Array.from(grouped.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName));
+  }
+
+  get filteredShifts(): ShiftDto[] {
+    return this.shifts.filter((shift) => {
+      if (this.statusFilter && shift.status !== this.statusFilter) {
+        return false;
+      }
+      if (this.departmentFilter && String(shift.departmentId ?? '') !== this.departmentFilter) {
+        return false;
+      }
+      if (this.employeeSearch) {
+        const query = this.employeeSearch.toLowerCase();
+        const name = (shift.employeeName ?? '').toLowerCase();
+        return name.includes(query) || String(shift.employeeId).includes(query);
+      }
+      return true;
+    });
+  }
+
+  get dailyShifts(): ShiftDto[] {
+    const dayKey = this.formatDateInput(this.selectedDay);
+    return this.filteredShifts.filter((shift) => this.toDateKey(shift.shiftDate) === dayKey);
+  }
+
+  get monthLabel(): string {
+    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
+    return monthStart.toLocaleDateString('bs-BA', { month: 'long', year: 'numeric' });
+  }
+
+  get monthCalendarDays(): CalendarDay[] {
+    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
+    const calendarStart = this.getWeekStart(monthStart);
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(calendarStart);
+      date.setDate(calendarStart.getDate() + index);
+      return {
+        date,
+        inMonth: date.getMonth() === monthStart.getMonth(),
+        schedule: this.buildDaySchedule(date, this.monthShifts),
+      };
+    });
+  }
+
+  get departments(): string[] {
+    const ids = new Set<string>();
+    this.shifts.forEach((shift) => {
+      if (shift.departmentId !== null && shift.departmentId !== undefined) {
+        ids.add(String(shift.departmentId));
+      }
+    });
+    return Array.from(ids.values()).sort();
+  }
+
+  onWeekChange(value: string): void {
+    if (!value) return;
+    const selected = new Date(value);
+    this.weekStart = this.getWeekStart(selected);
+    this.weekPicker = this.formatDateInput(this.weekStart);
+    this.selectedDay = new Date(this.weekStart);
+    this.loadShifts();
+  }
+
+  onDayChange(value: string): void {
+    if (value) {
+      this.selectedDay = new Date(value);
+    }
+  }
+
+  onStoreChange(): void {
+    this.loadEmployees();
+    this.loadShifts();
+  }
+
+  onTabChange(tabTitle: string): void {
+    this.currentTab = tabTitle.toLowerCase().split(' ')[0];
+    if (this.currentTab === 'mjesečni') {
+      this.currentMonth = new Date();
+      this.loadMonthShifts();
+    }
   }
 
   private resolveStoreId(storeIdPayload: unknown, token: NbAuthJWTToken): number | undefined {
@@ -170,47 +282,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  get weeklyRows(): WeeklyEmployeeRow[] {
-    const filtered = this.filteredShifts;
-    const grouped = new Map<number, WeeklyEmployeeRow>();
-    filtered.forEach((shift) => {
-      const employeeId = shift.employeeId;
-      const employeeName = shift.employeeName || `#${shift.employeeId}`;
-      if (!grouped.has(employeeId)) {
-        grouped.set(employeeId, { employeeId, employeeName, shiftsByDay: {} });
-      }
-      const row = grouped.get(employeeId)!;
-      const key = this.toDateKey(shift.shiftDate);
-      if (!row.shiftsByDay[key]) {
-        row.shiftsByDay[key] = [];
-      }
-      row.shiftsByDay[key].push(shift);
-    });
-    return Array.from(grouped.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName));
-  }
-
-  get filteredShifts(): ShiftDto[] {
-    return this.shifts.filter((shift) => {
-      if (this.statusFilter && shift.status !== this.statusFilter) {
-        return false;
-      }
-      if (this.departmentFilter && String(shift.departmentId ?? '') !== this.departmentFilter) {
-        return false;
-      }
-      if (this.employeeSearch) {
-        const query = this.employeeSearch.toLowerCase();
-        const name = (shift.employeeName ?? '').toLowerCase();
-        return name.includes(query) || String(shift.employeeId).includes(query);
-      }
-      return true;
-    });
-  }
-
-  get dailyShifts(): ShiftDto[] {
-    const dayKey = this.formatDateInput(this.selectedDay);
-    return this.filteredShifts.filter((shift) => this.toDateKey(shift.shiftDate) === dayKey);
-  }
-
   private normalizeShiftItems(result: PagedResult<ShiftDto> | ShiftDto[] | null | undefined): ShiftDto[] {
     if (!result) {
       return [];
@@ -221,68 +292,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       shiftType: shift.shiftType?.trim?.() ?? shift.shiftType,
       status: shift.status?.trim?.() ?? shift.status,
     }));
-  }
-
-  get monthSummary(): { date: string; count: number }[] {
-    const summary = new Map<string, number>();
-    this.monthShifts.forEach((shift) => {
-      const dateKey = this.toDateKey(shift.shiftDate);
-      summary.set(dateKey, (summary.get(dateKey) ?? 0) + 1);
-    });
-    return Array.from(summary.entries())
-      .map(([date, count]) => ({ date, count }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-  }
-
-  get monthLabel(): string {
-    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
-    return monthStart.toLocaleDateString('bs-BA', { month: 'long', year: 'numeric' });
-  }
-
-  get monthCalendarDays(): CalendarDay[] {
-    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
-    const calendarStart = this.getWeekStart(monthStart);
-    return Array.from({ length: 42 }, (_, index) => {
-      const date = new Date(calendarStart);
-      date.setDate(calendarStart.getDate() + index);
-      return {
-        date,
-        inMonth: date.getMonth() === monthStart.getMonth(),
-        schedule: this.buildDaySchedule(date, this.monthShifts),
-      };
-    });
-  }
-
-  get departments(): string[] {
-    const ids = new Set<string>();
-    this.shifts.forEach((shift) => {
-      if (shift.departmentId !== null && shift.departmentId !== undefined) {
-        ids.add(String(shift.departmentId));
-      }
-    });
-    return Array.from(ids.values()).sort();
-  }
-
-  onWeekChange(value: string): void {
-    if (!value) {
-      return;
-    }
-    const selected = new Date(value);
-    this.weekStart = this.getWeekStart(selected);
-    this.weekPicker = this.formatDateInput(this.weekStart);
-    this.selectedDay = new Date(this.weekStart);
-    this.loadShifts();
-  }
-
-  onDayChange(value: string): void {
-    if (value) {
-      this.selectedDay = new Date(value);
-    }
-  }
-
-  onStoreChange(): void {
-    this.loadEmployees();
-    this.loadShifts();
   }
 
   loadStores(): void {
@@ -311,24 +320,19 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   loadEmployees(): void {
-    // Koristi dataService umjesto shiftsService
     if (!this.user?.name) {
       console.warn('Korisnik nije dostupan za učitavanje zaposlenika');
       return;
     }
 
-    console.log('Počinje učitavanje zaposlenika za:', this.user.name);
     this.dataService.pregledajZaposlenike(this.user.name)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (employees) => {
-          console.log('Podaci iz API-ja:', employees);
           this.employees = employees || [];
-          console.log('Zaposlenici postavljeni:', this.employees);
         },
         error: (err) => {
           const poruka = err.error?.poruka ?? err.statusText ?? 'Nepoznata greška';
-          console.error('Greška pri učitavanju zaposlenika:', err);
           Swal.fire('Greška', `Ne možemo preuzeti zaposlenike: ${poruka}`, 'error');
         }
       });
@@ -405,9 +409,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     employeesReady$.pipe(takeUntil(this.destroy$)).subscribe(
       (employees) => {
         const mappedEmployees = this.mapEmployeesToShiftEmployees(employees);
-        console.log('Mapirani zaposlenici za dialog:', mappedEmployees);
-        
-        // Otvaramo dialog bez podataka - dialog će sam učitati zaposlenike
+
         const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
           context: {
             title: 'Nova smjena',
@@ -415,7 +417,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
             shiftStatuses: this.shiftStatuses,
             storeId: this.canManageStores ? (this.selectedStoreId ?? this.currentStoreId) : 0,
             canSelectStore: this.canManageStores,
-            userName: this.user?.name, // Prosleđujemo userName
+            userName: this.user?.name,
           },
           closeOnBackdropClick: false,
           hasBackdrop: true,
@@ -494,7 +496,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       Swal.fire('Informacija', 'Rola uprava može samo pregledati smjene.', 'info');
       return;
     }
-    
+
     const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
       context: {
         title: 'Uredi smjenu',
@@ -503,7 +505,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         shiftStatuses: this.shiftStatuses,
         storeId: shift.storeId,
         canSelectStore: this.canManageStores,
-        userName: this.user?.name, // Prosleđujemo userName
+        userName: this.user?.name,
       },
       closeOnBackdropClick: false,
       hasBackdrop: true,
@@ -628,12 +630,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       });
   }
 
-  onTabChange(event: { tabTitle?: string }): void {
-    if (event.tabTitle === 'Mjesečni pregled') {
-      this.loadMonthShifts();
-    }
-  }
-
   private replaceShift(updated: ShiftDto): void {
     this.shifts = this.shifts.map((item) => item.shiftId === updated.shiftId ? updated : item);
   }
@@ -706,17 +702,12 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   private mapEmployeesToShiftEmployees(employees: any[]): ShiftEmployee[] {
-    console.log('Mapiranje zaposlenika:', employees);
-    return (employees || []).map((emp) => {
-      const mapped: ShiftEmployee = {
-        employeeId: Number(emp.brojIzDESa) || emp.employeeId,
-        employeeName: `${emp.ime} ${emp.prezime}`.trim(),
-        firstName: emp.ime || '',
-        lastName: emp.prezime || '',
-        brojIzDESa: String(emp.brojIzDESa),
-      };
-      console.log('Mapirani zaposlenik:', mapped);
-      return mapped;
-    });
+    return (employees || []).map((emp) => ({
+      employeeId: Number(emp.brojIzDESa) || emp.employeeId,
+      employeeName: `${emp.ime} ${emp.prezime}`.trim(),
+      firstName: emp.ime || '',
+      lastName: emp.prezime || '',
+      brojIzDESa: String(emp.brojIzDESa),
+    }));
   }
 }
