@@ -34,7 +34,9 @@ namespace backend.Models.Shifts
     public class ShiftCreateRequest
     {
         public int StoreId { get; set; }
-        public int EmployeeId { get; set; }
+        public int? EmployeeId { get; set; }
+        public int? EmployeeHrId { get; set; }
+        public string? EmployeeName { get; set; }
         public DateTime ShiftDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
@@ -48,7 +50,9 @@ namespace backend.Models.Shifts
     public class ShiftUpdateRequest
     {
         public int StoreId { get; set; }
-        public int EmployeeId { get; set; }
+        public int? EmployeeId { get; set; }
+        public int? EmployeeHrId { get; set; }
+        public string? EmployeeName { get; set; }
         public DateTime ShiftDate { get; set; }
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }

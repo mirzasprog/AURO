@@ -229,27 +229,19 @@ namespace backend.Data
                 return ShiftOperationResult.Failed("Prodavnica nije pronađena.");
             }
 
-            if (!await EmployeeExistsAsync(request.EmployeeId))
+            var resolvedEmployeeId = await ResolveEmployeeIdAsync(request.EmployeeName, request.EmployeeHrId ?? request.EmployeeId, storeId);
+            if (!resolvedEmployeeId.HasValue)
             {
                 return ShiftOperationResult.Failed("Zaposlenik nije pronađen.");
             }
 
-            if (IsStoreRole())
-            {
-                var storeCode = await ResolveStoreCodeAsync(storeId);
-                if (!await EmployeeBelongsToStoreAsync(request.EmployeeId, storeCode))
-                {
-                    return ShiftOperationResult.Failed("Zaposlenik ne pripada odabranoj prodavnici.");
-                }
-            }
-
-            var validationError = await ValidateShiftAsync(null, request.EmployeeId, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
+            var validationError = await ValidateShiftAsync(null, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
             if (!string.IsNullOrWhiteSpace(validationError))
             {
                 return ShiftOperationResult.Failed(validationError);
             }
 
-            var warning = await ValidateWeeklyHoursAsync(null, request.EmployeeId, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
+            var warning = await ValidateWeeklyHoursAsync(null, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
             if (!string.IsNullOrWhiteSpace(warning) && !IsAdmin())
             {
                 return ShiftOperationResult.Failed(warning);
@@ -258,7 +250,7 @@ namespace backend.Data
             var shift = new Shift
             {
                 StoreId = storeId.Value,
-                EmployeeId = request.EmployeeId,
+                EmployeeId = resolvedEmployeeId.Value,
                 ShiftDate = request.ShiftDate.Date,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
@@ -318,27 +310,19 @@ namespace backend.Data
                 return ShiftOperationResult.Failed("Smjena ne pripada odabranoj prodavnici.");
             }
 
-            if (!await EmployeeExistsAsync(request.EmployeeId))
+            var resolvedEmployeeId = await ResolveEmployeeIdAsync(request.EmployeeName, request.EmployeeHrId ?? request.EmployeeId, storeId);
+            if (!resolvedEmployeeId.HasValue)
             {
                 return ShiftOperationResult.Failed("Zaposlenik nije pronađen.");
             }
 
-            if (IsStoreRole())
-            {
-                var storeCode = await ResolveStoreCodeAsync(storeId);
-                if (!await EmployeeBelongsToStoreAsync(request.EmployeeId, storeCode))
-                {
-                    return ShiftOperationResult.Failed("Zaposlenik ne pripada odabranoj prodavnici.");
-                }
-            }
-
-            var validationError = await ValidateShiftAsync(shiftId, request.EmployeeId, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
+            var validationError = await ValidateShiftAsync(shiftId, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
             if (!string.IsNullOrWhiteSpace(validationError))
             {
                 return ShiftOperationResult.Failed(validationError);
             }
 
-            var warning = await ValidateWeeklyHoursAsync(shiftId, request.EmployeeId, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
+            var warning = await ValidateWeeklyHoursAsync(shiftId, resolvedEmployeeId.Value, request.ShiftDate, request.StartTime, request.EndTime, request.BreakMinutes);
             if (!string.IsNullOrWhiteSpace(warning) && !IsAdmin())
             {
                 return ShiftOperationResult.Failed(warning);
@@ -346,7 +330,7 @@ namespace backend.Data
 
             var before = CloneShift(shift);
 
-            shift.EmployeeId = request.EmployeeId;
+            shift.EmployeeId = resolvedEmployeeId.Value;
             shift.ShiftDate = request.ShiftDate.Date;
             shift.StartTime = request.StartTime;
             shift.EndTime = request.EndTime;
@@ -961,23 +945,63 @@ namespace backend.Data
                     group => $"{group.First().Ime} {group.First().Prezime}".Trim());
         }
 
-        private async Task<bool> EmployeeExistsAsync(int employeeId)
+        private async Task<int?> ResolveEmployeeIdAsync(string? employeeName, int? employeeHrId, int? storeId)
         {
-            return await _context.Korisnik.AnyAsync(k => k.KorisnikId == employeeId);
-        }
-
-        private async Task<bool> EmployeeBelongsToStoreAsync(int employeeId, string? storeCode)
-        {
-            if (string.IsNullOrWhiteSpace(storeCode))
+            var storeCode = await ResolveStoreCodeAsync(storeId);
+            if (employeeHrId.HasValue)
             {
-                return false;
+                var query = _context.ParcijalnaInventuraImportZaposlenika.AsNoTracking();
+                if (!string.IsNullOrWhiteSpace(storeCode))
+                {
+                    query = query.Where(e => e.OznakaOJ != null && e.OznakaOJ.EndsWith(storeCode));
+                }
+
+                var employeeById = await query
+                    .OrderByDescending(e => e.DatumUcitavanja)
+                    .FirstOrDefaultAsync(e => e.BrojIzMaticneKnjige == employeeHrId.Value);
+                if (employeeById != null)
+                {
+                    return employeeById.BrojIzMaticneKnjige;
+                }
             }
 
-            return await _context.ParcijalnaInventuraImportZaposlenika
-                .AsNoTracking()
-                .AnyAsync(e => e.BrojIzMaticneKnjige == employeeId
-                    && e.OznakaOJ != null
-                    && e.OznakaOJ.EndsWith(storeCode));
+            if (string.IsNullOrWhiteSpace(employeeName))
+            {
+                return null;
+            }
+
+            var trimmed = employeeName.Trim();
+            if (string.IsNullOrWhiteSpace(trimmed))
+            {
+                return null;
+            }
+
+            var parts = trimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            var firstName = parts.FirstOrDefault() ?? trimmed;
+            var lastName = parts.Length > 1 ? string.Join(' ', parts.Skip(1)) : string.Empty;
+            var firstLower = firstName.ToLowerInvariant();
+            var lastLower = lastName.ToLowerInvariant();
+
+            var nameQuery = _context.ParcijalnaInventuraImportZaposlenika.AsNoTracking();
+            if (!string.IsNullOrWhiteSpace(storeCode))
+            {
+                nameQuery = nameQuery.Where(e => e.OznakaOJ != null && e.OznakaOJ.EndsWith(storeCode));
+            }
+
+            if (!string.IsNullOrWhiteSpace(lastName))
+            {
+                nameQuery = nameQuery.Where(e => e.Ime.ToLower() == firstLower && e.Prezime.ToLower() == lastLower);
+            }
+            else
+            {
+                nameQuery = nameQuery.Where(e => e.Ime.ToLower() == firstLower || e.Prezime.ToLower() == firstLower);
+            }
+
+            var employeeByName = await nameQuery
+                .OrderByDescending(e => e.DatumUcitavanja)
+                .FirstOrDefaultAsync();
+
+            return employeeByName?.BrojIzMaticneKnjige;
         }
 
         private async Task<string?> ResolveStoreCodeAsync(int? storeId)
