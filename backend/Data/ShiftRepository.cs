@@ -907,11 +907,22 @@ namespace backend.Data
                 return new Dictionary<int, string>();
             }
 
-            return await _context.ParcijalnaInventuraImportZaposlenika
+            var employees = await _context.ParcijalnaInventuraImportZaposlenika
                 .AsNoTracking()
                 .Where(e => idList.Contains(e.BrojIzMaticneKnjige))
+                .OrderByDescending(e => e.DatumUcitavanja)
+                .Select(e => new
+                {
+                    e.BrojIzMaticneKnjige,
+                    e.Ime,
+                    e.Prezime,
+                    e.DatumUcitavanja
+                })
+                .ToListAsync();
+
+            return employees
                 .GroupBy(e => e.BrojIzMaticneKnjige)
-                .ToDictionaryAsync(
+                .ToDictionary(
                     group => group.Key,
                     group => $"{group.First().Ime} {group.First().Prezime}".Trim());
         }
