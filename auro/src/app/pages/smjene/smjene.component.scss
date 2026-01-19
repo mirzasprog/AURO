@@ -25,6 +25,11 @@ $radius-lg: 1rem;
 // Header Section
 .header-section {
   margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 
   h1 {
     font-size: 2.5rem;
@@ -61,12 +66,11 @@ $radius-lg: 1rem;
 
 // Toolbar Section
 .toolbar-section {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  align-items: end;
   gap: 2rem;
   margin-bottom: 2rem;
-  flex-wrap: wrap;
 
   background: $bg-card;
   padding: 1.5rem;
@@ -75,17 +79,16 @@ $radius-lg: 1rem;
 }
 
 .toolbar-left {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1.5rem;
-  flex: 1;
-  min-width: 300px;
 }
 
 .toolbar-right {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1rem;
-  align-items: flex-end;
-  flex-wrap: wrap;
+  align-items: end;
 }
 
 .field-group {
@@ -127,9 +130,10 @@ $radius-lg: 1rem;
 }
 
 .export-group {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(90px, 1fr) minmax(120px, 1fr);
   gap: 0.5rem;
-  align-items: flex-end;
+  align-items: end;
 
   .format-select {
     min-width: 100px;
@@ -140,6 +144,8 @@ $radius-lg: 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
   transition: all 0.3s ease;
 
   &:hover:not(:disabled) {
@@ -663,14 +669,12 @@ $radius-lg: 1rem;
 // Responsive
 @media (max-width: 1024px) {
   .toolbar-section {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
   }
 
   .toolbar-left,
   .toolbar-right {
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
 
     .field-group,
     .export-group {
