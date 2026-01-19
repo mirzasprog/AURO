@@ -53,7 +53,8 @@ export interface ShiftMutationResponse {
 
 export interface ShiftCreateRequest {
   storeId: number;
-  employeeId: number;
+  employeeHrId?: number | null;
+  employeeName?: string | null;
   shiftDate: string;
   startTime: string;
   endTime: string;

@@ -244,7 +244,8 @@ export class ShiftFormDialogComponent implements OnInit, OnDestroy {
       const value = this.form.value;
       const payload: ShiftCreateRequest = {
         storeId: Number(value.storeId),
-        employeeId: Number(value.employeeId),
+        employeeHrId: Number(value.employeeId),
+        employeeName: this.resolveEmployeeName(Number(value.employeeId)),
         shiftDate: String(value.shiftDate),
         startTime: this.normalizeTime(String(value.startTime)),
         endTime: this.normalizeTime(String(value.endTime)),
@@ -331,7 +332,8 @@ export class ShiftFormDialogComponent implements OnInit, OnDestroy {
         this.getDateRange(customStartDate, customEndDate).forEach((date) => {
           payloads.push({
             storeId,
-            employeeId: employee.employeeId,
+            employeeHrId: employee.employeeId,
+            employeeName: employee.employeeName,
             shiftDate: date,
             startTime: customStartTime,
             endTime: customEndTime,
@@ -352,7 +354,8 @@ export class ShiftFormDialogComponent implements OnInit, OnDestroy {
       dates.forEach((date) => {
         payloads.push({
           storeId,
-          employeeId: employee.employeeId,
+          employeeHrId: employee.employeeId,
+          employeeName: employee.employeeName,
           shiftDate: date,
           startTime,
           endTime,
@@ -413,6 +416,14 @@ export class ShiftFormDialogComponent implements OnInit, OnDestroy {
       return `${time}:00`;
     }
     return time;
+  }
+
+  private resolveEmployeeName(employeeId: number | null): string | null {
+    if (!employeeId) {
+      return this.shift?.employeeName ?? null;
+    }
+    const match = this.employees.find((employee) => employee.employeeId === employeeId);
+    return match?.employeeName ?? this.shift?.employeeName ?? null;
   }
 
   private formatDateInput(date?: string | null): string {
