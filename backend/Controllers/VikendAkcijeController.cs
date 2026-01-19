@@ -88,6 +88,30 @@ namespace backend.Controllers
             return Ok(new { poruka, rezultat.BrojAzuriranih, rezultat.BrojDodanih });
         }
 
+        [HttpPut("{vikendAkcijaId}/produzi")]
+        [Authorize(Roles = "uprava")]
+        public async Task<IActionResult> ProduziAkciju(string vikendAkcijaId, [FromBody] VikendAkcijaProduzenjeRequest zahtjev)
+        {
+            if (zahtjev == null || zahtjev.BrojSati <= 0)
+            {
+                return BadRequest(new { poruka = "Broj sati mora biti veći od nule." });
+            }
+
+            var rezultat = await _repository.ProduziAkcijuAsync(vikendAkcijaId, zahtjev.BrojSati);
+
+            if (!rezultat.AkcijaPronadjena)
+            {
+                return NotFound(new { poruka = rezultat.Poruka });
+            }
+
+            if (!rezultat.Produzeno)
+            {
+                return BadRequest(new { poruka = rezultat.Poruka, akcija = rezultat.Akcija });
+            }
+
+            return Ok(new { poruka = rezultat.Poruka, akcija = rezultat.Akcija });
+        }
+
         [HttpPost("artikli-import")]
         [Authorize(Roles = "uprava")]
         public async Task<IActionResult> ImportArtikala([FromForm] VikendAkcijaArtikliUploadRequest zahtjev)

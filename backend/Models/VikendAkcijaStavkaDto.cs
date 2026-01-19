@@ -16,5 +16,6 @@ namespace backend.Models
         public string? Status { get; set; }
         public decimal? AkcijskaMpc { get; set; }
         public decimal? Zaliha { get; set; }
+        public string? Komentar { get; set; }
     }
 }

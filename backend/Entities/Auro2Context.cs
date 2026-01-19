@@ -1266,6 +1266,10 @@ namespace backend.Entities
 
                 entity.Property(e => e.UniqueId)
                     .HasColumnType("nvarchar(64)");
+
+                entity.Property(e => e.Produzeno)
+                    .HasColumnType("bit")
+                    .HasDefaultValue(false);
             });
 
             modelBuilder.Entity<VipStavke>(entity =>
@@ -1294,6 +1298,9 @@ namespace backend.Entities
 
                 entity.Property(e => e.VrijemeUnosaSaSourcea)
                     .HasColumnType("datetime");
+
+                entity.Property(e => e.Komentar)
+                    .HasColumnType("nvarchar(50)");
 
                 entity.HasOne(d => d.VipZaglavlje)
                     .WithMany(p => p.VipStavkes)

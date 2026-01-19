@@ -6,4 +6,5 @@ export interface VikendAkcija {
   status?: string;
   brojStavki: number;
   uniqueId?: string;
+  produzeno?: boolean;
 }

@@ -12,6 +12,7 @@ namespace backend.Entities
         public int? VipZaglavljeId { get; set; }
         public DateTime? VrijemeUnosaSaSourcea { get; set; }
         public DateTime? VrijemeUnosaIzProdavnice { get; set; }
+        public string? Komentar { get; set; }
 
         public virtual VipZaglavlje? VipZaglavlje { get; set; }
     }

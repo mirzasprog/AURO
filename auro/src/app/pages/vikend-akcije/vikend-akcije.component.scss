@@ -422,3 +422,14 @@
   gap: 0.5rem;
   justify-content: flex-end;
 }
+
+.extend-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.extend-input {
+  width: 70px;
+  text-align: center;
+}

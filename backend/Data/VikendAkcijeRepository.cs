@@ -36,7 +36,8 @@ namespace backend.Data
                     Kraj = z.Kraj,
                     Status = IzracunajStatus(z.Pocetak, z.Kraj, trenutniDatum),
                     BrojStavki = z.VipStavkes.Count,
-                    UniqueId = z.UniqueId
+                    UniqueId = z.UniqueId,
+                    Produzeno = z.Produzeno
                 })
                 .ToListAsync();
         }
@@ -164,7 +165,8 @@ namespace backend.Data
                     Sifra = i.SifraArtikla.Trim(),
                     Kolicina = i.Kolicina,
                     Naziv = i.NazivArtikla?.Trim(),
-                    Prodavnica = i.BrojProdavnice?.Trim()
+                    Prodavnica = i.BrojProdavnice?.Trim(),
+                    Komentar = NormalizujKomentar(i.Komentar)
                 })
                 .ToList();
 
@@ -195,6 +197,7 @@ namespace backend.Data
                 {
                     postojecaStavka.Kolicina = izmjena.Kolicina;
                     postojecaStavka.VrijemeUnosaIzProdavnice = DateTime.UtcNow;
+                    postojecaStavka.Komentar = izmjena.Komentar;
                     if (!string.IsNullOrWhiteSpace(izmjena.Naziv))
                     {
                         postojecaStavka.NazivArtikla = izmjena.Naziv;
@@ -214,6 +217,7 @@ namespace backend.Data
                         NazivArtikla = izmjena.Naziv,
                         Kolicina = izmjena.Kolicina,
                         Prodavnica = izmjena.Prodavnica,
+                        Komentar = izmjena.Komentar,
                         VipZaglavljeId = zaglavljeId,
                         VrijemeUnosaIzProdavnice = DateTime.UtcNow
                     });
@@ -227,6 +231,60 @@ namespace backend.Data
             return rezultat;
         }
 
+        public async Task<VikendAkcijaProduzenjeResult> ProduziAkcijuAsync(string vikendAkcijaId, int brojSati)
+        {
+            var rezultat = new VikendAkcijaProduzenjeResult { AkcijaPronadjena = true };
+
+            if (brojSati <= 0)
+            {
+                rezultat.Poruka = "Broj sati mora biti veći od nule.";
+                return rezultat;
+            }
+
+            var zaglavlje = await _context.VipZaglavljes
+                .FirstOrDefaultAsync(z => z.UniqueId == vikendAkcijaId);
+
+            if (zaglavlje == null)
+            {
+                rezultat.AkcijaPronadjena = false;
+                rezultat.Poruka = "Vikend akcija nije pronađena.";
+                return rezultat;
+            }
+
+            if (zaglavlje.Produzeno)
+            {
+                rezultat.Poruka = "Akcija je već produžena.";
+                rezultat.Akcija = MapirajAkciju(zaglavlje);
+                return rezultat;
+            }
+
+            var sada = DateTime.Now;
+            if (zaglavlje.Kraj.Date != sada.Date)
+            {
+                rezultat.Poruka = "Akciju je moguće produžiti samo na posljednji dan trajanja.";
+                rezultat.Akcija = MapirajAkciju(zaglavlje);
+                return rezultat;
+            }
+
+            if (zaglavlje.Kraj >= sada)
+            {
+                rezultat.Poruka = "Akcija još uvijek nije istekla.";
+                rezultat.Akcija = MapirajAkciju(zaglavlje);
+                return rezultat;
+            }
+
+            zaglavlje.Kraj = zaglavlje.Kraj.AddHours(brojSati);
+            zaglavlje.Produzeno = true;
+            zaglavlje.Status = IzracunajStatus(zaglavlje.Pocetak, zaglavlje.Kraj, DateTime.Now);
+
+            await _context.SaveChangesAsync();
+
+            rezultat.Produzeno = true;
+            rezultat.Poruka = "Akcija je produžena.";
+            rezultat.Akcija = MapirajAkciju(zaglavlje);
+            return rezultat;
+        }
+
         public async Task<VikendAkcijaDto> KreirajAkcijuAsync(VikendAkcijaCreateRequest zahtjev)
         {
             var uniqueId = GenerisiId();
@@ -237,7 +295,8 @@ namespace backend.Data
                 Pocetak = zahtjev.Pocetak,
                 Kraj = zahtjev.Kraj,
                 Status = status,
-                UniqueId = uniqueId
+                UniqueId = uniqueId,
+                Produzeno = false
             };
 
             _context.VipZaglavljes.Add(zaglavlje);
@@ -251,7 +310,8 @@ namespace backend.Data
                 Kraj = zaglavlje.Kraj,
                 Status = zaglavlje.Status,
                 BrojStavki = 0,
-                UniqueId = zaglavlje.UniqueId
+                UniqueId = zaglavlje.UniqueId,
+                Produzeno = zaglavlje.Produzeno
             };
         }
 
@@ -435,7 +495,8 @@ namespace backend.Data
                 Opis = artikal?.Opis,
                 Status = artikal?.Status,
                 AkcijskaMpc = artikal?.AkcijskaMpc,
-                Zaliha = artikal?.Zaliha ?? 0
+                Zaliha = artikal?.Zaliha ?? 0,
+                Komentar = stavka.Komentar
             };
         }
 
@@ -456,7 +517,8 @@ namespace backend.Data
                 Opis = artikal.Opis,
                 Status = artikal.Status,
                 AkcijskaMpc = artikal.AkcijskaMpc,
-                Zaliha = artikal.Zaliha ?? 0
+                Zaliha = artikal.Zaliha ?? 0,
+                Komentar = null
             };
         }
 
@@ -561,6 +623,32 @@ namespace backend.Data
         private static string GenerisiId()
         {
             return $"VIP-{Guid.NewGuid().ToString("N").Substring(0, 8).ToUpper()}";
+        }
+
+        private static VikendAkcijaDto MapirajAkciju(VipZaglavlje zaglavlje)
+        {
+            return new VikendAkcijaDto
+            {
+                Id = zaglavlje.Id,
+                Opis = zaglavlje.Opis,
+                Pocetak = zaglavlje.Pocetak,
+                Kraj = zaglavlje.Kraj,
+                Status = IzracunajStatus(zaglavlje.Pocetak, zaglavlje.Kraj),
+                BrojStavki = zaglavlje.VipStavkes?.Count ?? 0,
+                UniqueId = zaglavlje.UniqueId,
+                Produzeno = zaglavlje.Produzeno
+            };
+        }
+
+        private static string? NormalizujKomentar(string? komentar)
+        {
+            if (string.IsNullOrWhiteSpace(komentar))
+            {
+                return null;
+            }
+
+            var trimmed = komentar.Trim();
+            return trimmed.Length <= 50 ? trimmed : trimmed.Substring(0, 50);
         }
 
         private static string IzracunajStatus(DateTime pocetak, DateTime kraj, DateTime? trenutno = null)
