@@ -5,7 +5,7 @@ import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { DailyTaskStore } from '../../@core/data/daily-task';
-import { ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftRequestDto, ShiftUpdateRequest } from '../../@core/data/shifts';
+import { PagedResult, ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftRequestDto, ShiftUpdateRequest } from '../../@core/data/shifts';
 import { DailyTaskService } from '../../@core/utils/daily-task.service';
 import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
@@ -220,6 +220,18 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return this.filteredShifts.filter((shift) => this.toDateKey(shift.shiftDate) === dayKey);
   }
 
+  private normalizeShiftItems(result: PagedResult<ShiftDto> | ShiftDto[] | null | undefined): ShiftDto[] {
+    if (!result) {
+      return [];
+    }
+    const items = Array.isArray(result) ? result : result.items ?? [];
+    return items.map((shift) => ({
+      ...shift,
+      shiftType: shift.shiftType?.trim?.() ?? shift.shiftType,
+      status: shift.status?.trim?.() ?? shift.status,
+    }));
+  }
+
   get monthSummary(): { date: string; count: number }[] {
     const summary = new Map<string, number>();
     this.monthShifts.forEach((shift) => {
@@ -324,7 +336,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
-          this.shifts = result.items || [];
+          this.shifts = this.normalizeShiftItems(result);
           if (!this.canManageStores && this.shifts.length && !this.currentStoreId) {
             this.currentStoreId = this.shifts[0].storeId;
             this.selectedStoreId = this.selectedStoreId ?? this.currentStoreId;
@@ -353,7 +365,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
-          this.monthShifts = result.items || [];
+          this.monthShifts = this.normalizeShiftItems(result);
           this.monthLoading = false;
         },
         error: (err) => {
