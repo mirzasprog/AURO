@@ -115,7 +115,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   get daySchedules(): DaySchedule[] {
     return this.weekDays.map(date => {
       const dateString = this.formatDateInput(date);
-      const dayShifts = this.filteredShifts.filter(s => this.formatDateInput(new Date(s.shiftDate)) === dateString);
+      const dayShifts = this.filteredShifts.filter(s => this.toDateKey(s.shiftDate) === dateString);
       return {
         date,
         dateString,
@@ -189,7 +189,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         grouped.set(employeeId, { employeeId, employeeName, shiftsByDay: {} });
       }
       const row = grouped.get(employeeId)!;
-      const key = this.formatDateInput(new Date(shift.shiftDate));
+      const key = this.toDateKey(shift.shiftDate);
       if (!row.shiftsByDay[key]) {
         row.shiftsByDay[key] = [];
       }
@@ -217,13 +217,13 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   get dailyShifts(): ShiftDto[] {
     const dayKey = this.formatDateInput(this.selectedDay);
-    return this.filteredShifts.filter((shift) => this.formatDateInput(new Date(shift.shiftDate)) === dayKey);
+    return this.filteredShifts.filter((shift) => this.toDateKey(shift.shiftDate) === dayKey);
   }
 
   get monthSummary(): { date: string; count: number }[] {
     const summary = new Map<string, number>();
     this.monthShifts.forEach((shift) => {
-      const dateKey = this.formatDateInput(new Date(shift.shiftDate));
+      const dateKey = this.toDateKey(shift.shiftDate);
       summary.set(dateKey, (summary.get(dateKey) ?? 0) + 1);
     });
     return Array.from(summary.entries())
@@ -679,6 +679,24 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   private formatDayName(date: Date): string {
     const days = ['Ned', 'Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub'];
     return days[date.getDay()];
+  }
+
+  private toDateKey(value: string | Date): string {
+    if (value instanceof Date) {
+      return this.formatDateInput(value);
+    }
+    if (!value) {
+      return '';
+    }
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (match) {
+      return match[1];
+    }
+    const parsed = new Date(value);
+    if (!Number.isNaN(parsed.getTime())) {
+      return this.formatDateInput(parsed);
+    }
+    return '';
   }
 
   formatDateInput(date: Date): string {
