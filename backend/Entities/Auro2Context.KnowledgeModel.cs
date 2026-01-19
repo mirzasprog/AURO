@@ -271,11 +271,6 @@ namespace backend.Entities
                     .HasForeignKey(d => d.StoreId)
                     .HasConstraintName("FK_Shift_Prodavnica");
 
-                entity.HasOne(d => d.Employee)
-                    .WithMany()
-                    .HasForeignKey(d => d.EmployeeId)
-                    .HasConstraintName("FK_Shift_Korisnik");
-
                 entity.HasIndex(e => new { e.StoreId, e.ShiftDate })
                     .HasDatabaseName("IX_Shift_StoreId_ShiftDate");
 

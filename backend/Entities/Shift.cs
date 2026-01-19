@@ -22,6 +22,5 @@ namespace backend.Entities
         public bool IsDeleted { get; set; }
 
         public virtual Prodavnica Store { get; set; } = null!;
-        public virtual Korisnik Employee { get; set; } = null!;
     }
 }

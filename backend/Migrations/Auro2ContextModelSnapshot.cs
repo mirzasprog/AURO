@@ -3838,17 +3838,10 @@ namespace backend.Migrations
 
             modelBuilder.Entity("backend.Entities.Shift", b =>
                 {
-                    b.HasOne("backend.Entities.Korisnik", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .HasConstraintName("FK_Shift_Korisnik");
-
                     b.HasOne("backend.Entities.Prodavnica", "Store")
                         .WithMany()
                         .HasForeignKey("StoreId")
                         .HasConstraintName("FK_Shift_Prodavnica");
-
-                    b.Navigation("Employee");
 
                     b.Navigation("Store");
                 });

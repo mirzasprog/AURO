@@ -45,7 +45,6 @@ namespace backend.Data
 
             var query = _context.Shift
                 .AsNoTracking()
-                .Include(s => s.Employee)
                 .Include(s => s.Store)
                 .Where(s => !s.IsDeleted);
 
@@ -102,7 +101,6 @@ namespace backend.Data
 
             var query = _context.Shift
                 .AsNoTracking()
-                .Include(s => s.Employee)
                 .Include(s => s.Store)
                 .Where(s => !s.IsDeleted);
 
@@ -153,7 +151,6 @@ namespace backend.Data
             var query = _context.Shift
                 .AsNoTracking()
                 .Include(s => s.Store)
-                .Include(s => s.Employee)
                 .Where(s => !s.IsDeleted && s.EmployeeId == currentUser.KorisnikId);
 
             if (from.HasValue)
@@ -257,7 +254,6 @@ namespace backend.Data
             _context.Shift.Add(shift);
             await _context.SaveChangesAsync();
 
-            await _context.Entry(shift).Reference(s => s.Employee).LoadAsync();
             await _context.Entry(shift).Reference(s => s.Store).LoadAsync();
 
             await AddShiftAuditAsync(shift, "CREATE", null);
@@ -276,7 +272,6 @@ namespace backend.Data
 
             var storeId = await ResolveStoreIdAsync(request.StoreId);
             var shift = await _context.Shift
-                .Include(s => s.Employee)
                 .Include(s => s.Store)
                 .FirstOrDefaultAsync(s => s.ShiftId == shiftId && !s.IsDeleted);
 
@@ -324,7 +319,6 @@ namespace backend.Data
 
             await _context.SaveChangesAsync();
 
-            await _context.Entry(shift).Reference(s => s.Employee).LoadAsync();
             await _context.Entry(shift).Reference(s => s.Store).LoadAsync();
 
             await AddShiftAuditAsync(shift, "UPDATE", before);
@@ -342,7 +336,6 @@ namespace backend.Data
             }
 
             var shift = await _context.Shift
-                .Include(s => s.Employee)
                 .Include(s => s.Store)
                 .FirstOrDefaultAsync(s => s.ShiftId == shiftId && !s.IsDeleted);
 
@@ -819,11 +812,9 @@ namespace backend.Data
 
         private ShiftDto MapShift(Shift shift, IReadOnlyDictionary<int, string>? importLookup = null)
         {
-            var employeeName = shift.Employee?.KorisnickoIme;
-            if (string.IsNullOrWhiteSpace(employeeName) && importLookup != null && importLookup.TryGetValue(shift.EmployeeId, out var importedName))
-            {
-                employeeName = importedName;
-            }
+            var employeeName = importLookup != null && importLookup.TryGetValue(shift.EmployeeId, out var importedName)
+                ? importedName
+                : null;
 
             return new ShiftDto
             {
