@@ -41,10 +41,6 @@
         <nb-icon icon="copy-outline"></nb-icon>
         Kopiraj sedmicu
       </button>
-      <button nbButton status="success" size="small" (click)="openPublish()" [disabled]="!canEditShifts" class="action-btn">
-        <nb-icon icon="checkmark-outline"></nb-icon>
-        Objavi
-      </button>
       <div class="export-group">
         <nb-select [(ngModel)]="exportFormat" class="format-select">
           <nb-option value="xlsx">XLSX</nb-option>
@@ -54,6 +50,9 @@
           <nb-icon icon="download-outline"></nb-icon>
           Export
         </button>
+      </div>
+      <div class="toolbar-hint">
+        Smjene se spremaju odmah kao <strong>Draft</strong> i odmah su vidljive u tabeli.
       </div>
     </div>
   </div>

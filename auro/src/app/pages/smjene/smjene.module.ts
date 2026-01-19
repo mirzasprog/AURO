@@ -7,14 +7,12 @@ import { SmjeneRoutingModule } from './smjene-routing.module';
 import { SmjeneComponent } from './smjene.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
-import { PublishDialogComponent } from './publish-dialog/publish-dialog.component';
 
 @NgModule({
   declarations: [
     SmjeneComponent,
     ShiftFormDialogComponent,
     CopyWeekDialogComponent,
-    PublishDialogComponent,
   ],
   imports: [
     CommonModule,
