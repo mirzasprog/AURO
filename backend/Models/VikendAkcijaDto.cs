@@ -11,5 +11,6 @@ namespace backend.Models
         public string? Status { get; set; }
         public int BrojStavki { get; set; }
         public string? UniqueId { get; set; }
+        public bool Produzeno { get; set; }
     }
 }

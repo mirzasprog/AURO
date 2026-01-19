@@ -11,5 +11,6 @@ namespace backend.Data
         Task<IEnumerable<VipArtikalDto>> GetVipArtikliAsync(string akcijaId);
         Task<VikendAkcijaDto> KreirajAkcijuAsync(VikendAkcijaCreateRequest zahtjev);
         Task<VikendAkcijaImportResult> ImportArtikalaAsync(string akcijaId, IFormFile file);
+        Task<VikendAkcijaProduzenjeResult> ProduziAkcijuAsync(string vikendAkcijaId, int brojSati);
     }
 }

@@ -100,6 +100,7 @@ BEGIN
         [Kraj] DATETIME NOT NULL,
         [Status] NVARCHAR(MAX) NULL,
         [UniqueId] NVARCHAR(64) NULL,
+        [Produzeno] BIT NOT NULL CONSTRAINT [DF_VIPZaglavlje_Produzeno] DEFAULT(0),
         CONSTRAINT [PK_VIPZaglavlje] PRIMARY KEY CLUSTERED ([Id] ASC)
     );
 END";
@@ -117,6 +118,7 @@ BEGIN
         [VIPZaglavlje_Id] INT NULL,
         [VrijemeUnosaSaSourcea] DATETIME NULL,
         [VrijemeUnosaIzProdavnice] DATETIME NULL,
+        [Komentar] NVARCHAR(50) NULL,
         CONSTRAINT [PK_VIPStavkes] PRIMARY KEY CLUSTERED ([Id] ASC),
         CONSTRAINT [FK_dbo.VIPStavkes_dbo.VIPZaglavlje_VIPZaglavlje_Id] FOREIGN KEY([VIPZaglavlje_Id])
             REFERENCES [dbo].[VIPZaglavlje]([Id])
@@ -128,6 +130,16 @@ IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'UniqueId' AND Object_ID =
 BEGIN
     ALTER TABLE [dbo].[VIPZaglavlje]
     ADD [UniqueId] NVARCHAR(64) NULL;
+END";
+
+        private const string EnsureVipZaglavljeProduzenoColumnSql = @"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'VIPZaglavlje' AND schema_id = SCHEMA_ID('dbo'))
+    AND NOT EXISTS (
+        SELECT 1 FROM sys.columns WHERE Name = 'Produzeno' AND Object_ID = OBJECT_ID('[dbo].[VIPZaglavlje]')
+    )
+BEGIN
+    ALTER TABLE [dbo].[VIPZaglavlje]
+    ADD [Produzeno] BIT NOT NULL CONSTRAINT [DF_VIPZaglavlje_Produzeno] DEFAULT(0);
 END";
 
         private const string EnsureVipZaglavljeUniqueIdIndexSql = @"
@@ -205,6 +217,15 @@ BEGIN
     BEGIN
         ALTER TABLE [dbo].[VIPArtikli] ADD [Zaliha] DECIMAL(18, 2) NULL;
     END
+END";
+
+        private const string EnsureVipStavkesKomentarColumnSql = @"
+IF EXISTS (SELECT 1 FROM sys.tables WHERE name = 'VIPStavkes' AND schema_id = SCHEMA_ID('dbo'))
+    AND NOT EXISTS (
+        SELECT 1 FROM sys.columns WHERE Name = 'Komentar' AND Object_ID = OBJECT_ID('[dbo].[VIPStavkes]')
+    )
+BEGIN
+    ALTER TABLE [dbo].[VIPStavkes] ADD [Komentar] NVARCHAR(50) NULL;
 END";
 
         private const string EnsureServiceInvoicesTableSql = @"
@@ -331,7 +352,9 @@ END";
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipStavkesTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdColumnSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeProduzenoColumnSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipZaglavljeUniqueIdIndexSql);
+            await context.Database.ExecuteSqlRawAsync(EnsureVipStavkesKomentarColumnSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliTableSql);
             await context.Database.ExecuteSqlRawAsync(EnsureVipArtikliExtendedColumnsSql);
         }

@@ -8,5 +8,6 @@ namespace backend.Models
         public string? NazivArtikla { get; set; }
         public decimal Kolicina { get; set; }
         public string? BrojProdavnice { get; set; }
+        public string? Komentar { get; set; }
     }
 }

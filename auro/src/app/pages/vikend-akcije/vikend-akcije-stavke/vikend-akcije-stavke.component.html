@@ -81,6 +81,7 @@
           <col class="col-status">
           <col class="col-opis">
           <col class="col-zaliha">
+          <col class="col-komentar">
           <col class="col-kolicina">
           <col class="col-oznaka">
         </colgroup>
@@ -98,6 +99,7 @@
             <th>Status</th>
             <th>Opis</th>
             <th class="text-end">Zaliha</th>
+            <th>Komentar</th>
             <th class="text-center">Naručena količina</th>
             <th class="text-center">Izmjena</th>
           </tr>
@@ -129,10 +131,23 @@
             <td class="text-end zaliha-cell">
               <span class="quantity-chip">{{ (stavka.zaliha === null || stavka.zaliha === undefined) ? 0 : stavka.zaliha }}</span>
             </td>
+            <td class="komentar-cell" [ngClass]="{ 'invalid-comment': komentarObavezan(stavka) && !jeValidanKomentar(stavka) }">
+              <ng-container *ngIf="rola === 'prodavnica'; else komentarPrikaz">
+                <nb-select fullWidth [(selected)]="stavka.komentar" (selectedChange)="onKomentarChange()"
+                  [disabled]="!mozeUrediti() || (stavka.kolicina ?? 0) > 0"
+                  placeholder="Odaberite razlog">
+                  <nb-option value="" *ngIf="komentarObavezan(stavka)">Odaberite razlog</nb-option>
+                  <nb-option *ngFor="let opcija of komentarOpcije(stavka)" [value]="opcija">{{ opcija }}</nb-option>
+                </nb-select>
+              </ng-container>
+              <ng-template #komentarPrikaz>
+                <span class="comment-text">{{ stavka.komentar || '-' }}</span>
+              </ng-template>
+            </td>
             <td class="kolicina-cell" [ngClass]="{ 'zero-order': (stavka.kolicina ?? 0) === 0, 'changed': kolicinaPromijenjena(stavka) }">
               <div class="quantity-wrapper">
                 <input nbInput fullWidth type="number" step="0.01" min="0" [(ngModel)]="stavka.kolicina"
-                  (ngModelChange)="onKolicinaChange()" [disabled]="!mozeUrediti()" class="kolicina-input" />
+                  (ngModelChange)="onKolicinaChange(stavka)" [disabled]="!mozeUrediti()" class="kolicina-input" />
                 <span class="change-pill" *ngIf="kolicinaPromijenjena(stavka)">Izmjena</span>
               </div>
             </td>

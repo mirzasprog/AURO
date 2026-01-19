@@ -36,6 +36,8 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   stavkeLoading = false;
   stavkeGreska = '';
   preuzimanjeAkcijaId = '';
+  produzenjeLoadingId = '';
+  produzenjeSati = new Map<string, number>();
   novaAkcija = {
     opis: '',
     pocetak: '',
@@ -428,6 +430,70 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
     }
 
     return this.jeAkcijaAktivna(akcija);
+  }
+
+  mozeProduzitiAkciju(akcija: VikendAkcija): boolean {
+    if (this.rola !== 'uprava') {
+      return false;
+    }
+
+    if (!akcija || akcija.produzeno) {
+      return false;
+    }
+
+    const kraj = new Date(akcija.kraj);
+    if (isNaN(kraj.getTime())) {
+      return false;
+    }
+
+    const sada = new Date();
+    const istiDan = kraj.toDateString() === sada.toDateString();
+    if (!istiDan) {
+      return false;
+    }
+
+    return sada > kraj;
+  }
+
+  getProduzenjeSati(akcija: VikendAkcija): number {
+    const kljuc = akcija.uniqueId ?? akcija.id?.toString() ?? '';
+    return this.produzenjeSati.get(kljuc) ?? 2;
+  }
+
+  postaviProduzenjeSati(akcija: VikendAkcija, vrijednost: number): void {
+    const kljuc = akcija.uniqueId ?? akcija.id?.toString() ?? '';
+    const broj = Math.max(1, Number(vrijednost) || 1);
+    this.produzenjeSati.set(kljuc, broj);
+  }
+
+  produziAkciju(akcija: VikendAkcija): void {
+    if (!akcija?.uniqueId) {
+      this.greska = 'ID akcije nije dostupan.';
+      return;
+    }
+
+    if (!this.mozeProduzitiAkciju(akcija)) {
+      this.greska = 'Akciju je moguće produžiti samo jednom na posljednji dan.';
+      return;
+    }
+
+    const brojSati = this.getProduzenjeSati(akcija);
+    this.produzenjeLoadingId = akcija.uniqueId;
+    this.greska = '';
+    this.uspjehPoruka = '';
+    this.dataService.produziVikendAkciju(akcija.uniqueId, brojSati)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (odgovor) => {
+          this.produzenjeLoadingId = '';
+          this.uspjehPoruka = odgovor?.poruka ?? 'Akcija je produžena.';
+          this.ucitajAkcije();
+        },
+        error: (err) => {
+          this.produzenjeLoadingId = '';
+          this.greska = err.error?.poruka ?? 'Greška prilikom produženja akcije.';
+        }
+      });
   }
 
   private ocistiPoruke(): void {

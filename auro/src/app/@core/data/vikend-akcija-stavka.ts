@@ -15,6 +15,7 @@ export interface VikendAkcijaStavka {
   status?: string;
   akcijskaMpc?: number;
   zaliha?: number;
+  komentar?: string;
 }
 
 export interface VikendAkcijaStavkaUpdate {
@@ -24,4 +25,5 @@ export interface VikendAkcijaStavkaUpdate {
   nazivArtikla: string;
   kolicina: number;
   brojProdavnice: string;
+  komentar?: string;
 }

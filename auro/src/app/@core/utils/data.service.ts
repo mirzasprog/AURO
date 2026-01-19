@@ -449,6 +449,14 @@ export class DataService {
     return this.posaljiRequest("POST", this.baseUrl + '/api/vikend-akcije/artikli-import', formData);
   }
 
+  public produziVikendAkciju(vikendAkcijaId: string, brojSati: number) {
+    return this.posaljiRequest<{ poruka: string, akcija?: VikendAkcija }>(
+      "PUT",
+      this.baseUrl + `/api/vikend-akcije/${vikendAkcijaId}/produzi`,
+      { brojSati }
+    );
+  }
+
   public preuzmiAkcije(): Observable<Akcija[]> {
     return this.sendRequest<Akcija[]>("GET", this.baseUrl + '/api/akcije');
   }

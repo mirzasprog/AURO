@@ -468,12 +468,29 @@
   width: 110px;
 }
 
+.col-komentar {
+  width: 200px;
+}
+
 .col-status {
   width: 130px;
 }
 
 .col-opis {
   width: 200px;
+}
+
+.komentar-cell.nb-invalid,
+.komentar-cell.invalid-comment {
+  border-left: 3px solid var(--status-danger-border);
+  background: rgba(244, 67, 54, 0.08);
+}
+
+.comment-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-secondary);
 }
 
 @media (max-width: 1200px) {
