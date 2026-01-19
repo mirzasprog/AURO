@@ -8,7 +8,7 @@ import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { PodaciParcijalneInventure } from '../../../@core/data/PodaciParcijalneInventure';
 import { InventureUposlenici } from '../../../@core/data/inventureUposlenici';
 import { Observable, OperatorFunction } from 'rxjs';
-import { debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, map, take } from 'rxjs/operators';
 import { ChangeDetectorRef } from '@angular/core';
 import { PdfGeneratorService } from '../../../@core/services/generisiZapisnik.service';
 import { CanComponentDeactivate } from '../../../@core/guard/guards/unsaved-changes.guard';
@@ -109,10 +109,6 @@ export class ParcijalneInvComponent implements OnInit, CanComponentDeactivate {
   ) {
     // Registracija font-awesome ikona
     this.iconService.registerFontPack('font-awesome', { packClass: 'fa' });
-    // Dobijanje tokena i postavljanje prijavljenog korisnika
-    this.authService.getToken().subscribe((token: NbAuthJWTToken) => {
-      this.user = token.getPayload();
-    });
   }
 
   ngOnInit(): void {
@@ -123,8 +119,37 @@ export class ParcijalneInvComponent implements OnInit, CanComponentDeactivate {
     this.minDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
     // Inicijalizacija podataka za parcijalnu inventuru
     this.podaci = {} as PodaciParcijalneInventure;
-    // Učitavanje zaposlenika i postavljanje početnih vrijednosti [Paricijalne inventure]
-    this.dataService.pregledajZaposlenike(this.user.name).subscribe((r) => {
+    this.authService.getToken().pipe(take(1)).subscribe((token: NbAuthJWTToken) => {
+      this.user = token.getPayload();
+      const brojProdavnice = this.resolveBrojProdavnice(this.user);
+      if (!brojProdavnice) {
+        console.warn('Nedostaje broj prodavnice u tokenu; preskačem učitavanje zaposlenika.');
+        return;
+      }
+      this.ucitajZaposlenike(brojProdavnice);
+      this.ucitajZaposlenikePotpuneInv(brojProdavnice);
+    });
+    //Servis za kupljenje podataka o Uposlenicima
+    this.dataService.getImenaUposlenika().subscribe(
+      (r) => {
+        this.uposlenici = r;
+        this.listaUposlenika = this.uposlenici.map((d: InventureUposlenici) => d.zaposlenik);
+        this.cdr.markForCheck();
+      });
+    //Inicijalizacija liste za printanje
+    this.listaZaPrint = [];
+  }
+
+  private resolveBrojProdavnice(payload: any): string | null {
+    const storeCode = payload?.brojProdavnice ?? payload?.prodavnica ?? payload?.name ?? payload?.korisnickoIme;
+    if (!storeCode) {
+      return null;
+    }
+    return String(storeCode).trim();
+  }
+
+  private ucitajZaposlenike(brojProdavnice: string): void {
+    this.dataService.pregledajZaposlenike(brojProdavnice).subscribe((r) => {
       this.employees = r;
       this.employees.forEach(employee => {
         employee.naknada = 10;
@@ -134,9 +159,12 @@ export class ParcijalneInvComponent implements OnInit, CanComponentDeactivate {
         employee.rola = 'Uposlenik';
         employee.vrstaInventure = 'Parcijalna';
       });
+      this.cdr.markForCheck();
     });
-    // Učitavanje zaposlenika i postavljanje početnih vrijednosti [Potpune inventure]
-    this.dataService.pregledajZaposlenike(this.user.name).subscribe((r) => {
+  }
+
+  private ucitajZaposlenikePotpuneInv(brojProdavnice: string): void {
+    this.dataService.pregledajZaposlenike(brojProdavnice).subscribe((r) => {
       this.employeesPotpuneInv = r;
       this.employeesPotpuneInv.forEach(employee => {
         employee.naknada = 10;
@@ -146,15 +174,8 @@ export class ParcijalneInvComponent implements OnInit, CanComponentDeactivate {
         employee.rola = 'Uposlenik';
         employee.vrstaInventure = 'Potpuna';
       });
+      this.cdr.markForCheck();
     });
-    //Servis za kupljenje podataka o Uposlenicima
-    this.dataService.getImenaUposlenika().subscribe(
-      (r) => {
-        this.uposlenici = r;
-        this.listaUposlenika = this.uposlenici.map((d: InventureUposlenici) => d.zaposlenik);
-      });
-    //Inicijalizacija liste za printanje
-    this.listaZaPrint = [];
   }
 
   // Ova funkcija se poziva kada korisnik pokušava napustiti komponentu
