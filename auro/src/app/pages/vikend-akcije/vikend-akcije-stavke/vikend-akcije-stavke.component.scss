@@ -4,10 +4,10 @@
 }
 
 :host ::ng-deep nb-dialog-container.vikend-akcije-dialog {
-  width: 98vw;
-  max-width: 1400px;
-  height: 92vh;
-  max-height: 92vh;
+  width: 94vw;
+  max-width: 1240px;
+  height: 88vh;
+  max-height: 88vh;
   padding: 0;
   display: flex;
 }
@@ -20,6 +20,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  font-size: 0.9rem;
 }
 
 :host ::ng-deep nb-dialog-container.vikend-akcije-dialog nb-card {
@@ -53,13 +54,14 @@
 
 .section-title {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.05rem;
   font-weight: 700;
 }
 
 .section-subtitle {
   margin: 0;
   color: var(--text-secondary);
+  font-size: 0.85rem;
 }
 
 .pill-group {
@@ -79,7 +81,7 @@
 }
 
 .editor-field label {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   display: block;
   margin-bottom: 0.35rem;
@@ -93,7 +95,7 @@
 }
 
 .filter-field label {
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
   display: block;
   margin-bottom: 0.35rem;
@@ -129,12 +131,13 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.6rem;
   border-radius: 999px;
   background: var(--pill-background);
   border: 1px solid var(--pill-border);
   color: var(--pill-text);
   font-weight: 600;
+  font-size: 0.78rem;
 }
 
 .pill.strong {
@@ -249,13 +252,14 @@
   width: 100%;
   border-collapse: collapse;
   min-width: 1100px;
+  font-size: 0.82rem;
 }
 
 .stavke-table td,
 .stavke-table th {
   vertical-align: middle;
   word-break: break-word;
-  padding: 0.5rem 0.4rem;
+  padding: 0.35rem 0.35rem;
 }
 
 .stavke-table th {
@@ -320,7 +324,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.3rem 0.65rem;
+  padding: 0.2rem 0.55rem;
   border-radius: 999px;
   background: var(--pill-background);
   border: 1px solid var(--pill-border);
@@ -338,7 +342,7 @@
 
 .mono {
   font-family: var(--text-font-family-monospace, 'Roboto Mono', monospace);
-  font-size: 0.92rem;
+  font-size: 0.8rem;
 }
 
 .opis-cell {
@@ -359,8 +363,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 58px;
-  padding: 0.25rem 0.55rem;
+  min-width: 52px;
+  padding: 0.2rem 0.5rem;
   border-radius: 0.5rem;
   background: rgba(33, 150, 243, 0.08);
   color: var(--text-primary);
@@ -379,7 +383,7 @@
 .kolicina-input {
   text-align: right;
   font-weight: 600;
-  min-width: 130px;
+  min-width: 110px;
 }
 
 .kolicina-cell.changed .kolicina-input {
@@ -388,12 +392,12 @@
 }
 
 .change-pill {
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.45rem;
   border-radius: 0.45rem;
   background: rgba(255, 193, 7, 0.16);
   color: var(--text-primary);
   font-weight: 600;
-  font-size: 0.8rem;
+  font-size: 0.72rem;
 }
 
 .kolicina-cell.zero-order input {
@@ -410,11 +414,12 @@
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  padding: 0.25rem 0.6rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 999px;
   border: 1px solid var(--card-border);
   font-weight: 600;
   white-space: nowrap;
+  font-size: 0.78rem;
 }
 
 .status-success {
