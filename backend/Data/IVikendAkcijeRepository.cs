@@ -1,5 +1,5 @@
 using backend.Models;
-using Microsoft.AspNetCore.Http;
+using backend.Models.VIP;
 
 namespace backend.Data
 {
@@ -12,5 +12,6 @@ namespace backend.Data
         Task<VikendAkcijaDto> KreirajAkcijuAsync(VikendAkcijaCreateRequest zahtjev);
         Task<VikendAkcijaImportResult> ImportArtikalaAsync(string akcijaId, IFormFile file);
         Task<VikendAkcijaProduzenjeResult> ProduziAkcijuAsync(string vikendAkcijaId, int brojSati);
+        Task<IEnumerable<NaruceniArtikalAkcijeResponse>> GetNaruceniArtikliSaAkcijeAsync(string idAkcije);
     }
 }

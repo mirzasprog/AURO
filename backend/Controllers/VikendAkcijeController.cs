@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using backend.Data;
 using backend.Models;
+using backend.Models.VIP;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -131,5 +129,45 @@ namespace backend.Controllers
                 return BadRequest(new { poruka = ex.Message });
             }
         }
+
+
+        [HttpGet("akcije/{idAkcije}/naručeni-artikli")]
+        [ProducesResponseType(typeof(IEnumerable<NaruceniArtikalAkcijeResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<IEnumerable<NaruceniArtikalAkcijeResponse>>> GetNaruceniArtikliSaAkcije(
+    [FromRoute] string idAkcije)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(idAkcije))
+                {
+                    return BadRequest(new { message = "ID akcije je obavezan" });
+                }
+
+                if (idAkcije.Length > 64)
+                {
+                    return BadRequest(new { message = "ID akcije ne smije biti duži od 64 znaka" });
+                }
+
+                var artikli = await _repository.GetNaruceniArtikliSaAkcijeAsync(idAkcije);
+
+                if (artikli == null)
+                {
+
+                    return NotFound(new { message = $"Nisu pronađeni artikli za akciju {idAkcije}" });
+                }
+
+                return Ok(artikli);
+            }
+
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { message = "Došlo je do greške pri obradi zahtjeva" });
+            }
+        }
+
     }
 }

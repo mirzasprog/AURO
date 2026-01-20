@@ -9,6 +9,8 @@ using backend.Models;
 using Microsoft.EntityFrameworkCore;
 using ExcelDataReader;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using backend.Models.VIP;
 
 namespace backend.Data
 {
@@ -656,6 +658,49 @@ namespace backend.Data
             var referentni = trenutno ?? DateTime.Now;
             var aktivno = referentni >= pocetak && referentni <= kraj;
             return aktivno ? "Aktivno" : "Istekao";
+        }
+
+        public async Task<IEnumerable<NaruceniArtikalAkcijeResponse>> GetNaruceniArtikliSaAkcijeAsync(string idAkcije)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(idAkcije))
+                {
+                    throw new ArgumentException("ID akcije ne može biti prazan", nameof(idAkcije));
+                }
+
+                if (idAkcije.Length > 64)
+                {
+                    throw new ArgumentException("ID akcije ne smije biti duži od 64 znaka", nameof(idAkcije));
+                }
+
+                var idAkcijeParam = new SqlParameter
+                {
+                    ParameterName = "@IDAkcije",
+                    SqlDbType = SqlDbType.NVarChar,
+                    Size = 64,
+                    Value = idAkcije
+                };
+
+                var result = await _context.Set<NaruceniArtikalAkcijeResponse>()
+                    .FromSqlRaw("EXEC VIP.GetNaruceniArtikliSaAkcije @IDAkcije", idAkcijeParam)
+                    .AsNoTracking() // Bolje performanse jer ne trebamo tracking
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (SqlException ex)
+            {
+                throw new Exception($"Greška baze podataka pri dohvaćanju naručenih artikala za akciju {idAkcije}", ex);
+            }
+            catch (ArgumentException)
+            {
+                throw; // Re-throw validation errors
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Neočekivana greška pri dohvaćanju podataka", ex);
+            }
         }
     }
 }
