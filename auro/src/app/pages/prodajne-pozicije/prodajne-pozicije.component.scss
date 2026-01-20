@@ -1,5 +1,7 @@
 .page-card {
   width: 100%;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 1rem;
 }
 
 .page-header {
@@ -42,17 +44,18 @@
 .kpi-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .kpi-card {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1rem;
-  border: 1px solid var(--border-basic-color-3);
-  border-radius: 0.75rem;
+  padding: 1.25rem;
+  border: none;
+  border-radius: 1rem;
   background: var(--background-basic-color-1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .kpi-icon {
@@ -104,14 +107,15 @@
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .summary-card {
-  border: 1px solid var(--border-basic-color-3);
-  border-radius: 0.75rem;
-  padding: 1.25rem;
+  border: none;
+  border-radius: 1rem;
+  padding: 1.5rem;
   background: var(--background-basic-color-1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .summary-title {
@@ -135,7 +139,7 @@
 .tables-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .table {
@@ -145,8 +149,8 @@
 
 .table th,
 .table td {
-  border-bottom: 1px solid var(--border-basic-color-3);
-  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--border-basic-color-2);
+  padding: 0.8rem 0.5rem;
 }
 
 .table th {
