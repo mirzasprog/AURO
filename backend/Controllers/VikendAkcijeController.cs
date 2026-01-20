@@ -131,7 +131,7 @@ namespace backend.Controllers
         }
 
 
-        [HttpGet("akcije/{idAkcije}/naručeni-artikli")]
+        [HttpGet("akcije/{idAkcije}/naruceni-artikli")]
         [ProducesResponseType(typeof(IEnumerable<NaruceniArtikalAkcijeResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

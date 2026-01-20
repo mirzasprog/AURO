@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using backend.Models;
 using backend.Models.Prometi;
+using backend.Models.VIP;
 
 namespace backend.Entities
 {
@@ -107,6 +108,8 @@ namespace backend.Entities
         public DbSet<KategorijaPrometResponse> PrometPoKategoriji { get; set; } = null!;
         public DbSet<ArtikliNaRacunuResponse> ArtikliNaRacunu { get; set; } = null!;
         public DbSet<NarucenoIsporucenoResponse> NarucenoIsporuceno { get; set; }
+        public DbSet<NaruceniArtikalAkcijeResponse> NaruceniArtikalAkcijeResponse { get; set; }
+        
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -1380,6 +1383,8 @@ namespace backend.Entities
             modelBuilder.Entity<NarucenoIsporucenoResponse>(entity =>
                 entity.HasNoKey()
             );
+
+            modelBuilder.Entity<NaruceniArtikalAkcijeResponse>().HasNoKey();
 
             OnModelCreatingPartial(modelBuilder);
         }
