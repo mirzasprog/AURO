@@ -50,9 +50,9 @@
   align-items: center;
   gap: 1rem;
   padding: 1rem;
-  border: 1px solid #e4e9f2;
+  border: 1px solid var(--border-basic-color-3);
   border-radius: 0.75rem;
-  background: #ffffff;
+  background: var(--background-basic-color-1);
 }
 
 .kpi-icon {
@@ -66,39 +66,39 @@
 }
 
 .kpi-icon.info {
-  background: #e5f2ff;
-  color: #1d4ed8;
+  background: var(--color-primary-100);
+  color: var(--color-primary-500);
 }
 
 .kpi-icon.success {
-  background: #e8fff3;
-  color: #00a86b;
+  background: var(--color-success-100);
+  color: var(--color-success-500);
 }
 
 .kpi-icon.warning {
-  background: #edf1f7;
-  color: #8f9bb3;
+  background: var(--color-basic-200);
+  color: var(--text-hint-color);
 }
 
 .kpi-icon.orange {
-  background: #fff3e0;
-  color: #f59e0b;
+  background: var(--color-warning-100);
+  color: var(--color-warning-500);
 }
 
 .kpi-icon.primary {
-  background: #e5f2ff;
-  color: #3366ff;
+  background: var(--color-primary-100);
+  color: var(--color-primary-500);
 }
 
 .kpi-value {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1f2a44;
+  color: var(--text-basic-color);
 }
 
 .kpi-label {
   font-size: 0.85rem;
-  color: #8f9bb3;
+  color: var(--text-hint-color);
 }
 
 .summary-grid {
@@ -108,28 +108,28 @@
 }
 
 .summary-card {
-  border: 1px solid #e4e9f2;
+  border: 1px solid var(--border-basic-color-3);
   border-radius: 0.75rem;
   padding: 1.25rem;
-  background: #ffffff;
+  background: var(--background-basic-color-1);
 }
 
 .summary-title {
   font-size: 0.9rem;
-  color: #8f9bb3;
+  color: var(--text-hint-color);
   margin-bottom: 0.5rem;
 }
 
 .summary-value {
   font-size: 1.4rem;
   font-weight: 700;
-  color: #1f2a44;
+  color: var(--text-basic-color);
 }
 
 .summary-subtitle {
   margin-top: 0.25rem;
   font-size: 0.85rem;
-  color: #8f9bb3;
+  color: var(--text-hint-color);
 }
 
 .tables-grid {
@@ -145,7 +145,7 @@
 
 .table th,
 .table td {
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border-basic-color-3);
   padding: 0.75rem 0.5rem;
 }
 
@@ -153,13 +153,13 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  color: #8f9bb3;
+  color: var(--text-hint-color);
   text-align: left;
 }
 
 .empty {
   text-align: center;
-  color: #8f9bb3;
+  color: var(--text-hint-color);
 }
 
 .table-pagination {
@@ -168,12 +168,12 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid var(--border-basic-color-3);
 }
 
 .pagination-meta {
   font-size: 0.85rem;
-  color: #8f9bb3;
+  color: var(--text-hint-color);
 }
 
 .pagination-actions {
