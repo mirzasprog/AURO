@@ -10,7 +10,8 @@ import { Spinkit } from 'ng-http-loader';
   selector: 'ngx-app',
   template: `
     <router-outlet></router-outlet>
-    <ngx-chatbot-widget></ngx-chatbot-widget>
+<!--  ChatBot isključen od vrzije 6.0.0 dok se ne uvede servis za obradu korisničkih pitanja
+    <ngx-chatbot-widget></ngx-chatbot-widget> -->
     <ng-http-loader
       [backdrop]="true"
       [backgroundColor]="'#ff0000'"

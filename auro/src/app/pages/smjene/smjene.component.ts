@@ -56,7 +56,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   role: string | null = null;
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
   user: any;
-  currentTab = 'weekly';
   currentMonth: Date = new Date();
   private destroy$ = new Subject<void>();
 
@@ -76,7 +75,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.weekPicker = this.formatDateInput(this.weekStart);
-    this.selectedDay = new Date(this.weekStart);
+    this.selectedDay = new Date();
+    this.currentMonth = new Date();
     this.authService.getToken()
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
@@ -92,20 +92,9 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         this.loadStores();
         this.loadEmployees();
         this.loadShifts();
+        this.loadMonthShifts();
       });
   }
-
-  nextMonth(): void {
-    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
-    this.loadMonthShifts();
-  }
-
-  prevMonth(): void {
-    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
-    this.loadMonthShifts();
-  }  
-
-
 
   ngOnDestroy(): void {
     this.destroy$.next();
@@ -173,14 +162,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return this.filteredShifts.filter((shift) => this.toDateKey(shift.shiftDate) === dayKey);
   }
 
-  get monthLabel(): string {
-    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
-    return monthStart.toLocaleDateString('bs-BA', { month: 'long', year: 'numeric' });
-  }
-
   get monthCalendarDays(): CalendarDay[] {
-    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
+    const monthStart = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
+    const monthEnd = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
     const calendarStart = this.getWeekStart(monthStart);
+    
     return Array.from({ length: 42 }, (_, index) => {
       const date = new Date(calendarStart);
       date.setDate(calendarStart.getDate() + index);
@@ -220,14 +206,24 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   onStoreChange(): void {
     this.loadEmployees();
     this.loadShifts();
+    this.loadMonthShifts();
   }
 
-  onTabChange(tabTitle: string): void {
-    this.currentTab = tabTitle.toLowerCase().split(' ')[0];
-    if (this.currentTab === 'mjesečni') {
-      this.currentMonth = new Date();
+  onTabChange(event: any): void {
+    const tabTitle = event.tabTitle || '';
+    if (tabTitle.includes('Mjesečni')) {
       this.loadMonthShifts();
     }
+  }
+
+  nextMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
+    this.loadMonthShifts();
+  }
+
+  prevMonth(): void {
+    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
+    this.loadMonthShifts();
   }
 
   private resolveStoreId(storeIdPayload: unknown, token: NbAuthJWTToken): number | undefined {
@@ -311,6 +307,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
           if (this.selectedStoreId && this.selectedStoreId !== previousStoreId) {
             this.loadEmployees();
             this.loadShifts();
+            this.loadMonthShifts();
           }
         },
         error: () => {
@@ -365,13 +362,10 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   loadMonthShifts(): void {
-    if (this.monthLoading) {
-      return;
-    }
     this.monthLoading = true;
     const storeId = this.canManageStores ? this.selectedStoreId : this.currentStoreId;
-    const monthStart = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth(), 1);
-    const monthEnd = new Date(this.weekStart.getFullYear(), this.weekStart.getMonth() + 1, 0);
+    const monthStart = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
+    const monthEnd = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
 
     this.shiftsService.getShifts({ storeId, from: this.formatDateInput(monthStart), to: this.formatDateInput(monthEnd), pageSize: 500 })
       .pipe(takeUntil(this.destroy$))
@@ -475,6 +469,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
                 }
                 this.shifts = [...this.shifts, ...created];
                 this.loadShifts();
+                this.loadMonthShifts();
                 Swal.fire('Uspjeh', `Kreirano ${created.length} smjena.`, 'success');
               }
 
@@ -528,6 +523,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         .subscribe({
           next: (response) => {
             this.replaceShift(response.shift);
+            this.loadShifts();
+            this.loadMonthShifts();
             Swal.fire('Uspjeh', 'Smjena je ažurirana.', 'success');
             if (response.warning) {
               Swal.fire('Upozorenje', response.warning, 'warning');
@@ -563,6 +560,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.shifts = this.shifts.filter((item) => item.shiftId !== shift.shiftId);
+            this.loadShifts();
+            this.loadMonthShifts();
           },
           error: (err) => {
             const poruka = err.error?.poruka ?? err.statusText;
@@ -598,6 +597,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
         .subscribe({
           next: () => {
             this.loadShifts();
+            this.loadMonthShifts();
             Swal.fire('Uspjeh', 'Sedmica je kopirana.', 'success');
           },
           error: (err) => {
@@ -628,6 +628,35 @@ export class SmjeneComponent implements OnInit, OnDestroy {
           Swal.fire('Greška', `Ne možemo eksportovati smjene: ${poruka}`, 'error');
         }
       });
+  }
+
+  openDayDetails(schedule: DaySchedule): void {
+    this.dialogService.open(this.dayDetailsDialog, {
+      context: { schedule },
+      closeOnBackdropClick: true,
+    });
+  }
+
+  formatShiftPreview(shifts: ShiftDto[], limit = 2): string {
+    if (!shifts.length) {
+      return 'Nema';
+    }
+    const names = shifts.map((shift) => shift.employeeName || `#${shift.employeeId}`);
+    const preview = names.slice(0, limit).join(', ');
+    const remaining = names.length - limit;
+    return remaining > 0 ? `${preview} +${remaining}` : preview;
+  }
+
+  dayHasShifts(schedule: DaySchedule): boolean {
+    return schedule.shiftsFirstShift.length > 0 || schedule.shiftsSecondShift.length > 0;
+  }
+
+  getFirstShifts(): ShiftDto[] {
+    return this.dailyShifts.filter((s) => s.shiftType?.toLowerCase() === 'morning');
+  }
+
+  getSecondShifts(): ShiftDto[] {
+    return this.dailyShifts.filter((s) => s.shiftType?.toLowerCase() === 'afternoon');
   }
 
   private replaceShift(updated: ShiftDto): void {
@@ -671,21 +700,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return `${year}-${month}-${day}`;
   }
 
-  openDayDetails(schedule: DaySchedule): void {
+  openDayDetailsDialog(schedule: DaySchedule): void {
     this.dialogService.open(this.dayDetailsDialog, {
       context: { schedule },
       closeOnBackdropClick: true,
     });
-  }
-
-  formatShiftPreview(shifts: ShiftDto[], limit = 2): string {
-    if (!shifts.length) {
-      return 'Nema';
-    }
-    const names = shifts.map((shift) => shift.employeeName || `#${shift.employeeId}`);
-    const preview = names.slice(0, limit).join(', ');
-    const remaining = names.length - limit;
-    return remaining > 0 ? `${preview} +${remaining}` : preview;
   }
 
   private buildDaySchedule(date: Date, shifts: ShiftDto[]): DaySchedule {
