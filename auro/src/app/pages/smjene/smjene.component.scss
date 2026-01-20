@@ -660,17 +660,6 @@ $transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   min-width: 350px;
   max-width: 750px;
   background: var(--background-basic-color-1);
-  border: 2px solid $border;
-  border-radius: $radius;
-  box-shadow: $shadow-lg;
-  color: $text-primary;
-}
-
-::ng-deep nb-dialog-container {
-  background: var(--background-basic-color-1);
-  color: $text-primary;
-  border-radius: $radius;
-  box-shadow: $shadow-lg;
 }
 
 .modal-header {
