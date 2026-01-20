@@ -43,13 +43,13 @@
               </div>
               <small class="text-muted d-block mt-1">Dozvoljen je .xlsx format sa zaglavljima iz šablona.</small>
             </div>
-            <div class="form-actions even-actions inline-actions">
-              <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small"
+            <div class="row">
+              <button nbButton status="warning" type="button" [disabled]="kreiranjeLoading" size="small" style="margin-top:17px; margin-right: 5px;"
                 (click)="ocistiFormu()" class="action-button">
                 <nb-icon icon="refresh"></nb-icon>
               </button>
               <button nbButton status="success" [disabled]="kreiranjeLoading" type="submit" size="small"
-                class="action-button">
+                class="action-button" style="margin-top:17px; margin-left: 5px;">
                 <nb-spinner size="small" *ngIf="kreiranjeLoading"></nb-spinner>
                 <span *ngIf="!kreiranjeLoading">
                   <nb-icon icon="save"></nb-icon> Spremi
