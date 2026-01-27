@@ -24,7 +24,11 @@
         </button>
         <button nbButton size="small" status="danger" [disabled]="selectedIndex === null" (click)="obrisiPoziciju()">
           <nb-icon icon="trash-2-outline"></nb-icon>
-          Zalijepi
+          Obriši poziciju
+        </button>
+        <button nbButton size="small" status="warning" [disabled]="!layout.backgroundData" (click)="ukloniPodlogu()">
+          <nb-icon icon="close-square-outline"></nb-icon>
+          Ukloni podlogu
         </button>
       </div>
 
@@ -46,10 +50,31 @@
             <nb-icon icon="plus-outline"></nb-icon>
           </button>
         </div>
+
+        <div class="font-size-control">
+          <span class="font-size-label">Font</span>
+          <input
+            type="range"
+            [min]="labelFontScaleMin"
+            [max]="labelFontScaleMax"
+            step="0.1"
+            [value]="labelFontScale"
+            (input)="onLabelFontScaleChange($event.target.value)"
+          />
+          <span class="font-size-value">{{ labelFontScale * 100 | number: '1.0-0' }}%</span>
+        </div>
         
         <button nbButton size="small" status="basic" (click)="triggerBackgroundUpload()">
           <nb-icon icon="image-outline"></nb-icon>
           Podloga
+        </button>
+        <button nbButton size="small" status="basic" [disabled]="!layout.backgroundData" (click)="rotirajPodlogu(-90)">
+          <nb-icon icon="undo-outline"></nb-icon>
+          Rotiraj -90°
+        </button>
+        <button nbButton size="small" status="basic" [disabled]="!layout.backgroundData" (click)="rotirajPodlogu(90)">
+          <nb-icon icon="redo-outline"></nb-icon>
+          Rotiraj +90°
         </button>
         
         <button nbButton size="small" status="primary" (click)="sacuvaj()">
@@ -140,11 +165,13 @@
         <div class="canvas-viewport" #canvas (pointerdown)="onCanvasPointerDown($event)">
           <div class="canvas-pan" [ngStyle]="getPanStyle()">
             <div class="canvas-content" [ngStyle]="getCanvasStyle()">
-              <div
+              <img
                 class="background-layer"
                 *ngIf="layout.backgroundData && isImageBackground()"
+                [src]="layout.backgroundData"
                 [ngStyle]="getBackgroundStyle()"
-              ></div>
+                alt="Podloga"
+              />
 
               <div
                 class="layout-item"

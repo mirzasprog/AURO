@@ -61,7 +61,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   zoom = 1;
   minZoom = 0.4;
-  maxZoom = 2;
+  maxZoom = 3;
+
+  labelFontScale = 1;
+  readonly labelFontScaleMin = 0.6;
+  readonly labelFontScaleMax = 1.6;
 
   vrsteUgovora = ['Nije postavljeno', 'Mjesečni', 'Godišnji', 'Sezonski'];
   tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal', '500+'];
@@ -116,6 +120,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   private activePointerId: number | null = null;
 
+  private backgroundNaturalSize: { width: number; height: number } | null = null;
+
   panX = 0;
   panY = 0;
 
@@ -136,6 +142,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       this.layout.backgroundRotation = 0;
     }
     this.izracunajSkalu();
+    if (this.layout.backgroundData && this.isImageBackground()) {
+      this.loadBackgroundImageDimensions(this.layout.backgroundData);
+    }
     this.azurirajUpozorenja();
 
     console.log('✅ Editor ready', {
@@ -572,9 +581,13 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   getBackgroundStyle(): Record<string, string> {
     const rotation = this.layout.backgroundRotation ?? 0;
+    const renderSize = this.getBackgroundRenderSize();
     return {
-      backgroundImage: `url(${this.layout.backgroundData})`,
-      transform: `rotate(${rotation}deg)`,
+      width: renderSize ? `${renderSize.width}px` : '100%',
+      height: renderSize ? `${renderSize.height}px` : '100%',
+      left: '50%',
+      top: '50%',
+      transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
       transformOrigin: 'center'
     };
   }
@@ -582,6 +595,10 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   onZoomChange(value: number): void {
     this.zoom = Number(value);
     this.izracunajSkalu();
+  }
+
+  onLabelFontScaleChange(value: number | string): void {
+    this.labelFontScale = Number(value);
   }
 
   zoomIn(): void {
@@ -618,6 +635,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       this.layout.backgroundFileName = file.name;
       this.layout.backgroundContentType = file.type || (extension ? `application/${extension}` : '');
       this.layout.backgroundRotation = 0;
+      this.loadBackgroundImageDimensions(this.layout.backgroundData ?? '');
       this.izracunajSkalu();
     };
     reader.readAsDataURL(file);
@@ -628,6 +646,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.layout.backgroundFileName = null;
     this.layout.backgroundContentType = null;
     this.layout.backgroundRotation = 0;
+    this.backgroundNaturalSize = null;
     if (this.backgroundInputRef) {
       this.backgroundInputRef.nativeElement.value = '';
     }
@@ -912,7 +931,42 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private getLabelFontSize(pozicija: ProdajnaPozicija): number {
     const minDim = Math.min(pozicija.sirina, pozicija.duzina);
     const baseSize = minDim * this.baseScale * 0.35;
-    return Math.max(10, Math.min(24, baseSize));
+    return Math.max(10, Math.min(24, baseSize * this.labelFontScale));
+  }
+
+  private loadBackgroundImageDimensions(data: string): void {
+    if (!data) {
+      this.backgroundNaturalSize = null;
+      return;
+    }
+
+    const image = new Image();
+    image.onload = () => {
+      this.backgroundNaturalSize = {
+        width: image.naturalWidth,
+        height: image.naturalHeight
+      };
+      this.izracunajSkalu();
+    };
+    image.onerror = () => {
+      this.backgroundNaturalSize = null;
+    };
+    image.src = data;
+  }
+
+  private getBackgroundRenderSize(): { width: number; height: number } | null {
+    if (!this.backgroundNaturalSize) return null;
+
+    const { sirina, duzina } = this.ensureLayoutDimensions();
+    const maxWidth = sirina * this.baseScale;
+    const maxHeight = duzina * this.baseScale;
+    if (maxWidth <= 0 || maxHeight <= 0) return null;
+
+    const scale = Math.min(maxWidth / this.backgroundNaturalSize.width, maxHeight / this.backgroundNaturalSize.height);
+    return {
+      width: this.backgroundNaturalSize.width * scale,
+      height: this.backgroundNaturalSize.height * scale
+    };
   }
 
   private formatDateValue(value?: string | null): string {
