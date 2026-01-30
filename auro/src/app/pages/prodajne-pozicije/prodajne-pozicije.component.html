@@ -186,7 +186,7 @@
       <div class="report-header">
         <div>
           <h6>Napredni izvještaj</h6>
-          <small>Filtrirajte pozicije i preuzmite Excel ili štampajte nacrt.</small>
+          <small>Filtrirajte pozicije i preuzmite Excel izvještaj.</small>
         </div>
         <button nbButton size="tiny" ghost status="basic" (click)="zatvoriIzvjestaje()">
           <nb-icon icon="close-outline"></nb-icon>
@@ -273,10 +273,6 @@
     </nb-card-body>
     <nb-card-footer class="report-actions">
       <button nbButton status="basic" (click)="zatvoriIzvjestaje()">Zatvori</button>
-      <button nbButton status="info" outline (click)="ispisIzvjestaja()">
-        <nb-icon icon="printer-outline"></nb-icon>
-        Štampaj nacrt
-      </button>
       <button nbButton status="primary" (click)="exportujNapredniExcel()">
         <nb-icon icon="download-outline"></nb-icon>
         Excel izvještaj

@@ -14,6 +14,10 @@
           <nb-icon icon="trash-2-outline"></nb-icon>
           Obriši
         </button>
+        <button nbButton size="small" status="info" (click)="stampajNacrt()">
+          <nb-icon icon="printer-outline"></nb-icon>
+          Štampaj nacrt
+        </button>
         <button nbButton size="small" status="warning" [disabled]="!layout.backgroundData" (click)="ukloniPodlogu()">
           <nb-icon icon="close-square-outline"></nb-icon>
           Ukloni podlogu
