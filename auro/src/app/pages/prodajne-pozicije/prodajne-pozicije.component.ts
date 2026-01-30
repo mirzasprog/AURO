@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
 import * as FileSaver from 'file-saver';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { DataService } from '../../@core/utils/data.service';
 import { ProdajnaPozicija, ProdajniLayout, ProdajnePozicijeResponse, ProdavnicaOption } from '../../@core/data/prodajne-pozicije';
 
@@ -106,10 +107,45 @@ export class ProdajnePozicijeComponent implements OnInit {
       next: (stores) => {
         this.prodavnice = stores;
         this.loading = false;
+        if (!this.odabranaProdavnicaId) {
+          this.ucitajSvePozicije();
+        }
       },
       error: () => {
         this.loading = false;
         this.toastrService.danger('Greška pri učitavanju prodavnica.', 'Prodajne pozicije');
+      }
+    });
+  }
+
+  private ucitajSvePozicije(): void {
+    if (!this.prodavnice.length) {
+      this.layout = null;
+      this.pozicije = [];
+      this.osvjeziEditor();
+      this.izracunajStatistiku();
+      return;
+    }
+
+    this.loading = true;
+    const requests = this.prodavnice.map((prodavnica) =>
+      this.dataService.preuzmiProdajnePozicije(prodavnica.id).pipe(
+        map((response) => response.pozicije ?? []),
+        catchError(() => of([]))
+      )
+    );
+
+    forkJoin(requests).subscribe({
+      next: (pozicijePoProdavnici) => {
+        this.layout = null;
+        this.pozicije = pozicijePoProdavnici.flat();
+        this.osvjeziEditor();
+        this.izracunajStatistiku();
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+        this.toastrService.danger('Greška pri učitavanju prodajnih pozicija.', 'Prodajne pozicije');
       }
     });
   }
