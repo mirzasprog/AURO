@@ -323,66 +323,6 @@ export class ProdajnePozicijeComponent implements OnInit {
     });
   }
 
-  ispisIzvjestaja(): void {
-    const store = this.prodavnice.find(p => p.id === this.odabranaProdavnicaId);
-    const storeLabel = store?.name ?? 'Prodavnica';
-    const rows = this.filtriranePozicije.map((pozicija) => `
-      <tr>
-        <td>${pozicija.brojPozicije ?? ''}</td>
-        <td>${pozicija.naziv ?? ''}</td>
-        <td>${pozicija.tip ?? ''}</td>
-        <td>${pozicija.zona ?? ''}</td>
-        <td>${pozicija.trgovac ?? ''}</td>
-        <td>${pozicija.trader ?? ''}</td>
-        <td>${pozicija.zakupDo ?? ''}</td>
-        <td>${pozicija.vrijednostZakupa ?? ''}</td>
-      </tr>
-    `).join('');
-
-    const html = `
-      <html>
-        <head>
-          <title>Izvještaj prodajnih pozicija</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
-            h1 { margin: 0 0 8px; }
-            .meta { margin-bottom: 16px; color: #555; }
-            table { width: 100%; border-collapse: collapse; font-size: 12px; }
-            th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
-            th { background: #f4f4f4; }
-          </style>
-        </head>
-        <body>
-          <h1>Izvještaj prodajnih pozicija</h1>
-          <div class="meta">${storeLabel} • ${new Date().toLocaleString()}</div>
-          <table>
-            <thead>
-              <tr>
-                <th>Broj pozicije</th>
-                <th>Naziv</th>
-                <th>Tip</th>
-                <th>Odjel</th>
-                <th>Dobavljač</th>
-                <th>Trader</th>
-                <th>Zakup do</th>
-                <th>Vrijednost</th>
-              </tr>
-            </thead>
-            <tbody>${rows || '<tr><td colspan="8">Nema podataka.</td></tr>'}</tbody>
-          </table>
-        </body>
-      </html>
-    `;
-
-    const printWindow = window.open('', '_blank', 'width=900,height=700');
-    if (printWindow) {
-      printWindow.document.write(html);
-      printWindow.document.close();
-      printWindow.focus();
-      printWindow.print();
-    }
-  }
-
   private generisiNazivFajla(): string {
     const store = this.prodavnice.find(p => p.id === this.odabranaProdavnicaId);
     const naziv = store ? store.name.replace(/\s+/g, '_') : 'Prodavnica';

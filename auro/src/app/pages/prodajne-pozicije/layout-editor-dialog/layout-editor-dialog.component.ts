@@ -335,6 +335,21 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.sacuvajLayout.emit({ layout: this.layout, pozicije: this.pozicije });
   }
 
+  stampajNacrt(): void {
+    const html = this.buildPrintHtml();
+    const printWindow = window.open('', '_blank', 'width=1200,height=900');
+    if (!printWindow) {
+      return;
+    }
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 300);
+  }
+
   getStyle(pozicija: ProdajnaPozicija): Record<string, string> {
     return {
       width: `${pozicija.sirina * this.baseScale}px`,
@@ -731,6 +746,125 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     };
 
     return map[zona] ?? null;
+  }
+
+  private buildPrintHtml(): string {
+    const scale = 40;
+    const { sirina, duzina } = this.ensureLayoutDimensions();
+    const width = Math.max(sirina * scale, 200);
+    const height = Math.max(duzina * scale, 200);
+    const rotation = this.layout.backgroundRotation ?? 0;
+
+    const pozicijeMarkup = this.pozicije.map((pozicija) => {
+      const color = this.getOdjelColor(pozicija.zona);
+      const border = color?.border ?? '#3b82f6';
+      const background = color?.background ? `${color.background}22` : 'rgba(59, 130, 246, 0.12)';
+      const label = this.getPozicijaLabel(pozicija) || 'Pozicija';
+      return `
+        <div
+          class="layout-item"
+          style="
+            left: ${pozicija.pozicijaX * scale}px;
+            top: ${pozicija.pozicijaY * scale}px;
+            width: ${pozicija.sirina * scale}px;
+            height: ${pozicija.duzina * scale}px;
+            border-color: ${border};
+            background-color: ${background};
+            transform: rotate(${pozicija.rotacija ?? 0}deg);
+          "
+        >
+          <span class="layout-label">${label}</span>
+        </div>
+      `;
+    }).join('');
+
+    const backgroundMarkup = this.layout.backgroundData && this.isImageBackground()
+      ? `
+        <img
+          class="background-layer"
+          src="${this.layout.backgroundData}"
+          alt="Podloga"
+          style="transform: translate(-50%, -50%) rotate(${rotation}deg);"
+        />
+      `
+      : '';
+
+    return `
+      <html>
+        <head>
+          <title>Nacrt prodajnih pozicija</title>
+          <style>
+            * { box-sizing: border-box; }
+            body { margin: 0; font-family: Arial, sans-serif; color: #111; }
+            .page {
+              padding: 24px;
+            }
+            h1 { margin: 0 0 12px; font-size: 20px; }
+            .layout-wrapper {
+              position: relative;
+              width: ${width}px;
+              height: ${height}px;
+              border: 2px solid #111;
+              background: #ffffff;
+              overflow: hidden;
+            }
+            .layout-item {
+              position: absolute;
+              border: 2px solid #3b82f6;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+              font-weight: 600;
+              color: #1e3a8a;
+              padding: 2px;
+            }
+            .layout-label {
+              font-size: 10px;
+              background: rgba(255, 255, 255, 0.95);
+              padding: 2px 4px;
+              border-radius: 4px;
+              max-width: 100%;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              white-space: nowrap;
+            }
+            .background-layer {
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+              pointer-events: none;
+              opacity: 0.9;
+            }
+            .layout-empty {
+              position: absolute;
+              inset: 0;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: #64748b;
+              font-size: 14px;
+            }
+            @media print {
+              .page { padding: 0; }
+              h1 { margin-bottom: 8px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="page">
+            <h1>Nacrt prodajnih pozicija</h1>
+            <div class="layout-wrapper">
+              ${backgroundMarkup}
+              ${pozicijeMarkup || '<div class="layout-empty">Nema pozicija.</div>'}
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
   }
 
   private getDefaultStartPositionForSize(sirina: number, duzina: number): { x: number; y: number } {
