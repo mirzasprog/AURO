@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { NbToastrService } from '@nebular/theme';
 import * as FileSaver from 'file-saver';
-import { catchError, forkJoin, map, of } from 'rxjs';
+import { forkJoin, of } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { DataService } from '../../@core/utils/data.service';
 import { ProdajnaPozicija, ProdajniLayout, ProdajnePozicijeResponse, ProdavnicaOption } from '../../@core/data/prodajne-pozicije';
 
@@ -136,9 +137,12 @@ export class ProdajnePozicijeComponent implements OnInit {
     );
 
     forkJoin(requests).subscribe({
-      next: (pozicijePoProdavnici) => {
+      next: (pozicijePoProdavnici: ProdajnaPozicija[][]) => {
         this.layout = null;
-        this.pozicije = pozicijePoProdavnici.flat();
+        this.pozicije = pozicijePoProdavnici.reduce<ProdajnaPozicija[]>(
+          (acc, pozicije) => acc.concat(pozicije),
+          []
+        );
         this.osvjeziEditor();
         this.izracunajStatistiku();
         this.loading = false;
