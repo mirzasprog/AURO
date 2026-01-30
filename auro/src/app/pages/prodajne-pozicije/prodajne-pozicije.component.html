@@ -3,8 +3,12 @@
     <div class="title-block">
       <h4>Prodajne Pozicije</h4>
       <div class="store-select">
-        <label for="prodavnica">Prodavnica</label>
-        <nb-select id="prodavnica" placeholder="Odaberite prodavnicu" [(ngModel)]="odabranaProdavnicaId" (selectedChange)="onProdavnicaChange()">
+        <nb-select 
+          id="prodavnica" 
+          placeholder="Odaberite prodavnicu" 
+          [(ngModel)]="odabranaProdavnicaId" 
+          (selectedChange)="onProdavnicaChange()"
+          size="medium">
           <nb-option *ngFor="let prodavnica of prodavnice" [value]="prodavnica.id">
             {{ prodavnica.name }}
           </nb-option>
@@ -12,88 +16,77 @@
       </div>
     </div>
     <div class="header-actions">
-      <button nbButton status="danger" outline>
+      <button nbButton status="danger" outline size="small">
         <nb-icon icon="trash-2-outline"></nb-icon>
         Ukloni
       </button>
-      <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId">
+      <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId" size="small">
         <nb-icon icon="download-outline"></nb-icon>
         Excel
       </button>
-      <button nbButton status="primary" outline>
+      <button nbButton status="primary" outline size="small">
         <nb-icon icon="bar-chart-outline"></nb-icon>
         Izvještaji
       </button>
     </div>
   </nb-card-header>
+
   <nb-card-body>
     <nb-spinner *ngIf="loading" size="large"></nb-spinner>
 
     <div *ngIf="!loading" class="content">
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <div class="kpi-icon info">
-            <nb-icon icon="pin-outline"></nb-icon>
+      <!-- KPI Cards sa novim dizajnom -->
+      <div class="stats-overview">
+        <div class="stat-card stat-total">
+          <div class="stat-header">
+            <nb-icon icon="grid-outline"></nb-icon>
+            <span class="stat-label">Ukupno pozicija</span>
           </div>
-          <div>
-            <div class="kpi-value">{{ ukupnoPozicija }}</div>
-            <div class="kpi-label">Ukupno pozicija</div>
-          </div>
+          <div class="stat-value">{{ ukupnoPozicija }}</div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon success">
+        
+        <div class="stat-card stat-occupied">
+          <div class="stat-header">
             <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
+            <span class="stat-label">Zauzeto</span>
           </div>
-          <div>
-            <div class="kpi-value">{{ zauzetoPozicija }}</div>
-            <div class="kpi-label">Zauzeto</div>
-          </div>
+          <div class="stat-value">{{ zauzetoPozicija }}</div>
+          <div class="stat-percentage">{{ ukupnoPozicija > 0 ? ((zauzetoPozicija / ukupnoPozicija) * 100).toFixed(1) : 0 }}%</div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon warning">
-            <nb-icon icon="alert-circle-outline"></nb-icon>
+        
+        <div class="stat-card stat-free">
+          <div class="stat-header">
+            <nb-icon icon="stop-circle-outline"></nb-icon>
+            <span class="stat-label">Slobodno</span>
           </div>
-          <div>
-            <div class="kpi-value">{{ slobodnoPozicija }}</div>
-            <div class="kpi-label">Slobodno</div>
-          </div>
+          <div class="stat-value">{{ slobodnoPozicija }}</div>
+          <div class="stat-percentage">{{ ukupnoPozicija > 0 ? ((slobodnoPozicija / ukupnoPozicija) * 100).toFixed(1) : 0 }}%</div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon orange">
-            <nb-icon icon="clock-outline"></nb-icon>
+        
+        <div class="stat-card stat-expiring">
+          <div class="stat-header">
+            <nb-icon icon="alert-triangle-outline"></nb-icon>
+            <span class="stat-label">Ističe uskoro</span>
           </div>
-          <div>
-            <div class="kpi-value">{{ isticeUskoroPozicija }}</div>
-            <div class="kpi-label">Ističe uskoro</div>
-          </div>
+          <div class="stat-value">{{ isticeUskoroPozicija }}</div>
         </div>
-        <div class="kpi-card">
-          <div class="kpi-icon primary">
-            <nb-icon icon="credit-card-outline"></nb-icon>
+        
+        <div class="stat-card stat-revenue">
+          <div class="stat-header">
+            <nb-icon icon="trending-up-outline"></nb-icon>
+            <span class="stat-label">Ukupna vrijednost</span>
           </div>
-          <div>
-            <div class="kpi-value">KM {{ vrijednostZakupaUkupno | number:'1.0-2' }}</div>
-            <div class="kpi-label">Vrijednost zakupa</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="summary-grid">
-        <div class="summary-card">
-          <div class="summary-title">Zakup (odabrana prodavnica)</div>
-          <div class="summary-value">KM {{ vrijednostZakupaUkupno | number:'1.0-2' }}</div>
-          <div class="summary-subtitle">{{ zauzetoPozicija }} zakupljenih pozicija</div>
-        </div>
-        <div class="summary-card">
-          <div class="summary-title">Zakup (sve prodavnice)</div>
-          <div class="summary-value">KM {{ vrijednostZakupaUkupno | number:'1.0-2' }}</div>
-          <div class="summary-subtitle">Ukupno zakupljeno u mreži</div>
+          <div class="stat-value">{{ vrijednostZakupaUkupno | number:'1.0-2' }} KM</div>
+          <div class="stat-subtitle">mjesečni prihod</div>
         </div>
       </div>
 
       <div class="tables-grid">
-        <nb-card>
-          <nb-card-header>Vrijednost po tipu pozicije</nb-card-header>
+        <nb-card class="data-card">
+          <nb-card-header>
+            <nb-icon icon="layers-outline"></nb-icon>
+            Vrijednost po tipu pozicije
+          </nb-card-header>
           <nb-card-body>
             <table class="table">
               <thead>
@@ -106,8 +99,8 @@
               <tbody>
                 <tr *ngFor="let stavka of paginatedStatistikaPoTipu">
                   <td>{{ stavka.tip }}</td>
-                  <td>{{ stavka.broj }}</td>
-                  <td>KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
+                  <td><span class="badge">{{ stavka.broj }}</span></td>
+                  <td class="value-cell">KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
                 </tr>
                 <tr *ngIf="!statistikaPoTipu.length">
                   <td colspan="3" class="empty">Nema unesenih pozicija.</td>
@@ -123,12 +116,10 @@
                         (click)="goToStatistikaPoTipuPage('prev')"
                         [disabled]="statistikaPoTipuPage === 1">
                   <nb-icon icon="arrow-back-outline"></nb-icon>
-                  Prethodna
                 </button>
                 <button nbButton size="small" status="primary"
                         (click)="goToStatistikaPoTipuPage('next')"
                         [disabled]="statistikaPoTipuPage === totalStatistikaPoTipuPages">
-                  Sljedeća
                   <nb-icon icon="arrow-forward-outline"></nb-icon>
                 </button>
               </div>
@@ -136,8 +127,11 @@
           </nb-card-body>
         </nb-card>
 
-        <nb-card>
-          <nb-card-header>Vrijednost po nazivu pozicije</nb-card-header>
+        <nb-card class="data-card">
+          <nb-card-header>
+            <nb-icon icon="pricetags-outline"></nb-icon>
+            Vrijednost po nazivu pozicije
+          </nb-card-header>
           <nb-card-body>
             <table class="table">
               <thead>
@@ -150,8 +144,8 @@
               <tbody>
                 <tr *ngFor="let stavka of paginatedStatistikaPoNazivu">
                   <td>{{ stavka.naziv }}</td>
-                  <td>{{ stavka.broj }}</td>
-                  <td>KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
+                  <td><span class="badge">{{ stavka.broj }}</span></td>
+                  <td class="value-cell">KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
                 </tr>
                 <tr *ngIf="!statistikaPoNazivu.length">
                   <td colspan="3" class="empty">Nema unesenih pozicija.</td>
@@ -167,12 +161,10 @@
                         (click)="goToStatistikaPoNazivuPage('prev')"
                         [disabled]="statistikaPoNazivuPage === 1">
                   <nb-icon icon="arrow-back-outline"></nb-icon>
-                  Prethodna
                 </button>
                 <button nbButton size="small" status="primary"
                         (click)="goToStatistikaPoNazivuPage('next')"
                         [disabled]="statistikaPoNazivuPage === totalStatistikaPoNazivuPages">
-                  Sljedeća
                   <nb-icon icon="arrow-forward-outline"></nb-icon>
                 </button>
               </div>
@@ -181,6 +173,7 @@
         </nb-card>
       </div>
 
+      <!-- INLINE EDITOR -->
       <ngx-layout-editor-dialog
         *ngIf="showEditor && editorLayout"
         [layout]="editorLayout"

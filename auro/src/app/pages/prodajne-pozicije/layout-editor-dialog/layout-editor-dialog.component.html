@@ -1,19 +1,7 @@
 <nb-card class="editor-card">
   <nb-card-header>
-    <div class="editor-header">
-      <span>Grafički editor layouta</span>
-
-    </div>
-  </nb-card-header>
-
-<nb-card class="editor-card">
-  <nb-card-header>
     <div class="header-toolbar">
       <div class="toolbar-left">
-        <button nbButton size="small" status="basic" [disabled]="true">
-          <nb-icon icon="move-outline"></nb-icon>
-          Odaberi
-        </button>
         <button nbButton size="small" status="success" (click)="otvoriModalZaDodavanje()">
           <nb-icon icon="plus-outline"></nb-icon>
           Dodaj poziciju
@@ -24,7 +12,7 @@
         </button>
         <button nbButton size="small" status="danger" [disabled]="selectedIndex === null" (click)="obrisiPoziciju()">
           <nb-icon icon="trash-2-outline"></nb-icon>
-          Obriši poziciju
+          Obriši
         </button>
         <button nbButton size="small" status="warning" [disabled]="!layout.backgroundData" (click)="ukloniPodlogu()">
           <nb-icon icon="close-square-outline"></nb-icon>
@@ -50,19 +38,6 @@
             <nb-icon icon="plus-outline"></nb-icon>
           </button>
         </div>
-
-        <div class="font-size-control">
-          <span class="font-size-label">Font</span>
-          <input
-            type="range"
-            [min]="labelFontScaleMin"
-            [max]="labelFontScaleMax"
-            step="0.1"
-            [value]="labelFontScale"
-            (input)="onLabelFontScaleChange($event.target.value)"
-          />
-          <span class="font-size-value">{{ labelFontScale * 100 | number: '1.0-0' }}%</span>
-        </div>
         
         <button nbButton size="small" status="basic" (click)="triggerBackgroundUpload()">
           <nb-icon icon="image-outline"></nb-icon>
@@ -70,11 +45,11 @@
         </button>
         <button nbButton size="small" status="basic" [disabled]="!layout.backgroundData" (click)="rotirajPodlogu(-90)">
           <nb-icon icon="undo-outline"></nb-icon>
-          Rotiraj -90°
+          -90°
         </button>
         <button nbButton size="small" status="basic" [disabled]="!layout.backgroundData" (click)="rotirajPodlogu(90)">
           <nb-icon icon="redo-outline"></nb-icon>
-          Rotiraj +90°
+          +90°
         </button>
         
         <button nbButton size="small" status="primary" (click)="sacuvaj()">
@@ -334,37 +309,6 @@
         <button nbButton status="basic" (click)="zatvoriModalZaDodavanje()">Odustani</button>
         <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>
       </div>
-    </nb-card-footer>
-  </nb-card>
-</div>
-</nb-card>
-
-<div class="modal-backdrop" *ngIf="isDodavanjeModalOpen">
-  <nb-card class="modal-card">
-    <nb-card-header>Dodaj poziciju</nb-card-header>
-    <nb-card-body>
-      <div class="modal-form">
-        <label>Tip pozicije</label>
-        <nb-select [(ngModel)]="novaPozicija.tip">
-          <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
-        </nb-select>
-
-        <label>Naziv</label>
-        <input nbInput [(ngModel)]="novaPozicija.naziv" />
-
-        <label>Broj pozicije</label>
-        <input nbInput [(ngModel)]="novaPozicija.brojPozicije" />
-
-        <label>Odjel</label>
-        <nb-select [(ngModel)]="novaPozicija.zona">
-          <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
-        </nb-select>
-      </div>
-    </nb-card-body>
-
-    <nb-card-footer class="modal-actions">
-      <button nbButton status="basic" outline (click)="zatvoriModalZaDodavanje()">Odustani</button>
-      <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>
     </nb-card-footer>
   </nb-card>
 </div>

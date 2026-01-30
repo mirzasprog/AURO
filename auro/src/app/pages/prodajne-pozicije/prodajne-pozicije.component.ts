@@ -105,34 +105,33 @@ export class ProdajnePozicijeComponent implements OnInit {
     });
   }
 
-private osvjeziEditor(): void {
-  if (!this.odabranaProdavnicaId) {
-    this.editorLayout = null;
-    this.editorPozicije = [];
+  private osvjeziEditor(): void {
+    if (!this.odabranaProdavnicaId) {
+      this.editorLayout = null;
+      this.editorPozicije = [];
+      this.showEditor = false;
+      return;
+    }
+
+    this.editorLayout = this.layout
+      ? { ...this.layout }
+      : {
+        sirina: 20,
+        duzina: 20,
+        prodavnicaId: this.odabranaProdavnicaId,
+        backgroundFileName: null,
+        backgroundContentType: null,
+        backgroundData: null,
+        backgroundRotation: 0
+      } as ProdajniLayout;
+
+    this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));
+    
     this.showEditor = false;
-    return;
+    setTimeout(() => {
+      this.showEditor = true;
+    }, 0);
   }
-
-  this.editorLayout = this.layout
-    ? { ...this.layout }
-    : {
-      sirina: 20,
-      duzina: 20,
-      prodavnicaId: this.odabranaProdavnicaId,
-      backgroundFileName: null,
-      backgroundContentType: null,
-      backgroundData: null,
-      backgroundRotation: 0
-    } as ProdajniLayout;
-
-  this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));
-  
-  // Force re-render editora
-  this.showEditor = false;
-  setTimeout(() => {
-    this.showEditor = true;
-  }, 0);
-}
 
   onSacuvajLayout(result: { layout: ProdajniLayout; pozicije: ProdajnaPozicija[] }): void {
     this.spremiLayout(result.layout, result.pozicije);
@@ -310,5 +309,4 @@ private osvjeziEditor(): void {
     const startIndex = (this.statistikaPoNazivuPage - 1) * this.statistikaPoNazivuPageSize;
     this.paginatedStatistikaPoNazivu = this.statistikaPoNazivu.slice(startIndex, startIndex + this.statistikaPoNazivuPageSize);
   }
-
 }

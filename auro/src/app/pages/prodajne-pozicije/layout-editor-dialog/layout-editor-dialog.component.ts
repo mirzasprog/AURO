@@ -63,10 +63,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   minZoom = 0.4;
   maxZoom = 3;
 
-  labelFontScale = 1;
-  readonly labelFontScaleMin = 0.6;
-  readonly labelFontScaleMax = 1.6;
-
   vrsteUgovora = ['Nije postavljeno', 'Mjesečni', 'Godišnji', 'Sezonski'];
   tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal', '500+'];
   odjeli = [
@@ -100,8 +96,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   filtrirajUskoro = false;
 
   private readonly defaultLayoutSize = 20;
-
-  // scale = baseScale * zoom
   private baseScale = 1;
 
   // Drag/resize state
@@ -119,7 +113,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private panOriginY = 0;
 
   private activePointerId: number | null = null;
-
   private backgroundNaturalSize: { width: number; height: number } | null = null;
 
   panX = 0;
@@ -129,14 +122,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   novaPozicija: NovaPozicija = this.kreirajNovuPoziciju();
 
   ngAfterViewInit(): void {
-    console.log('🚀 Editor initialized', {
-      layoutDimensions: {
-        sirina: this.layout.sirina,
-        duzina: this.layout.duzina
-      },
-      pozicijeCount: this.pozicije.length
-    });
-
     this.ensureLayoutDimensions();
     if (this.layout.backgroundRotation == null) {
       this.layout.backgroundRotation = 0;
@@ -146,34 +131,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       this.loadBackgroundImageDimensions(this.layout.backgroundData);
     }
     this.azurirajUpozorenja();
-
-    console.log('✅ Editor ready', {
-      baseScale: this.baseScale,
-      zoom: this.zoom,
-      currentScale: this.getCurrentScale()
-    });
-
-    // Debug: provjeri nakon 2 sekunde koliko elemenata postoji
-    setTimeout(() => {
-      const items = document.querySelectorAll('.layout-item');
-      const handles = document.querySelectorAll('.resize-handle');
-      console.log('🔍 DEBUG: DOM elements check', {
-        layoutItems: items.length,
-        resizeHandles: handles.length,
-        pozicijeLength: this.pozicije.length,
-        prikazanePozicijeLength: this.prikazanePozicije.length
-      });
-
-      if (items.length > 0) {
-        const firstItem = items[0] as HTMLElement;
-        console.log('🔍 First item styles:', {
-          pointerEvents: window.getComputedStyle(firstItem).pointerEvents,
-          display: window.getComputedStyle(firstItem).display,
-          position: window.getComputedStyle(firstItem).position,
-          zIndex: window.getComputedStyle(firstItem).zIndex
-        });
-      }
-    }, 2000);
   }
 
   @HostListener('window:resize')
@@ -181,31 +138,19 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.izracunajSkalu();
   }
 
-  // ============= POINTER EVENTS (SVE PREKO POINTERA) =============
-
   @HostListener('document:pointermove', ['$event'])
   onPointerMove(event: PointerEvent): void {
     if (this.activePointerId === null || event.pointerId !== this.activePointerId) {
-      console.log('❌ PointerMove ignored - pointer ID mismatch', {
-        activePointerId: this.activePointerId,
-        eventPointerId: event.pointerId
-      });
       return;
     }
 
     if (this.isPanning) {
-      console.log('🖐️ Panning...', { panX: this.panX, panY: this.panY });
       this.panX = this.panOriginX + (event.clientX - this.panStartX);
       this.panY = this.panOriginY + (event.clientY - this.panStartY);
       return;
     }
 
     if (this.dragMode === null || this.dragIndex === null || !this.startPozicija) {
-      console.log('❌ PointerMove ignored - no active drag', {
-        dragMode: this.dragMode,
-        dragIndex: this.dragIndex,
-        hasStartPozicija: !!this.startPozicija
-      });
       return;
     }
 
@@ -216,22 +161,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const target = this.pozicije[this.dragIndex];
 
     if (this.dragMode === 'move') {
-      console.log('🔵 MOVING', {
-        index: this.dragIndex,
-        deltaX: deltaX.toFixed(2),
-        deltaY: deltaY.toFixed(2),
-        newX: (this.startPozicija.pozicijaX + deltaX).toFixed(2),
-        newY: (this.startPozicija.pozicijaY + deltaY).toFixed(2)
-      });
       this.postaviPoziciju(target, this.startPozicija.pozicijaX + deltaX, this.startPozicija.pozicijaY + deltaY);
     } else if (this.dragMode === 'resize') {
-      console.log('📏 RESIZING', {
-        index: this.dragIndex,
-        deltaX: deltaX.toFixed(2),
-        deltaY: deltaY.toFixed(2),
-        newWidth: (this.startPozicija.sirina + deltaX).toFixed(2),
-        newHeight: (this.startPozicija.duzina + deltaY).toFixed(2)
-      });
       this.postaviVelicinu(target, this.startPozicija.sirina + deltaX, this.startPozicija.duzina + deltaY);
     }
 
@@ -242,14 +173,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   @HostListener('document:pointercancel', ['$event'])
   onPointerUp(event: PointerEvent): void {
     if (this.activePointerId === null || event.pointerId !== this.activePointerId) {
-      console.log('❌ PointerUp ignored - pointer ID mismatch');
       return;
     }
-
-    console.log('✅ PointerUp - cleaning up drag state', {
-      dragMode: this.dragMode,
-      dragIndex: this.dragIndex
-    });
 
     this.activePointerId = null;
     this.dragMode = null;
@@ -259,15 +184,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onPointerDown(event: PointerEvent, index: number): void {
-    console.log('🟢 ITEM PointerDown START', {
-      button: event.button,
-      index: index,
-      pointerId: event.pointerId,
-      target: (event.currentTarget as HTMLElement).className
-    });
-
     if (event.button !== 0) {
-      console.log('❌ Not left button, ignoring');
       return;
     }
 
@@ -278,9 +195,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const target = event.currentTarget as HTMLElement;
     if (target && target.setPointerCapture) {
       target.setPointerCapture(event.pointerId);
-      console.log('✅ Pointer capture set for MOVE', event.pointerId);
-    } else {
-      console.log('⚠️ Could not set pointer capture');
     }
 
     this.selectPozicija(index);
@@ -289,30 +203,10 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.startPozicija = { ...this.pozicije[index] };
-
-    console.log('✅ MOVE mode activated', {
-      dragIndex: this.dragIndex,
-      startX: this.startX,
-      startY: this.startY,
-      startPozicija: {
-        x: this.startPozicija.pozicijaX,
-        y: this.startPozicija.pozicijaY,
-        w: this.startPozicija.sirina,
-        h: this.startPozicija.duzina
-      }
-    });
   }
 
   onResizePointerDown(event: PointerEvent, index: number): void {
-    console.log('🔵 RESIZE HANDLE PointerDown START', {
-      button: event.button,
-      index: index,
-      pointerId: event.pointerId,
-      target: (event.currentTarget as HTMLElement).className
-    });
-
     if (event.button !== 0) {
-      console.log('❌ Not left button, ignoring');
       return;
     }
 
@@ -323,9 +217,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const target = event.currentTarget as HTMLElement;
     if (target && target.setPointerCapture) {
       target.setPointerCapture(event.pointerId);
-      console.log('✅ Pointer capture set for RESIZE', event.pointerId);
-    } else {
-      console.log('⚠️ Could not set pointer capture');
     }
 
     this.selectPozicija(index);
@@ -334,43 +225,18 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.startX = event.clientX;
     this.startY = event.clientY;
     this.startPozicija = { ...this.pozicije[index] };
-
-    console.log('✅ RESIZE mode activated', {
-      dragIndex: this.dragIndex,
-      startX: this.startX,
-      startY: this.startY,
-      startPozicija: {
-        x: this.startPozicija.pozicijaX,
-        y: this.startPozicija.pozicijaY,
-        w: this.startPozicija.sirina,
-        h: this.startPozicija.duzina
-      }
-    });
   }
 
   onCanvasPointerDown(event: PointerEvent): void {
-    console.log('🟡 CANVAS PointerDown', {
-      button: event.button,
-      pointerId: event.pointerId,
-      target: (event.target as HTMLElement).className
-    });
-
     if (event.button !== 0) {
-      console.log('❌ Not left button, ignoring');
       return;
     }
 
     const target = event.target as HTMLElement;
     const closestItem = target.closest('.layout-item');
     const closestHandle = target.closest('.resize-handle');
-    
-    console.log('Checking click target:', {
-      hasLayoutItem: !!closestItem,
-      hasResizeHandle: !!closestHandle
-    });
 
     if (closestItem || closestHandle) {
-      console.log('❌ Click on item or handle, not panning');
       return;
     }
 
@@ -380,9 +246,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const canvas = event.currentTarget as HTMLElement;
     if (canvas && canvas.setPointerCapture) {
       canvas.setPointerCapture(event.pointerId);
-      console.log('✅ Pointer capture set for PANNING', event.pointerId);
-    } else {
-      console.log('⚠️ Could not set pointer capture');
     }
 
     this.isPanning = true;
@@ -390,14 +253,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.panStartY = event.clientY;
     this.panOriginX = this.panX;
     this.panOriginY = this.panY;
-
-    console.log('✅ PANNING mode activated', {
-      startX: this.panStartX,
-      startY: this.panStartY
-    });
   }
-
-  // ============= CRUD / UI =============
 
   otvoriModalZaDodavanje(): void {
     this.novaPozicija = this.kreirajNovuPoziciju();
@@ -430,22 +286,15 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       tipPozicije: 'Nije postavljeno'
     };
 
-    console.log('➕ Adding new position:', novaPoz);
     this.pozicije.push(novaPoz);
-    
-    // Invalidiraj keš
     this._lastPozicijeLength = -1;
 
     this.selectedIndex = this.pozicije.length - 1;
     this.azurirajUpozorenja();
     this.isDodavanjeModalOpen = false;
-
-    console.log('✅ Position added. Total positions:', this.pozicije.length);
-    console.log('👁️ Prikazane pozicije:', this.prikazanePozicije.length);
   }
 
   selectPozicija(index: number): void {
-    console.log('🎯 SELECT pozicija called:', index);
     this.selectedIndex = index;
   }
 
@@ -454,6 +303,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
     this.pozicije.splice(this.selectedIndex, 1);
     this.selectedIndex = null;
+    this._lastPozicijeLength = -1;
     this.azurirajUpozorenja();
   }
 
@@ -475,6 +325,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     };
 
     this.pozicije.push(kopija);
+    this._lastPozicijeLength = -1;
     this.selectedIndex = this.pozicije.length - 1;
     this.azurirajUpozorenja();
   }
@@ -482,8 +333,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   sacuvaj(): void {
     this.sacuvajLayout.emit({ layout: this.layout, pozicije: this.pozicije });
   }
-
-  // ============= STIL / POZICIJE =============
 
   getStyle(pozicija: ProdajnaPozicija): Record<string, string> {
     return {
@@ -541,7 +390,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const canvasHeight = this.canvasRef.nativeElement.clientHeight;
     const { sirina, duzina } = this.ensureLayoutDimensions();
 
-    this.baseScale = Math.min(canvasWidth / sirina, canvasHeight / duzina);
+    const paddingFactor = 0.85; // 15% padding
+    this.baseScale = Math.min(
+      (canvasWidth * paddingFactor) / sirina,
+      (canvasHeight * paddingFactor) / duzina
+    );
   }
 
   private getCurrentScale(): number {
@@ -569,7 +422,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       width: `${sirina * this.baseScale}px`,
       height: `${duzina * this.baseScale}px`,
       transform: `scale(${this.zoom})`,
-      transformOrigin: 'top left'
+      transformOrigin: 'center center'
     };
   }
 
@@ -595,10 +448,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   onZoomChange(value: number): void {
     this.zoom = Number(value);
     this.izracunajSkalu();
-  }
-
-  onLabelFontScaleChange(value: number | string): void {
-    this.labelFontScale = Number(value);
   }
 
   zoomIn(): void {
@@ -658,8 +507,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     const data = this.layout.backgroundData ?? '';
     return contentType.startsWith('image/') || data.startsWith('data:image');
   }
-
-  // ============= FILTERI =============
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
@@ -732,7 +579,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }
 
-  // Keširaj prikazane pozicije da izbjegneš Change Detection greške
   private _cachedPrikazanePozicije: Array<{ pozicija: ProdajnaPozicija; index: number }> = [];
   private _lastPozicijeLength = 0;
   private _lastDobavljaciLength = 0;
@@ -751,7 +597,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       filtrirajUskoro: this.filtrirajUskoro
     });
 
-    // Provjeri da li treba recalkulirati
     const needsRecalc =
       this._lastPozicijeLength !== this.pozicije.length ||
       this._lastDobavljaciLength !== this.odabraniDobavljaci.length ||
@@ -930,8 +775,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   private getLabelFontSize(pozicija: ProdajnaPozicija): number {
     const minDim = Math.min(pozicija.sirina, pozicija.duzina);
-    const baseSize = minDim * this.baseScale * 0.35;
-    return Math.max(10, Math.min(24, baseSize * this.labelFontScale));
+    const baseSize = minDim * this.baseScale * 0.15; // Jako mali font
+    return Math.max(5, Math.min(12, baseSize)); // Min 5px, max 12px
   }
 
   private loadBackgroundImageDimensions(data: string): void {
