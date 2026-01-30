@@ -386,7 +386,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = `daily-tasks-report-${this.historyFrom}-${this.historyTo}.csv`;
+          link.download = `daily-tasks-report-${this.historyFrom}-${this.historyTo}.xlsx`;
           link.click();
           window.URL.revokeObjectURL(url);
           this.reportLoading = false;

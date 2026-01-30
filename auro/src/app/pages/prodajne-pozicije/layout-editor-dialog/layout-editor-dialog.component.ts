@@ -280,6 +280,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       rotacija: 0,
       zona: this.novaPozicija.zona,
       trgovac: '',
+      trader: '',
       zakupDo: null,
       vrijednostZakupa: null,
       vrstaUgovora: 'Nije postavljeno',
@@ -556,13 +557,15 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   getPozicijaTooltip(pozicija: ProdajnaPozicija): string {
-    const status = pozicija.trgovac ? `Zauzeta (${pozicija.trgovac})` : 'Slobodna';
+    const statusLabel = pozicija.trgovac || pozicija.trader;
+    const status = statusLabel ? `Zauzeta (${statusLabel})` : 'Slobodna';
     const lines = [
       `${this.getPozicijaLabel(pozicija)}${pozicija.naziv ? ` — ${pozicija.naziv}` : ''}`,
       `Status: ${status}`,
       `Odjel: ${pozicija.zona || 'Nije postavljeno'}`,
       `Vrsta ugovora: ${pozicija.vrstaUgovora || 'Nije postavljeno'}`,
       `Tip pozicije: ${pozicija.tipPozicije || 'Nije postavljeno'}`,
+      `Trader: ${pozicija.trader || 'Nije postavljeno'}`,
       `Zakup do: ${this.formatDateValue(pozicija.zakupDo)}`,
       `Vrijednost zakupa: ${this.formatCurrencyValue(pozicija.vrijednostZakupa)}`
     ];
@@ -694,7 +697,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       tip,
       naziv: `${this.odabraniTip.label} ${index}`,
       brojPozicije: `P${index.toString().padStart(3, '0')}`,
-      zona: ''
+      zona: this.odjeli[0] ?? ''
     };
   }
 

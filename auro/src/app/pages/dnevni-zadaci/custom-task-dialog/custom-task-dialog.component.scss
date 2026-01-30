@@ -1,4 +1,6 @@
 .dialog-card {
+  width: min(760px, 94vw);
+
   nb-card-header {
     border-bottom: none;
     padding-bottom: 0;
@@ -30,9 +32,9 @@
 }
 
 .form-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  gap: 1rem;
 }
 
 .field {
@@ -53,10 +55,16 @@
   }
 }
 
-.field-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem;
+.span-4 {
+  grid-column: span 4;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.span-1 {
+  grid-column: span 1;
 }
 
 .options {

@@ -10,64 +10,60 @@
   </nb-card-header>
   <nb-card-body>
     <form [formGroup]="form" class="form-grid">
-      <div class="field">
+      <div class="field span-4">
         <label>Naziv zadatka</label>
         <input nbInput fullWidth formControlName="title" placeholder="Unesite naziv zadatka">
       </div>
 
-      <div class="field">
+      <div class="field span-4">
         <label>Opis</label>
-        <textarea nbInput fullWidth formControlName="description" rows="3" placeholder="Dodajte kontekst ili korake (opcionalno)"></textarea>
+        <textarea nbInput fullWidth formControlName="description" rows="2" placeholder="Dodajte kontekst ili korake (opcionalno)"></textarea>
       </div>
 
-      <div class="field-grid">
-        <div class="field">
-          <label>Datum</label>
-          <input nbInput type="date" formControlName="date">
-        </div>
-        <div class="field">
-          <label>Ponavljanje</label>
-          <nb-select fullWidth formControlName="isRecurring">
-            <nb-option [value]="false">Jednokratni zadatak</nb-option>
-            <nb-option [value]="true">Ponavlja se svakodnevno</nb-option>
-          </nb-select>
-        </div>
+      <div class="field span-2">
+        <label>Datum</label>
+        <input nbInput type="date" formControlName="date">
+      </div>
+      <div class="field span-2">
+        <label>Ponavljanje</label>
+        <nb-select fullWidth formControlName="isRecurring">
+          <nb-option [value]="false">Jednokratni zadatak</nb-option>
+          <nb-option [value]="true">Ponavlja se svakodnevno</nb-option>
+        </nb-select>
       </div>
 
-      <div class="field-grid" *ngIf="allowBulk">
-        <div class="field">
-          <label>Distribucija</label>
-          <nb-select fullWidth formControlName="targetMode">
-            <nb-option *ngFor="let mode of targetModes" [value]="mode.value">{{ mode.label }}</nb-option>
-          </nb-select>
-        </div>
-        <div class="field" *ngIf="form.get('targetMode')?.value === 'stores'">
-          <label>Prodavnice</label>
-          <nb-select fullWidth multiple formControlName="storeIds" placeholder="Odaberite prodavnice">
-            <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
-          </nb-select>
-        </div>
-        <div class="field" *ngIf="form.get('targetMode')?.value === 'city'">
-          <label>Grad</label>
-          <nb-select fullWidth formControlName="city" placeholder="Odaberite grad">
-            <nb-option *ngFor="let city of cityOptions" [value]="city">{{ city }}</nb-option>
-          </nb-select>
-        </div>
-        <div class="field" *ngIf="form.get('targetMode')?.value === 'manager'">
-          <label>Područni voditelj</label>
-          <nb-select fullWidth formControlName="managerId" placeholder="Odaberite voditelja">
-            <nb-option *ngFor="let manager of managerOptions" [value]="manager.id">{{ manager.label }}</nb-option>
-          </nb-select>
-        </div>
-        <div class="field" *ngIf="form.get('targetMode')?.value === 'format'">
-          <label>Format prodavnice</label>
-          <nb-select fullWidth formControlName="format" placeholder="Odaberite format">
-            <nb-option *ngFor="let format of formatOptions" [value]="format">{{ format }}</nb-option>
-          </nb-select>
-        </div>
+      <div class="field span-2" *ngIf="allowBulk">
+        <label>Distribucija</label>
+        <nb-select fullWidth formControlName="targetMode">
+          <nb-option *ngFor="let mode of targetModes" [value]="mode.value">{{ mode.label }}</nb-option>
+        </nb-select>
+      </div>
+      <div class="field span-2" *ngIf="allowBulk && form.get('targetMode')?.value === 'stores'">
+        <label>Prodavnice</label>
+        <nb-select fullWidth multiple formControlName="storeIds" placeholder="Odaberite prodavnice">
+          <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
+        </nb-select>
+      </div>
+      <div class="field span-2" *ngIf="allowBulk && form.get('targetMode')?.value === 'city'">
+        <label>Grad</label>
+        <nb-select fullWidth formControlName="city" placeholder="Odaberite grad">
+          <nb-option *ngFor="let city of cityOptions" [value]="city">{{ city }}</nb-option>
+        </nb-select>
+      </div>
+      <div class="field span-2" *ngIf="allowBulk && form.get('targetMode')?.value === 'manager'">
+        <label>Područni voditelj</label>
+        <nb-select fullWidth formControlName="managerId" placeholder="Odaberite voditelja">
+          <nb-option *ngFor="let manager of managerOptions" [value]="manager.id">{{ manager.label }}</nb-option>
+        </nb-select>
+      </div>
+      <div class="field span-2" *ngIf="allowBulk && form.get('targetMode')?.value === 'format'">
+        <label>Format prodavnice</label>
+        <nb-select fullWidth formControlName="format" placeholder="Odaberite format">
+          <nb-option *ngFor="let format of formatOptions" [value]="format">{{ format }}</nb-option>
+        </nb-select>
       </div>
 
-      <div class="options">
+      <div class="options span-4">
         <label class="option">
           <nb-icon icon="image-outline"></nb-icon>
           <div>

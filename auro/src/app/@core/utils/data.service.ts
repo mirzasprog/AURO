@@ -240,6 +240,34 @@ export class DataService {
     return this.http.get(this.baseUrl + `/api/ProdajnePozicije/${storeId}/export`, { responseType: 'blob' });
   }
 
+  public exportujProdajnePozicijeNapredni(
+    storeId: number,
+    params: {
+      search?: string;
+      tip?: string;
+      odjel?: string;
+      trgovac?: string;
+      trader?: string;
+      status?: string;
+      zakupOd?: string;
+      zakupDo?: string;
+    }
+  ): Observable<Blob> {
+    const query = new URLSearchParams();
+    if (params.search) query.append('search', params.search);
+    if (params.tip) query.append('tip', params.tip);
+    if (params.odjel) query.append('odjel', params.odjel);
+    if (params.trgovac) query.append('trgovac', params.trgovac);
+    if (params.trader) query.append('trader', params.trader);
+    if (params.status) query.append('status', params.status);
+    if (params.zakupOd) query.append('zakupOd', params.zakupOd);
+    if (params.zakupDo) query.append('zakupDo', params.zakupDo);
+
+    const suffix = query.toString();
+    const url = this.baseUrl + `/api/ProdajnePozicije/${storeId}/export${suffix ? `?${suffix}` : ''}`;
+    return this.http.get(url, { responseType: 'blob' });
+  }
+
   public kreirajFakturuUsluge(podaci: ServiceInvoice): Observable<ServiceInvoice> {
     return this.sendRequest<ServiceInvoice>("POST", `${this.baseUrl}/api/ServiceInvoices`, podaci);
   }

@@ -319,6 +319,10 @@ BEGIN
     BEGIN
         ALTER TABLE [dbo].[ProdajnaPozicija] ADD [Trgovac] VARCHAR(200) NULL;
     END
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'Trader' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
+    BEGIN
+        ALTER TABLE [dbo].[ProdajnaPozicija] ADD [Trader] VARCHAR(200) NULL;
+    END
     IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE Name = 'VrijednostZakupa' AND Object_ID = OBJECT_ID('[dbo].[ProdajnaPozicija]'))
     BEGIN
         ALTER TABLE [dbo].[ProdajnaPozicija] ADD [VrijednostZakupa] DECIMAL(18, 2) NULL;
