@@ -20,7 +20,7 @@
         <nb-icon icon="download-outline"></nb-icon>
         Excel
       </button>
-      <button nbButton status="primary" outline size="small">
+      <button nbButton status="primary" outline size="small" (click)="otvoriIzvjestaje()">
         <nb-icon icon="bar-chart-outline"></nb-icon>
         Izvještaji
       </button>
@@ -179,3 +179,108 @@
     </div>
   </nb-card-body>
 </nb-card>
+
+<div class="report-backdrop" *ngIf="showIzvjestajiModal">
+  <nb-card class="report-card">
+    <nb-card-header>
+      <div class="report-header">
+        <div>
+          <h6>Napredni izvještaj</h6>
+          <small>Filtrirajte pozicije i preuzmite Excel ili štampajte nacrt.</small>
+        </div>
+        <button nbButton size="tiny" ghost status="basic" (click)="zatvoriIzvjestaje()">
+          <nb-icon icon="close-outline"></nb-icon>
+        </button>
+      </div>
+    </nb-card-header>
+    <nb-card-body>
+      <div class="report-filters">
+        <div class="filter-item">
+          <label>Pretraga</label>
+          <input nbInput fullWidth size="small" [(ngModel)]="reportFilters.search" placeholder="Broj, naziv, dobavljač..." />
+        </div>
+        <div class="filter-item">
+          <label>Tip pozicije</label>
+          <nb-select fullWidth size="small" [(ngModel)]="reportFilters.tip">
+            <nb-option value="">Svi tipovi</nb-option>
+            <nb-option *ngFor="let tip of reportTipovi" [value]="tip">{{ tip }}</nb-option>
+          </nb-select>
+        </div>
+        <div class="filter-item">
+          <label>Odjel</label>
+          <nb-select fullWidth size="small" [(ngModel)]="reportFilters.odjel">
+            <nb-option value="">Svi odjeli</nb-option>
+            <nb-option *ngFor="let odjel of reportOdjeli" [value]="odjel">{{ odjel }}</nb-option>
+          </nb-select>
+        </div>
+        <div class="filter-item">
+          <label>Dobavljač</label>
+          <input nbInput fullWidth size="small" [(ngModel)]="reportFilters.trgovac" placeholder="Naziv dobavljača" />
+        </div>
+        <div class="filter-item">
+          <label>Trader</label>
+          <input nbInput fullWidth size="small" [(ngModel)]="reportFilters.trader" placeholder="Naziv trader-a" />
+        </div>
+        <div class="filter-item">
+          <label>Status</label>
+          <nb-select fullWidth size="small" [(ngModel)]="reportFilters.status">
+            <nb-option value="ALL">Svi</nb-option>
+            <nb-option value="Zauzeta">Zauzete</nb-option>
+            <nb-option value="Slobodna">Slobodne</nb-option>
+          </nb-select>
+        </div>
+        <div class="filter-item">
+          <label>Zakup od</label>
+          <input nbInput fullWidth size="small" type="date" [(ngModel)]="reportFilters.zakupOd" />
+        </div>
+        <div class="filter-item">
+          <label>Zakup do</label>
+          <input nbInput fullWidth size="small" type="date" [(ngModel)]="reportFilters.zakupDo" />
+        </div>
+      </div>
+
+      <div class="report-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Broj pozicije</th>
+              <th>Naziv</th>
+              <th>Tip</th>
+              <th>Odjel</th>
+              <th>Dobavljač</th>
+              <th>Trader</th>
+              <th>Zakup do</th>
+              <th>Vrijednost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let pozicija of filtriranePozicije">
+              <td>{{ pozicija.brojPozicije || '-' }}</td>
+              <td>{{ pozicija.naziv || '-' }}</td>
+              <td>{{ pozicija.tip || '-' }}</td>
+              <td>{{ pozicija.zona || '-' }}</td>
+              <td>{{ pozicija.trgovac || '-' }}</td>
+              <td>{{ pozicija.trader || '-' }}</td>
+              <td>{{ pozicija.zakupDo || '-' }}</td>
+              <td>{{ pozicija.vrijednostZakupa || '-' }}</td>
+            </tr>
+            <tr *ngIf="!filtriranePozicije.length">
+              <td colspan="8" class="empty">Nema podataka za odabrane filtere.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </nb-card-body>
+    <nb-card-footer class="report-actions">
+      <button nbButton status="basic" (click)="zatvoriIzvjestaje()">Zatvori</button>
+      <button nbButton status="info" outline (click)="ispisIzvjestaja()">
+        <nb-icon icon="printer-outline"></nb-icon>
+        Štampaj nacrt
+      </button>
+      <button nbButton status="primary" (click)="exportujNapredniExcel()">
+        <nb-icon icon="download-outline"></nb-icon>
+        Excel izvještaj
+      </button>
+    </nb-card-footer>
+  </nb-card>
+</div>

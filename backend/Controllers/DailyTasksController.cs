@@ -1,9 +1,10 @@
 using backend.Data;
 using backend.Models;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Text;
+using System.IO;
 
 namespace backend.Controllers
 {
@@ -58,31 +59,45 @@ namespace backend.Controllers
             var toDate = to?.Date ?? DateTime.Today;
             var tasks = await _repository.GetTaskHistoryAsync(fromDate, toDate, storeId, status, type);
 
-            var sb = new StringBuilder();
-            sb.AppendLine("Id,Title,Description,Type,Status,Date,Store,CreatedBy,CompletedBy,CompletedAt,IsRecurring,ImageAllowed");
+            using var workbook = new XLWorkbook();
+            var sheet = workbook.AddWorksheet("Daily tasks");
+
+            sheet.Cell(1, 1).Value = "Id";
+            sheet.Cell(1, 2).Value = "Title";
+            sheet.Cell(1, 3).Value = "Description";
+            sheet.Cell(1, 4).Value = "Type";
+            sheet.Cell(1, 5).Value = "Status";
+            sheet.Cell(1, 6).Value = "Date";
+            sheet.Cell(1, 7).Value = "Store";
+            sheet.Cell(1, 8).Value = "CreatedBy";
+            sheet.Cell(1, 9).Value = "CompletedBy";
+            sheet.Cell(1, 10).Value = "CompletedAt";
+            sheet.Cell(1, 11).Value = "IsRecurring";
+            sheet.Cell(1, 12).Value = "ImageAllowed";
+
+            var row = 2;
             foreach (var task in tasks)
             {
-                var row = new[]
-                {
-                    task.Id.ToString(),
-                    EscapeCsv(task.Title),
-                    EscapeCsv(task.Description),
-                    EscapeCsv(task.Type),
-                    EscapeCsv(task.Status),
-                    task.Date.ToString("yyyy-MM-dd"),
-                    EscapeCsv(task.ProdavnicaNaziv ?? task.ProdavnicaBroj),
-                    EscapeCsv(task.CreatedBy),
-                    EscapeCsv(task.CompletedBy),
-                    task.CompletedAt?.ToString("yyyy-MM-dd HH:mm"),
-                    task.IsRecurring ? "Da" : "Ne",
-                    task.ImageAllowed ? "Da" : "Ne"
-                };
-                sb.AppendLine(string.Join(",", row));
+                sheet.Cell(row, 1).Value = task.Id;
+                sheet.Cell(row, 2).Value = task.Title;
+                sheet.Cell(row, 3).Value = task.Description;
+                sheet.Cell(row, 4).Value = task.Type;
+                sheet.Cell(row, 5).Value = task.Status;
+                sheet.Cell(row, 6).Value = task.Date.ToString("yyyy-MM-dd");
+                sheet.Cell(row, 7).Value = task.ProdavnicaNaziv ?? task.ProdavnicaBroj;
+                sheet.Cell(row, 8).Value = task.CreatedBy;
+                sheet.Cell(row, 9).Value = task.CompletedBy;
+                sheet.Cell(row, 10).Value = task.CompletedAt?.ToString("yyyy-MM-dd HH:mm");
+                sheet.Cell(row, 11).Value = task.IsRecurring ? "Da" : "Ne";
+                sheet.Cell(row, 12).Value = task.ImageAllowed ? "Da" : "Ne";
+                row++;
             }
 
-            var bytes = Encoding.UTF8.GetBytes(sb.ToString());
-            var fileName = $"daily-tasks-report-{fromDate:yyyyMMdd}-{toDate:yyyyMMdd}.csv";
-            return File(bytes, "text/csv", fileName);
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            var fileName = $"daily-tasks-report-{fromDate:yyyyMMdd}-{toDate:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         [HttpPost("store/{storeId:int}/custom")]
@@ -137,15 +152,5 @@ namespace backend.Controllers
             return Ok(result.Task);
         }
 
-        private static string EscapeCsv(string? value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return string.Empty;
-            }
-
-            var escaped = value.Replace("\"", "\"\"");
-            return $"\"{escaped}\"";
-        }
     }
 }

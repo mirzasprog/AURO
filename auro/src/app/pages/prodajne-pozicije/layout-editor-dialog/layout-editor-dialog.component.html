@@ -199,6 +199,12 @@
             <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].trgovac" 
                    placeholder="Naziv dobavljača" />
           </div>          
+
+          <div class="form-group">
+            <label>Trader</label>
+            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].trader"
+                   placeholder="Unesite trader" />
+          </div>
           
           <div class="form-group">
             <label>Naziv artikla</label>
@@ -280,24 +286,24 @@
       <div class="modal-form">
         <div class="form-group">
           <label>Tip pozicije</label>
-          <nb-select fullWidth [(ngModel)]="novaPozicija.tip">
+          <nb-select fullWidth size="small" [(ngModel)]="novaPozicija.tip">
             <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
           </nb-select>
         </div>
 
         <div class="form-group">
           <label>Naziv</label>
-          <input nbInput fullWidth [(ngModel)]="novaPozicija.naziv" placeholder="Unesite naziv..." />
+          <input nbInput fullWidth size="small" [(ngModel)]="novaPozicija.naziv" placeholder="Unesite naziv..." />
         </div>
 
         <div class="form-group">
           <label>Broj pozicije</label>
-          <input nbInput fullWidth [(ngModel)]="novaPozicija.brojPozicije" placeholder="P001" />
+          <input nbInput fullWidth size="small" [(ngModel)]="novaPozicija.brojPozicije" placeholder="P001" />
         </div>
 
         <div class="form-group">
           <label>Odjel</label>
-          <nb-select fullWidth [(ngModel)]="novaPozicija.zona">
+          <nb-select fullWidth size="small" [(ngModel)]="novaPozicija.zona">
             <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
           </nb-select>
         </div>

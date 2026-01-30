@@ -18,6 +18,17 @@ interface NazivStatistika {
   vrijednost: number;
 }
 
+interface ProdajnePozicijeReportFilters {
+  search: string;
+  tip: string;
+  odjel: string;
+  trgovac: string;
+  trader: string;
+  status: 'ALL' | 'Zauzeta' | 'Slobodna';
+  zakupOd: string;
+  zakupDo: string;
+}
+
 @Component({
   selector: 'ngx-prodajne-pozicije',
   templateUrl: './prodajne-pozicije.component.html',
@@ -52,6 +63,33 @@ export class ProdajnePozicijeComponent implements OnInit {
   statistikaPoNazivuPageSize = 5;
   totalStatistikaPoNazivuPages = 1;
   paginatedStatistikaPoNazivu: NazivStatistika[] = [];
+  showIzvjestajiModal = false;
+  reportFilters: ProdajnePozicijeReportFilters = {
+    search: '',
+    tip: '',
+    odjel: '',
+    trgovac: '',
+    trader: '',
+    status: 'ALL',
+    zakupOd: '',
+    zakupDo: ''
+  };
+  reportOdjeli = [
+    'Pakirana',
+    'Svježa',
+    'Neprehrana 1',
+    'Neprehrana 2',
+    'Delikates',
+    'Gastro',
+    'Piće i grickalice',
+    'Voće i povrće',
+    'Mesnica',
+    'Cigarete i duhanski proizvodi',
+    'Neprehrana svježa',
+    'Neprehrana prehrana',
+    'Neprehrana prehrana svježa',
+    'Prehrana svježa'
+  ];
 
   constructor(
     private readonly dataService: DataService,
@@ -183,6 +221,168 @@ export class ProdajnePozicijeComponent implements OnInit {
     });
   }
 
+  otvoriIzvjestaje(): void {
+    if (!this.odabranaProdavnicaId) {
+      this.toastrService.warning('Odaberite prodavnicu prije pregleda izvještaja.', 'Prodajne pozicije');
+      return;
+    }
+    this.showIzvjestajiModal = true;
+  }
+
+  zatvoriIzvjestaje(): void {
+    this.showIzvjestajiModal = false;
+  }
+
+  get reportTipovi(): string[] {
+    return Array.from(new Set(this.pozicije.map((pozicija) => pozicija.tip))).sort((a, b) => a.localeCompare(b));
+  }
+
+  get filtriranePozicije(): ProdajnaPozicija[] {
+    const search = this.reportFilters.search.trim().toLowerCase();
+    const tip = this.reportFilters.tip.trim().toLowerCase();
+    const odjel = this.reportFilters.odjel.trim().toLowerCase();
+    const trgovac = this.reportFilters.trgovac.trim().toLowerCase();
+    const trader = this.reportFilters.trader.trim().toLowerCase();
+    const status = this.reportFilters.status;
+    const zakupOd = this.reportFilters.zakupOd ? new Date(this.reportFilters.zakupOd) : null;
+    const zakupDo = this.reportFilters.zakupDo ? new Date(this.reportFilters.zakupDo) : null;
+
+    return this.pozicije.filter((pozicija) => {
+      if (search) {
+        const searchable = `${pozicija.brojPozicije ?? ''} ${pozicija.naziv ?? ''} ${pozicija.trgovac ?? ''} ${pozicija.trader ?? ''}`
+          .toLowerCase();
+        if (!searchable.includes(search)) {
+          return false;
+        }
+      }
+
+      if (tip && (pozicija.tip ?? '').toLowerCase() !== tip) {
+        return false;
+      }
+
+      if (odjel && (pozicija.zona ?? '').toLowerCase() !== odjel) {
+        return false;
+      }
+
+      if (trgovac && !(pozicija.trgovac ?? '').toLowerCase().includes(trgovac)) {
+        return false;
+      }
+
+      if (trader && !(pozicija.trader ?? '').toLowerCase().includes(trader)) {
+        return false;
+      }
+
+      const isZauzeta = Boolean((pozicija.trgovac ?? '').trim() || (pozicija.trader ?? '').trim());
+      if (status === 'Zauzeta' && !isZauzeta) {
+        return false;
+      }
+      if (status === 'Slobodna' && isZauzeta) {
+        return false;
+      }
+
+      if (zakupOd || zakupDo) {
+        if (!pozicija.zakupDo) {
+          return false;
+        }
+        const zakupDatum = new Date(pozicija.zakupDo);
+        if (zakupOd && zakupDatum < zakupOd) {
+          return false;
+        }
+        if (zakupDo && zakupDatum > zakupDo) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+  }
+
+  exportujNapredniExcel(): void {
+    if (!this.odabranaProdavnicaId) {
+      return;
+    }
+
+    const params = {
+      search: this.reportFilters.search,
+      tip: this.reportFilters.tip || undefined,
+      odjel: this.reportFilters.odjel || undefined,
+      trgovac: this.reportFilters.trgovac || undefined,
+      trader: this.reportFilters.trader || undefined,
+      status: this.reportFilters.status !== 'ALL' ? this.reportFilters.status : undefined,
+      zakupOd: this.reportFilters.zakupOd || undefined,
+      zakupDo: this.reportFilters.zakupDo || undefined
+    };
+
+    this.dataService.exportujProdajnePozicijeNapredni(this.odabranaProdavnicaId, params).subscribe({
+      next: (blob) => {
+        FileSaver.saveAs(blob, this.generisiNazivFajla());
+      },
+      error: () => {
+        this.toastrService.danger('Greška pri exportu naprednog izvještaja.', 'Prodajne pozicije');
+      }
+    });
+  }
+
+  ispisIzvjestaja(): void {
+    const store = this.prodavnice.find(p => p.id === this.odabranaProdavnicaId);
+    const storeLabel = store?.name ?? 'Prodavnica';
+    const rows = this.filtriranePozicije.map((pozicija) => `
+      <tr>
+        <td>${pozicija.brojPozicije ?? ''}</td>
+        <td>${pozicija.naziv ?? ''}</td>
+        <td>${pozicija.tip ?? ''}</td>
+        <td>${pozicija.zona ?? ''}</td>
+        <td>${pozicija.trgovac ?? ''}</td>
+        <td>${pozicija.trader ?? ''}</td>
+        <td>${pozicija.zakupDo ?? ''}</td>
+        <td>${pozicija.vrijednostZakupa ?? ''}</td>
+      </tr>
+    `).join('');
+
+    const html = `
+      <html>
+        <head>
+          <title>Izvještaj prodajnih pozicija</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #111; }
+            h1 { margin: 0 0 8px; }
+            .meta { margin-bottom: 16px; color: #555; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
+            th { background: #f4f4f4; }
+          </style>
+        </head>
+        <body>
+          <h1>Izvještaj prodajnih pozicija</h1>
+          <div class="meta">${storeLabel} • ${new Date().toLocaleString()}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Broj pozicije</th>
+                <th>Naziv</th>
+                <th>Tip</th>
+                <th>Odjel</th>
+                <th>Dobavljač</th>
+                <th>Trader</th>
+                <th>Zakup do</th>
+                <th>Vrijednost</th>
+              </tr>
+            </thead>
+            <tbody>${rows || '<tr><td colspan="8">Nema podataka.</td></tr>'}</tbody>
+          </table>
+        </body>
+      </html>
+    `;
+
+    const printWindow = window.open('', '_blank', 'width=900,height=700');
+    if (printWindow) {
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+  }
+
   private generisiNazivFajla(): string {
     const store = this.prodavnice.find(p => p.id === this.odabranaProdavnicaId);
     const naziv = store ? store.name.replace(/\s+/g, '_') : 'Prodavnica';
@@ -201,7 +401,7 @@ export class ProdajnePozicijeComponent implements OnInit {
       : 0;
 
     this.ukupnoPozicija = this.pozicije.length;
-    this.zauzetoPozicija = this.pozicije.filter((pozicija) => Boolean(pozicija.trgovac)).length;
+    this.zauzetoPozicija = this.pozicije.filter((pozicija) => Boolean(pozicija.trgovac || pozicija.trader)).length;
     this.slobodnoPozicija = Math.max(this.ukupnoPozicija - this.zauzetoPozicija, 0);
     this.isticeUskoroPozicija = this.pozicije.filter((pozicija) => this.jeUgovorUskoro(pozicija.zakupDo)).length;
     this.vrijednostZakupaUkupno = this.pozicije.reduce(

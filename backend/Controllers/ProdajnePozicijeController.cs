@@ -107,6 +107,7 @@ namespace backend.Controllers
                 Naziv = pozicija.Naziv,
                 BrojPozicije = pozicija.BrojPozicije,
                 Trgovac = pozicija.Trgovac,
+                Trader = pozicija.Trader,
                 ZakupDo = pozicija.ZakupDo,
                 VrijednostZakupa = pozicija.VrijednostZakupa,
                 VrstaUgovora = pozicija.VrstaUgovora,
@@ -163,7 +164,16 @@ namespace backend.Controllers
         }
 
         [HttpGet("{storeId:int}/export")]
-        public async Task<IActionResult> Export(int storeId)
+        public async Task<IActionResult> Export(
+            int storeId,
+            [FromQuery] string? search = null,
+            [FromQuery] string? tip = null,
+            [FromQuery] string? odjel = null,
+            [FromQuery] string? trgovac = null,
+            [FromQuery] string? trader = null,
+            [FromQuery] string? status = null,
+            [FromQuery] DateTime? zakupOd = null,
+            [FromQuery] DateTime? zakupDo = null)
         {
             var layout = await _context.ProdajniLayout
                 .AsNoTracking()
@@ -176,8 +186,56 @@ namespace backend.Controllers
                 return NotFound(new { poruka = "Layout nije pronađen." });
             }
 
+            var filteredPozicije = layout.Pozicije.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var lowered = search.Trim().ToLower();
+                filteredPozicije = filteredPozicije.Where(p =>
+                    $"{p.BrojPozicije} {p.Naziv} {p.Trgovac} {p.Trader}".ToLower().Contains(lowered));
+            }
+            if (!string.IsNullOrWhiteSpace(tip))
+            {
+                filteredPozicije = filteredPozicije.Where(p => string.Equals(p.Tip, tip, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrWhiteSpace(odjel))
+            {
+                filteredPozicije = filteredPozicije.Where(p => string.Equals(p.Zona, odjel, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrWhiteSpace(trgovac))
+            {
+                filteredPozicije = filteredPozicije.Where(p =>
+                    (p.Trgovac ?? string.Empty).Contains(trgovac, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrWhiteSpace(trader))
+            {
+                filteredPozicije = filteredPozicije.Where(p =>
+                    (p.Trader ?? string.Empty).Contains(trader, StringComparison.OrdinalIgnoreCase));
+            }
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (string.Equals(status, "Zauzeta", StringComparison.OrdinalIgnoreCase))
+                {
+                    filteredPozicije = filteredPozicije.Where(p =>
+                        !string.IsNullOrWhiteSpace(p.Trgovac) || !string.IsNullOrWhiteSpace(p.Trader));
+                }
+                else if (string.Equals(status, "Slobodna", StringComparison.OrdinalIgnoreCase))
+                {
+                    filteredPozicije = filteredPozicije.Where(p =>
+                        string.IsNullOrWhiteSpace(p.Trgovac) && string.IsNullOrWhiteSpace(p.Trader));
+                }
+            }
+            if (zakupOd.HasValue)
+            {
+                filteredPozicije = filteredPozicije.Where(p => p.ZakupDo.HasValue && p.ZakupDo.Value.Date >= zakupOd.Value.Date);
+            }
+            if (zakupDo.HasValue)
+            {
+                filteredPozicije = filteredPozicije.Where(p => p.ZakupDo.HasValue && p.ZakupDo.Value.Date <= zakupDo.Value.Date);
+            }
+
+            var pozicijeZaIzvjestaj = filteredPozicije.ToList();
             var ukupno = layout.Sirina * layout.Duzina;
-            var zauzeto = layout.Pozicije.Sum(p => p.Sirina * p.Duzina);
+            var zauzeto = pozicijeZaIzvjestaj.Sum(p => p.Sirina * p.Duzina);
             var slobodno = ukupno - zauzeto;
             var iskoristenost = ukupno > 0 ? Math.Round((double)(zauzeto / ukupno) * 100, 2) : 0;
 
@@ -201,26 +259,30 @@ namespace backend.Controllers
             var pozicijeSheet = workbook.AddWorksheet("Pozicije");
             pozicijeSheet.Cell(1, 1).Value = "Tip";
             pozicijeSheet.Cell(1, 2).Value = "Naziv";
-            pozicijeSheet.Cell(1, 3).Value = "Širina";
-            pozicijeSheet.Cell(1, 4).Value = "Dužina";
-            pozicijeSheet.Cell(1, 5).Value = "X";
-            pozicijeSheet.Cell(1, 6).Value = "Y";
-            pozicijeSheet.Cell(1, 7).Value = "Rotacija";
-            pozicijeSheet.Cell(1, 8).Value = "Zona";
-            pozicijeSheet.Cell(1, 9).Value = "Površina";
+            pozicijeSheet.Cell(1, 3).Value = "Broj pozicije";
+            pozicijeSheet.Cell(1, 4).Value = "Trader";
+            pozicijeSheet.Cell(1, 5).Value = "Širina";
+            pozicijeSheet.Cell(1, 6).Value = "Dužina";
+            pozicijeSheet.Cell(1, 7).Value = "X";
+            pozicijeSheet.Cell(1, 8).Value = "Y";
+            pozicijeSheet.Cell(1, 9).Value = "Rotacija";
+            pozicijeSheet.Cell(1, 10).Value = "Zona";
+            pozicijeSheet.Cell(1, 11).Value = "Površina";
 
             var row = 2;
-            foreach (var pozicija in layout.Pozicije.OrderBy(p => p.Tip).ThenBy(p => p.Naziv))
+            foreach (var pozicija in pozicijeZaIzvjestaj.OrderBy(p => p.Tip).ThenBy(p => p.Naziv))
             {
                 pozicijeSheet.Cell(row, 1).Value = pozicija.Tip;
                 pozicijeSheet.Cell(row, 2).Value = pozicija.Naziv;
-                pozicijeSheet.Cell(row, 3).Value = pozicija.Sirina;
-                pozicijeSheet.Cell(row, 4).Value = pozicija.Duzina;
-                pozicijeSheet.Cell(row, 5).Value = pozicija.PozicijaX;
-                pozicijeSheet.Cell(row, 6).Value = pozicija.PozicijaY;
-                pozicijeSheet.Cell(row, 7).Value = pozicija.Rotacija;
-                pozicijeSheet.Cell(row, 8).Value = pozicija.Zona;
-                pozicijeSheet.Cell(row, 9).Value = pozicija.Sirina * pozicija.Duzina;
+                pozicijeSheet.Cell(row, 3).Value = pozicija.BrojPozicije;
+                pozicijeSheet.Cell(row, 4).Value = pozicija.Trader;
+                pozicijeSheet.Cell(row, 5).Value = pozicija.Sirina;
+                pozicijeSheet.Cell(row, 6).Value = pozicija.Duzina;
+                pozicijeSheet.Cell(row, 7).Value = pozicija.PozicijaX;
+                pozicijeSheet.Cell(row, 8).Value = pozicija.PozicijaY;
+                pozicijeSheet.Cell(row, 9).Value = pozicija.Rotacija;
+                pozicijeSheet.Cell(row, 10).Value = pozicija.Zona;
+                pozicijeSheet.Cell(row, 11).Value = pozicija.Sirina * pozicija.Duzina;
                 row++;
             }
 
@@ -231,7 +293,7 @@ namespace backend.Controllers
             agregacijaSheet.Cell(1, 4).Value = "Učešće (%)";
 
             row = 2;
-            foreach (var grupa in layout.Pozicije.GroupBy(p => p.Tip).OrderBy(g => g.Key))
+            foreach (var grupa in pozicijeZaIzvjestaj.GroupBy(p => p.Tip).OrderBy(g => g.Key))
             {
                 var povrsina = grupa.Sum(p => p.Sirina * p.Duzina);
                 var ucesce = ukupno > 0 ? Math.Round((double)(povrsina / ukupno) * 100, 2) : 0;
@@ -267,6 +329,7 @@ namespace backend.Controllers
                 Naziv = pozicija.Naziv,
                 BrojPozicije = pozicija.BrojPozicije,
                 Trgovac = pozicija.Trgovac,
+                Trader = pozicija.Trader,
                 ZakupDo = pozicija.ZakupDo,
                 VrijednostZakupa = pozicija.VrijednostZakupa,
                 VrstaUgovora = pozicija.VrstaUgovora,

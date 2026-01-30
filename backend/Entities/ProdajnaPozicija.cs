@@ -10,6 +10,7 @@ namespace backend.Entities
         public string Naziv { get; set; } = null!;
         public string? BrojPozicije { get; set; }
         public string? Trgovac { get; set; }
+        public string? Trader { get; set; }
         public DateTime? ZakupDo { get; set; }
         public decimal? VrijednostZakupa { get; set; }
         public string? VrstaUgovora { get; set; }

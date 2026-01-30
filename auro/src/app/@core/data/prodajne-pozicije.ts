@@ -4,6 +4,7 @@ export interface ProdajnaPozicija {
   naziv: string;
   brojPozicije?: string | null;
   trgovac?: string | null;
+  trader?: string | null;
   nazivArtikla?: string | null;
   zakupDo?: string | null;
   vrijednostZakupa?: number | null;
