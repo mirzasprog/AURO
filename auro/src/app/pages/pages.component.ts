@@ -4,6 +4,7 @@ import { DataService } from "../@core/utils/data.service";
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { MENU_ITEMS } from "./pages-menu";
 import { NbMenuItem } from "@nebular/theme";
+import { DailyTaskService } from "../@core/utils/daily-task.service";
 import { VikendAkcija } from "../@core/data/vikend-akcija";
 
 @Component({
@@ -20,7 +21,11 @@ import { VikendAkcija } from "../@core/data/vikend-akcija";
 export class PagesComponent implements OnInit {
   menu = MENU_ITEMS;
   role: any;
-  constructor(private dataService: DataService, public authService: NbAuthService) { }
+  constructor(
+    private dataService: DataService,
+    public authService: NbAuthService,
+    private dailyTaskService: DailyTaskService
+  ) { }
 
   private findMenuItem(path: string[]): NbMenuItem | undefined {
     let items: NbMenuItem[] | undefined = this.menu;
@@ -54,6 +59,25 @@ export class PagesComponent implements OnInit {
     vikendAkcijeItem.badge = aktivna
       ? { text: '', status: 'success', dotMode: true }
       : undefined;
+  }
+
+  private setDailyTasksBadge(aktivno: boolean): void {
+    const item = this.findMenuItem(["Dnevni zadaci"]);
+    if (!item) {
+      return;
+    }
+
+    item.badge = aktivno ? { text: '', status: 'warning', dotMode: true } : undefined;
+  }
+
+  private postaviDnevneZadatkeNotifikaciju(): void {
+    this.dailyTaskService.getTodayTasks().subscribe({
+      next: (tasks) => {
+        const postojiAktivan = tasks?.some(task => task.status !== 'DONE');
+        this.setDailyTasksBadge(!!postojiAktivan);
+      },
+      error: () => this.setDailyTasksBadge(false),
+    });
   }
 
   private postaviVikendAkcijeNotifikaciju(): void {
@@ -104,6 +128,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
          // this.setMenuHidden(["Fakturisanje"], true);
+          this.postaviDnevneZadatkeNotifikaciju();
         }
         else if (rola == "interna") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -120,6 +145,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
          // this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
         }
         else if (rola == "podrucni") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -136,6 +162,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         //  this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
         }
         else if (rola == "regionalni") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -151,6 +178,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
         //  this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
         }
         else if (rola == "kontrola_kvaliteta") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -166,6 +194,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
          // this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
         }
         else if (rola == "uprava") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -181,6 +210,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Prodajne pozicije"], false);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
          // this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
         }
         else if(rola == "finansije") {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -196,6 +226,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
           this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Fakturisanje"], false);
+          this.setDailyTasksBadge(false);
         }       
         else {
           this.setMenuHidden(["Dnevni zadaci"], false);
@@ -211,6 +242,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
           this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
         }
       })
   }
