@@ -4,7 +4,7 @@ import { NbDialogService } from '@nebular/theme';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import Swal from 'sweetalert2';
-import { DailyTask, DailyTaskStore } from '../../../@core/data/daily-task';
+import { DailyTask, DailyTaskBulkPayload, DailyTaskPayload, DailyTaskStore } from '../../../@core/data/daily-task';
 import { DailyTaskService } from '../../../@core/utils/daily-task.service';
 import { TaskDetailDialogComponent } from '../task-detail-dialog/task-detail-dialog.component';
 import { CustomTaskDialogComponent } from '../custom-task-dialog/custom-task-dialog.component';
@@ -21,6 +21,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   tasks: DailyTask[] = [];
   repetitiveTasks: DailyTask[] = [];
   customTasks: DailyTask[] = [];
+  historyTasks: DailyTask[] = [];
   summaryCards: { title: string; subtitle: string; value: number | string; icon: string; accent: 'primary' | 'success' | 'info' }[] = [];
   statusChartData: { name: string; value: number }[] = [];
   readonly statusChartColorScheme = { domain: ['#5E81F4', '#FFBC6E', '#36D6AE'] };
@@ -29,16 +30,23 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   readonly chartDoughnut = true;
   stores: DailyTaskStore[] = [];
   selectedStoreId?: number;
+  historyStoreId?: number | null;
   currentStoreId?: number;
   loading = false;
+  historyLoading = false;
+  reportLoading = false;
   rola:any;
   role: string | null = null;
   readonly today = new Date();
-  private readonly statusLabelMap: Record<string, string> = {
+  readonly statusLabelMap: Record<string, string> = {
     OPEN: 'Otvoreni',
     IN_PROGRESS: 'U toku',
     DONE: 'Završeni'
   };
+  historyFrom = '';
+  historyTo = '';
+  historyStatus = 'DONE';
+  historyType = 'ALL';
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -74,6 +82,10 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
     return this.role !== 'prodavnica';
   }
 
+  get canBulkCreate(): boolean {
+    return this.role === 'uprava';
+  }
+
   get canCreateCustomTasks(): boolean {
     return this.canManageStores || this.role === 'prodavnica';
   }
@@ -84,6 +96,10 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
 
   get hasTasks(): boolean {
     return this.tasks.length > 0;
+  }
+
+  get hasHistoryTasks(): boolean {
+    return this.historyTasks.length > 0;
   }
 
   get headlineDate(): string {
@@ -124,6 +140,43 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       });
   }
 
+  refreshHistory(): void {
+    if (!this.historyFrom || !this.historyTo) {
+      return;
+    }
+
+    const fromDate = new Date(this.historyFrom);
+    const toDate = new Date(this.historyTo);
+    if (Number.isNaN(fromDate.getTime()) || Number.isNaN(toDate.getTime()) || fromDate > toDate) {
+      return;
+    }
+
+    this.historyLoading = true;
+    const storeId = this.canManageStores ? this.historyStoreId ?? undefined : undefined;
+    const status = this.historyStatus !== 'ALL' ? this.historyStatus : undefined;
+    const type = this.historyType !== 'ALL' ? this.historyType : undefined;
+
+    this.dailyTaskService.getHistoryTasks({
+      storeId,
+      from: this.historyFrom,
+      to: this.historyTo,
+      status,
+      type
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tasks) => {
+          this.historyTasks = tasks;
+          this.historyLoading = false;
+        },
+        error: (err) => {
+          this.historyLoading = false;
+          const poruka = err.error?.poruka ?? err.statusText;
+          Swal.fire('Greška', `Greška prilikom preuzimanja historije: ${poruka}`, 'error');
+        }
+      });
+  }
+
   openTask(task: DailyTask): void {
     const dialogRef = this.dialogService.open(TaskDetailDialogComponent, {
       context: {
@@ -154,27 +207,47 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       context: {
         title: 'Novi zadatak',
         date: new Date(),
-        imageAllowed: true
+        imageAllowed: true,
+        allowBulk: this.canBulkCreate,
+        stores: this.stores,
+        defaultStoreId: targetStoreId
       }
     });
 
-    dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((payload) => {
+    dialogRef.onClose.pipe(takeUntil(this.destroy$)).subscribe((payload: DailyTaskPayload | DailyTaskBulkPayload | null) => {
       if (!payload) {
         return;
       }
 
-      this.dailyTaskService.createCustomTask(targetStoreId as number, payload)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (task) => {
-            this.tasks.push(task);
-            this.updateDerivedCollections();
-          },
-          error: (err) => {
-            const poruka = err.error?.poruka ?? err.statusText;
-            Swal.fire('Greška', `Greška prilikom spremanja zadatka: ${poruka}`, 'error');
-          }
-        });
+      if (this.canBulkCreate && 'targetType' in payload) {
+        this.dailyTaskService.createBulkCustomTask(payload)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (result) => {
+              Swal.fire('Uspjeh', `Kreirano ${result.brojZadataka} zadataka za ${result.brojProdavnica} prodavnica.`, 'success');
+              this.refreshTasks();
+              this.refreshHistory();
+            },
+            error: (err) => {
+              const poruka = err.error?.poruka ?? err.statusText;
+              Swal.fire('Greška', `Greška prilikom spremanja zadatka: ${poruka}`, 'error');
+            }
+          });
+      } else {
+        this.dailyTaskService.createCustomTask(targetStoreId as number, payload)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (task) => {
+              this.tasks.push(task);
+              this.updateDerivedCollections();
+              this.refreshHistory();
+            },
+            error: (err) => {
+              const poruka = err.error?.poruka ?? err.statusText;
+              Swal.fire('Greška', `Greška prilikom spremanja zadatka: ${poruka}`, 'error');
+            }
+          });
+      }
     });
   }
 
@@ -208,6 +281,7 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   }
 
   private loadInitialData(): void {
+    this.initHistoryDates();
     if (this.canManageStores) {
       this.dailyTaskService.getStores()
         .pipe(takeUntil(this.destroy$))
@@ -216,7 +290,9 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
             this.stores = stores;
             if (stores.length > 0) {
               this.selectedStoreId = stores[0].id;
+              this.historyStoreId = null;
               this.refreshTasks();
+              this.refreshHistory();
             }
           },
           error: (err) => {
@@ -228,7 +304,9 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       if (this.currentStoreId && !this.selectedStoreId) {
         this.selectedStoreId = this.currentStoreId;
       }
+      this.historyStoreId = this.selectedStoreId ?? this.currentStoreId ?? null;
       this.refreshTasks();
+      this.refreshHistory();
     }
   }
 
@@ -283,5 +361,54 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       { name: this.statusLabelMap.IN_PROGRESS, value: inProgress },
       { name: this.statusLabelMap.DONE, value: completed }
     ].filter(item => item.value > 0);
+  }
+
+  downloadReport(): void {
+    if (!this.historyFrom || !this.historyTo) {
+      return;
+    }
+
+    this.reportLoading = true;
+    const storeId = this.canManageStores ? this.historyStoreId ?? undefined : undefined;
+    const status = this.historyStatus !== 'ALL' ? this.historyStatus : undefined;
+    const type = this.historyType !== 'ALL' ? this.historyType : undefined;
+
+    this.dailyTaskService.downloadReport({
+      storeId,
+      from: this.historyFrom,
+      to: this.historyTo,
+      status,
+      type
+    })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (blob) => {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `daily-tasks-report-${this.historyFrom}-${this.historyTo}.csv`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+          this.reportLoading = false;
+        },
+        error: (err) => {
+          this.reportLoading = false;
+          const poruka = err.error?.poruka ?? err.statusText;
+          Swal.fire('Greška', `Greška prilikom preuzimanja reporta: ${poruka}`, 'error');
+        }
+      });
+  }
+
+  private initHistoryDates(): void {
+    if (this.historyFrom && this.historyTo) {
+      return;
+    }
+
+    const to = new Date();
+    const from = new Date();
+    from.setDate(to.getDate() - 30);
+
+    this.historyFrom = from.toISOString().substring(0, 10);
+    this.historyTo = to.toISOString().substring(0, 10);
   }
 }

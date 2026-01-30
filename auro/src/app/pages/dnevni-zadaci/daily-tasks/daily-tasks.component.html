@@ -166,6 +166,102 @@
           </ng-template>
         </section>
       </div>
+
+      <section class="history-section">
+        <div class="history-header">
+          <div>
+            <h4>Pregled prethodnih zadataka</h4>
+            <small *ngIf="canManageStores">Pregled na nivou mreže ili filtrirajte po prodavnici.</small>
+            <small *ngIf="!canManageStores">Pregled vaših ranije evidentiranih zadataka.</small>
+          </div>
+          <div class="history-actions">
+            <button nbButton size="small" status="primary" (click)="downloadReport()" [disabled]="historyLoading || reportLoading">
+              <nb-icon icon="download-outline"></nb-icon>
+              Preuzmi report
+            </button>
+          </div>
+        </div>
+
+        <div class="history-filters">
+          <div class="filter" *ngIf="canManageStores">
+            <label>Prodavnica</label>
+            <nb-select fullWidth [(selected)]="historyStoreId" (selectedChange)="refreshHistory()">
+              <nb-option [value]="null">Sve prodavnice</nb-option>
+              <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
+            </nb-select>
+          </div>
+          <div class="filter">
+            <label>Od</label>
+            <input nbInput type="date" [(ngModel)]="historyFrom" (ngModelChange)="refreshHistory()">
+          </div>
+          <div class="filter">
+            <label>Do</label>
+            <input nbInput type="date" [(ngModel)]="historyTo" (ngModelChange)="refreshHistory()">
+          </div>
+          <div class="filter">
+            <label>Status</label>
+            <nb-select fullWidth [(selected)]="historyStatus" (selectedChange)="refreshHistory()">
+              <nb-option value="DONE">Završeni</nb-option>
+              <nb-option value="IN_PROGRESS">U toku</nb-option>
+              <nb-option value="OPEN">Otvoreni</nb-option>
+              <nb-option value="ALL">Svi</nb-option>
+            </nb-select>
+          </div>
+          <div class="filter">
+            <label>Tip</label>
+            <nb-select fullWidth [(selected)]="historyType" (selectedChange)="refreshHistory()">
+              <nb-option value="ALL">Svi</nb-option>
+              <nb-option value="REPETITIVE">Ponavljajući</nb-option>
+              <nb-option value="CUSTOM">Jednokratni</nb-option>
+            </nb-select>
+          </div>
+        </div>
+
+        <div class="history-body">
+          <div class="loading" *ngIf="historyLoading">
+            <nb-spinner size="giant"></nb-spinner>
+          </div>
+          <div class="empty-state" *ngIf="!historyLoading && !hasHistoryTasks">
+            <nb-icon icon="archive-outline"></nb-icon>
+            <p>Nema zadataka za odabrani period. Promijenite filtere ili odaberite drugi period.</p>
+          </div>
+          <div class="history-table" *ngIf="!historyLoading && hasHistoryTasks">
+            <table>
+              <thead>
+                <tr>
+                  <th>Datum</th>
+                  <th *ngIf="canManageStores">Prodavnica</th>
+                  <th>Zadatak</th>
+                  <th>Tip</th>
+                  <th>Status</th>
+                  <th>Kreirao</th>
+                  <th>Završio</th>
+                  <th>Vrijeme završetka</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let task of historyTasks; trackBy: trackByTaskId">
+                  <td>{{ task.date | date:'shortDate' }}</td>
+                  <td *ngIf="canManageStores">{{ task.prodavnicaNaziv || task.prodavnicaBroj || task.prodavnicaId }}</td>
+                  <td>
+                    <div class="history-title">{{ task.title }}</div>
+                    <div class="history-description" *ngIf="task.description">{{ task.description }}</div>
+                  </td>
+                  <td>{{ task.type === repetitiveType ? 'Ponavljajući' : 'Jednokratni' }}</td>
+                  <td>
+                    <nb-badge [text]="statusLabelMap[task.status] || (task.status | titlecase)"
+                              [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'">
+                    </nb-badge>
+                  </td>
+                  <td>{{ task.createdBy || '—' }}</td>
+                  <td>{{ task.completedBy || '—' }}</td>
+                  <td>{{ task.completedAt ? (task.completedAt | date:'short') : '—' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </ng-container>
   </nb-card-body>
 </nb-card>

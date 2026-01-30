@@ -132,6 +132,57 @@ namespace backend.Data
             return await GetTasksForStoreAsync(currentUser.Prodavnica.KorisnikId, date, typeFilter);
         }
 
+        public async Task<IEnumerable<DailyTaskDto>> GetTaskHistoryAsync(DateTime from, DateTime to, int? storeId, string? statusFilter = null, string? typeFilter = null)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return Enumerable.Empty<DailyTaskDto>();
+            }
+
+            var isStoreUser = string.Equals(currentUser.Uloga, "prodavnica", StringComparison.OrdinalIgnoreCase);
+            int? resolvedStoreId = storeId;
+
+            if (isStoreUser)
+            {
+                resolvedStoreId = currentUser.Prodavnica?.KorisnikId;
+            }
+
+            var normalizedStatus = string.IsNullOrWhiteSpace(statusFilter) || string.Equals(statusFilter, "ALL", StringComparison.OrdinalIgnoreCase)
+                ? null
+                : NormalizeStatus(statusFilter);
+
+            var query = _context.DailyTask
+                .AsNoTracking()
+                .Include(t => t.CreatedBy)
+                .Include(t => t.CompletedBy)
+                .Include(t => t.Prodavnica)
+                .Where(t => t.Date >= from.Date && t.Date <= to.Date);
+
+            if (resolvedStoreId.HasValue)
+            {
+                query = query.Where(t => t.ProdavnicaId == resolvedStoreId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(normalizedStatus))
+            {
+                query = query.Where(t => t.Status == normalizedStatus);
+            }
+
+            if (!string.IsNullOrWhiteSpace(typeFilter) && !string.Equals(typeFilter, "ALL", StringComparison.OrdinalIgnoreCase))
+            {
+                query = query.Where(t => t.Type == typeFilter);
+            }
+
+            var tasks = await query
+                .OrderByDescending(t => t.Date)
+                .ThenBy(t => t.ProdavnicaId)
+                .ThenBy(t => t.Title)
+                .ToListAsync();
+
+            return tasks.Select(MapToDto).ToList();
+        }
+
         public async Task<DailyTaskOperationResult> UpdateTaskStatusAsync(int taskId, DailyTaskStatusUpdateRequest request)
         {
             var task = await _context.DailyTask
@@ -238,6 +289,85 @@ namespace backend.Data
             return DailyTaskOperationResult.Ok(MapToDto(task));
         }
 
+        public async Task<DailyTaskBulkOperationResult> CreateBulkCustomTasksAsync(DailyTaskBulkCreateRequest request)
+        {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null)
+            {
+                return DailyTaskBulkOperationResult.Failed("Korisnik nije pronađen.");
+            }
+
+            if (!string.Equals(currentUser.Uloga, "uprava", StringComparison.OrdinalIgnoreCase))
+            {
+                return DailyTaskBulkOperationResult.Failed("Nemate dozvolu za masovno kreiranje zadataka.");
+            }
+
+            var targetType = request.TargetType?.Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(targetType))
+            {
+                return DailyTaskBulkOperationResult.Failed("Odaberite način slanja zadataka.");
+            }
+
+            IQueryable<Prodavnica> storeQuery = _context.Prodavnica.AsNoTracking();
+            switch (targetType)
+            {
+                case "stores":
+                    if (request.StoreIds == null || !request.StoreIds.Any())
+                    {
+                        return DailyTaskBulkOperationResult.Failed("Odaberite barem jednu prodavnicu.");
+                    }
+                    storeQuery = storeQuery.Where(p => request.StoreIds.Contains(p.KorisnikId));
+                    break;
+                case "city":
+                    if (string.IsNullOrWhiteSpace(request.City))
+                    {
+                        return DailyTaskBulkOperationResult.Failed("Odaberite grad.");
+                    }
+                    storeQuery = storeQuery.Where(p => p.Mjesto == request.City);
+                    break;
+                case "manager":
+                    if (!request.ManagerId.HasValue)
+                    {
+                        return DailyTaskBulkOperationResult.Failed("Odaberite područnog voditelja.");
+                    }
+                    storeQuery = storeQuery.Where(p => p.MenadzerId == request.ManagerId);
+                    break;
+                case "format":
+                    if (string.IsNullOrWhiteSpace(request.Format))
+                    {
+                        return DailyTaskBulkOperationResult.Failed("Odaberite format prodavnice.");
+                    }
+                    storeQuery = storeQuery.Where(p => p.NazivCjenika == request.Format);
+                    break;
+                default:
+                    return DailyTaskBulkOperationResult.Failed("Nepodržan način slanja zadataka.");
+            }
+
+            var stores = await storeQuery.ToListAsync();
+            if (!stores.Any())
+            {
+                return DailyTaskBulkOperationResult.Failed("Nije pronađena nijedna prodavnica za odabrani kriterij.");
+            }
+
+            var tasks = stores.Select(store => new DailyTask
+            {
+                Title = request.Title,
+                Description = request.Description,
+                Date = request.Date.Date,
+                ProdavnicaId = store.KorisnikId,
+                Type = request.IsRecurring ? TypeRepetitive : TypeCustom,
+                Status = StatusOpen,
+                ImageAllowed = request.ImageAllowed,
+                CreatedById = currentUser.KorisnikId,
+                IsRecurring = request.IsRecurring
+            }).ToList();
+
+            _context.DailyTask.AddRange(tasks);
+            await _context.SaveChangesAsync();
+
+            return DailyTaskBulkOperationResult.Ok(tasks.Count, stores.Count);
+        }
+
         public async Task<DailyTaskOperationResult> UpdateCustomTaskAsync(int taskId, DailyTaskUpdateRequest request)
         {
             var currentUser = await GetCurrentUserAsync();
@@ -281,17 +411,23 @@ namespace backend.Data
 
         public async Task<IEnumerable<DailyTaskStoreDto>> GetStoresAsync()
         {
-            var stores = await _context.Prodavnica
-                .AsNoTracking()
-                .OrderBy(p => p.BrojProdavnice)
-                .ToListAsync();
+            var stores = await (from prodavnica in _context.Prodavnica.AsNoTracking()
+                                join menadzer in _context.Menadzer.AsNoTracking()
+                                    on prodavnica.MenadzerId equals menadzer.KorisnikId into menadzeri
+                                from menadzer in menadzeri.DefaultIfEmpty()
+                                orderby prodavnica.BrojProdavnice
+                                select new DailyTaskStoreDto
+                                {
+                                    Id = prodavnica.KorisnikId,
+                                    Code = prodavnica.BrojProdavnice,
+                                    Name = $"{prodavnica.BrojProdavnice} - {prodavnica.Mjesto}",
+                                    City = prodavnica.Mjesto,
+                                    Format = prodavnica.NazivCjenika,
+                                    ManagerId = prodavnica.MenadzerId,
+                                    ManagerName = menadzer != null ? $"{menadzer.Ime} {menadzer.Prezime}" : null
+                                }).ToListAsync();
 
-            return stores.Select(p => new DailyTaskStoreDto
-            {
-                Id = p.KorisnikId,
-                Code = p.BrojProdavnice,
-                Name = $"{p.BrojProdavnice} - {p.Mjesto}"
-            }).ToList();
+            return stores;
         }
 
         private string NormalizeStatus(string status)

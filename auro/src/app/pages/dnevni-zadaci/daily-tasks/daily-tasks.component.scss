@@ -329,6 +329,104 @@
   }
 }
 
+.history-section {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    h4 {
+      margin: 0;
+      font-weight: 600;
+    }
+
+    small {
+      color: var(--text-hint-color);
+    }
+  }
+
+  .history-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .history-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    align-items: end;
+
+    .filter {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-hint-color);
+      }
+    }
+  }
+
+  .history-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .history-table {
+    overflow-x: auto;
+    border-radius: 1rem;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 1rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.04);
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      padding: 0.75rem 0.5rem;
+      font-size: 0.85rem;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    th {
+      text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--text-hint-color);
+    }
+
+    .history-title {
+      font-weight: 600;
+    }
+
+    .history-description {
+      color: var(--text-hint-color);
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
 @media screen and (max-width: 768px) {
   .page-header {
     flex-direction: column;
@@ -348,5 +446,21 @@
   .kpi-card nb-card-body {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .history-section {
+    .history-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .history-actions {
+      width: 100%;
+
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
   }
 }
