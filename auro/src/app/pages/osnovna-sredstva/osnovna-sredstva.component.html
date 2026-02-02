@@ -1,0 +1,220 @@
+<div class="fixed-assets">
+  <div class="header">
+    <div>
+      <h2>Osnovna sredstva</h2>
+      <p>Centralizovana evidencija opreme, zaduženja, servisa i analitike za cijelu kompaniju.</p>
+    </div>
+    <button nbButton status="primary" size="small" (click)="resetAssetForm()">
+      <nb-icon icon="plus-circle-outline"></nb-icon>
+      Novi unos
+    </button>
+  </div>
+
+  <div class="summary-grid">
+    <nb-card *ngFor="let item of summary" class="summary-card">
+      <nb-card-header>
+        <div class="summary-title">{{ item.categoryName }}</div>
+        <div class="summary-count">{{ item.totalAssets }}</div>
+      </nb-card-header>
+      <nb-card-body>
+        <div class="summary-metrics">
+          <div>
+            <span>Aktivno</span>
+            <strong>{{ item.activeAssets }}</strong>
+          </div>
+          <div>
+            <span>Zaduženo</span>
+            <strong>{{ item.assignedAssets }}</strong>
+          </div>
+          <div>
+            <span>Nabavna vrijednost</span>
+            <strong>{{ item.totalPurchasePrice | number: '1.2-2' }} KM</strong>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <nb-card class="filters">
+    <nb-card-body>
+      <form [formGroup]="filterForm" class="filter-grid" (ngSubmit)="applyFilters()">
+        <input nbInput fullWidth placeholder="Pretraga (naziv, inventurni, serijski)" formControlName="search" />
+        <nb-select placeholder="Kategorija" formControlName="categoryId" fullWidth>
+          <nb-option [value]="null">Sve kategorije</nb-option>
+          <nb-option *ngFor="let option of categoryOptions" [value]="option.id">{{ option.label }}</nb-option>
+        </nb-select>
+        <nb-select placeholder="Status" formControlName="status" fullWidth>
+          <nb-option value="">Svi statusi</nb-option>
+          <nb-option *ngFor="let status of statusOptions" [value]="status">{{ status }}</nb-option>
+        </nb-select>
+        <button nbButton status="info" type="submit">Primijeni filter</button>
+      </form>
+    </nb-card-body>
+  </nb-card>
+
+  <div class="layout-grid">
+    <nb-card class="asset-form">
+      <nb-card-header>
+        <div>
+          <h4>{{ selectedAsset ? 'Uredi osnovno sredstvo' : 'Novi unos osnovnog sredstva' }}</h4>
+          <p>Obavezna polja: nabavna cijena, dobavljač, inventurni broj, serijski broj.</p>
+        </div>
+      </nb-card-header>
+      <nb-card-body>
+        <form [formGroup]="assetForm" (ngSubmit)="submitAsset()" class="asset-form-grid">
+          <nb-select placeholder="Kategorija" formControlName="categoryId" fullWidth>
+            <nb-option *ngFor="let option of categoryOptions" [value]="option.id">{{ option.label }}</nb-option>
+          </nb-select>
+          <input nbInput fullWidth placeholder="Naziv opreme" formControlName="name" />
+          <input nbInput fullWidth placeholder="Inventurni broj" formControlName="inventoryNumber" />
+          <input nbInput fullWidth placeholder="Serijski broj" formControlName="serialNumber" />
+          <input nbInput fullWidth placeholder="Nabavna cijena" formControlName="purchasePrice" type="number" />
+          <input nbInput fullWidth placeholder="Dobavljač" formControlName="supplier" />
+          <input nbInput fullWidth placeholder="Datum nabavke" formControlName="purchaseDate" type="date" />
+          <input nbInput fullWidth placeholder="Garantni rok" formControlName="warrantyUntil" type="date" />
+          <input nbInput fullWidth placeholder="Lokacija" formControlName="location" />
+          <input nbInput fullWidth placeholder="Sektor" formControlName="department" />
+          <nb-select placeholder="Status" formControlName="status" fullWidth>
+            <nb-option *ngFor="let status of statusOptions" [value]="status">{{ status }}</nb-option>
+          </nb-select>
+          <input nbInput fullWidth placeholder="Zadužen/a" formControlName="assignedTo" />
+          <textarea nbInput fullWidth placeholder="Napomene" formControlName="notes" rows="3"></textarea>
+          <div class="form-actions">
+            <button nbButton status="primary" [disabled]="isSubmitting" type="submit">
+              {{ selectedAsset ? 'Sačuvaj izmjene' : 'Snimi opremu' }}
+            </button>
+            <button nbButton status="basic" type="button" (click)="resetAssetForm()">Reset</button>
+          </div>
+        </form>
+      </nb-card-body>
+    </nb-card>
+
+    <nb-card class="category-card">
+      <nb-card-header>
+        <div>
+          <h4>Kategorije i podkategorije</h4>
+          <p>Organizuj opremu po tipovima i podgrupama.</p>
+        </div>
+      </nb-card-header>
+      <nb-card-body>
+        <form [formGroup]="categoryForm" (ngSubmit)="submitCategory()" class="category-form">
+          <input nbInput fullWidth placeholder="Naziv kategorije" formControlName="name" />
+          <textarea nbInput fullWidth placeholder="Opis" formControlName="description" rows="2"></textarea>
+          <nb-select placeholder="Nadređena kategorija" formControlName="parentCategoryId" fullWidth>
+            <nb-option [value]="null">Glavna kategorija</nb-option>
+            <nb-option *ngFor="let option of categoryOptions" [value]="option.id">{{ option.label }}</nb-option>
+          </nb-select>
+          <button nbButton status="success" type="submit">Dodaj kategoriju</button>
+        </form>
+        <div class="category-list">
+          <div class="category-item" *ngFor="let option of categoryOptions">
+            <span>{{ option.label }}</span>
+          </div>
+        </div>
+      </nb-card-body>
+    </nb-card>
+  </div>
+
+  <nb-card>
+    <nb-card-header>
+      <h4>Evidencija osnovnih sredstava</h4>
+    </nb-card-header>
+    <nb-card-body>
+      <div class="asset-table">
+        <div class="asset-row header">
+          <span>Naziv</span>
+          <span>Inventurni broj</span>
+          <span>Serijski broj</span>
+          <span>Kategorija</span>
+          <span>Status</span>
+          <span>Lokacija</span>
+          <span>Zadužen/a</span>
+          <span>Nabavna cijena</span>
+        </div>
+        <button
+          class="asset-row"
+          *ngFor="let asset of assets"
+          type="button"
+          (click)="selectAsset(asset)"
+        >
+          <span>{{ asset.name }}</span>
+          <span>{{ asset.inventoryNumber }}</span>
+          <span>{{ asset.serialNumber }}</span>
+          <span>{{ asset.categoryName }}</span>
+          <span>{{ asset.status || '-' }}</span>
+          <span>{{ asset.location || '-' }}</span>
+          <span>{{ asset.assignedTo || '-' }}</span>
+          <span>{{ asset.purchasePrice | number: '1.2-2' }} KM</span>
+        </button>
+      </div>
+    </nb-card-body>
+  </nb-card>
+
+  <nb-card *ngIf="selectedAsset" class="detail-card">
+    <nb-card-header>
+      <div>
+        <h4>Detalji opreme</h4>
+        <p>{{ selectedAsset.name }} • {{ selectedAsset.inventoryNumber }}</p>
+      </div>
+    </nb-card-header>
+    <nb-card-body>
+      <nb-tabset>
+        <nb-tab tabTitle="Zaduženja">
+          <div class="tab-grid">
+            <form [formGroup]="assignmentForm" (ngSubmit)="submitAssignment()" class="tab-form">
+              <input nbInput fullWidth placeholder="Zadužen/a" formControlName="assignedTo" />
+              <input nbInput fullWidth placeholder="Zadužio" formControlName="assignedBy" />
+              <input nbInput fullWidth placeholder="Sektor" formControlName="department" />
+              <input nbInput fullWidth placeholder="Lokacija" formControlName="location" />
+              <input nbInput fullWidth placeholder="Datum zaduženja" formControlName="startDate" type="date" />
+              <input nbInput fullWidth placeholder="Datum razduženja" formControlName="endDate" type="date" />
+              <input nbInput fullWidth placeholder="Status" formControlName="status" />
+              <textarea nbInput fullWidth placeholder="Napomena" formControlName="note" rows="2"></textarea>
+              <button nbButton status="primary" type="submit">Evidentiraj zaduženje</button>
+            </form>
+            <div class="tab-list">
+              <div class="tab-item" *ngFor="let assignment of selectedAsset.assignments">
+                <div>
+                  <strong>{{ assignment.assignedTo }}</strong>
+                  <span>{{ assignment.department || 'Bez sektora' }} • {{ assignment.location || 'Bez lokacije' }}</span>
+                </div>
+                <div>
+                  <span>{{ assignment.startDate | date: 'dd.MM.yyyy' }}</span>
+                  <span *ngIf="assignment.endDate"> → {{ assignment.endDate | date: 'dd.MM.yyyy' }}</span>
+                </div>
+                <span class="status">{{ assignment.status || 'Zaduženo' }}</span>
+              </div>
+            </div>
+          </div>
+        </nb-tab>
+        <nb-tab tabTitle="Servis">
+          <div class="tab-grid">
+            <form [formGroup]="serviceForm" (ngSubmit)="submitServiceRecord()" class="tab-form">
+              <input nbInput fullWidth placeholder="Datum servisa" formControlName="serviceDate" type="date" />
+              <input nbInput fullWidth placeholder="Serviser / dobavljač" formControlName="vendor" />
+              <input nbInput fullWidth placeholder="Broj dokumenta" formControlName="documentNumber" />
+              <input nbInput fullWidth placeholder="Trošak" formControlName="cost" type="number" />
+              <input nbInput fullWidth placeholder="Naredni servis" formControlName="nextServiceDate" type="date" />
+              <input nbInput fullWidth placeholder="Status" formControlName="status" />
+              <textarea nbInput fullWidth placeholder="Opis servisa" formControlName="description" rows="2"></textarea>
+              <button nbButton status="warning" type="submit">Dodaj servis</button>
+            </form>
+            <div class="tab-list">
+              <div class="tab-item" *ngFor="let record of selectedAsset.serviceRecords">
+                <div>
+                  <strong>{{ record.vendor || 'Servis' }}</strong>
+                  <span>{{ record.description || 'Bez opisa' }}</span>
+                </div>
+                <div>
+                  <span>{{ record.serviceDate | date: 'dd.MM.yyyy' }}</span>
+                  <span *ngIf="record.nextServiceDate"> • {{ record.nextServiceDate | date: 'dd.MM.yyyy' }}</span>
+                </div>
+                <span class="status">{{ record.status || 'Evidentirano' }}</span>
+              </div>
+            </div>
+          </div>
+        </nb-tab>
+      </nb-tabset>
+    </nb-card-body>
+  </nb-card>
+</div>

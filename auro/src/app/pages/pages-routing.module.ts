@@ -108,6 +108,13 @@ const routes: Routes = [{
       .then(m => m.VikendAkcijeModule)
     },
     {
+      path: 'osnovna-sredstva',
+      data: { roles: [Role.uprava, Role.interna, Role.podrucni, Role.regionalni, Role.logistika] },
+      canActivate: [AuthGuard],
+      loadChildren: () => import('./osnovna-sredstva/osnovna-sredstva.module')
+      .then(m => m.OsnovnaSredstvaModule)
+    },
+    {
       path: 'fakturisanje-usluga',
       data: { roles: [Role.finansije] },
       canActivate: [AuthGuard],
