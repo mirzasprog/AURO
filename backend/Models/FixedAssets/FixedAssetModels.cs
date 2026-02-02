@@ -37,6 +37,8 @@ namespace backend.Models.FixedAssets
         public string? AssignedTo { get; set; }
         public decimal PurchasePrice { get; set; }
         public DateTime PurchaseDate { get; set; }
+        public int? AmortizationYears { get; set; }
+        public decimal DepreciatedValue { get; set; }
     }
 
     public class FixedAssetDetailDto
@@ -52,6 +54,8 @@ namespace backend.Models.FixedAssets
         public string Supplier { get; set; } = string.Empty;
         public DateTime PurchaseDate { get; set; }
         public DateTime? WarrantyUntil { get; set; }
+        public int? AmortizationYears { get; set; }
+        public decimal DepreciatedValue { get; set; }
         public string? Location { get; set; }
         public string? Department { get; set; }
         public string? Status { get; set; }
@@ -93,6 +97,9 @@ namespace backend.Models.FixedAssets
         public DateTime PurchaseDate { get; set; }
 
         public DateTime? WarrantyUntil { get; set; }
+
+        [Range(1, 100)]
+        public int? AmortizationYears { get; set; }
 
         [MaxLength(150)]
         public string? Location { get; set; }
@@ -194,5 +201,23 @@ namespace backend.Models.FixedAssets
         public int ActiveAssets { get; set; }
         public int AssignedAssets { get; set; }
         public decimal TotalPurchasePrice { get; set; }
+    }
+
+    public class FixedAssetAdvancedReportItem
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string InventoryNumber { get; set; } = string.Empty;
+        public string SerialNumber { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
+        public string Supplier { get; set; } = string.Empty;
+        public string? Status { get; set; }
+        public string? Department { get; set; }
+        public string? Location { get; set; }
+        public string? AssignedTo { get; set; }
+        public decimal PurchasePrice { get; set; }
+        public DateTime PurchaseDate { get; set; }
+        public int? AmortizationYears { get; set; }
+        public decimal DepreciatedValue { get; set; }
     }
 }
