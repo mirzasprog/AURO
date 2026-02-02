@@ -243,12 +243,13 @@ export class OsnovnaSredstvaComponent implements OnInit {
   }
 
   private flattenCategories(categories: FixedAssetCategory[], level = 0): CategoryOption[] {
-    return categories.flatMap((category) => {
+    return categories.reduce<CategoryOption[]>((options, category) => {
       const label = `${'—'.repeat(level)} ${category.name}`.trim();
       const children = category.children?.length
         ? this.flattenCategories(category.children, level + 1)
         : [];
-      return [{ id: category.id, label }, ...children];
-    });
+      options.push({ id: category.id, label }, ...children);
+      return options;
+    }, []);
   }
 }
