@@ -22,6 +22,8 @@ export interface FixedAssetListItem {
   assignedTo?: string;
   purchasePrice: number;
   purchaseDate: string;
+  amortizationYears?: number | null;
+  depreciatedValue?: number;
 }
 
 export interface FixedAssetDetail {
@@ -36,6 +38,8 @@ export interface FixedAssetDetail {
   supplier: string;
   purchaseDate: string;
   warrantyUntil?: string | null;
+  amortizationYears?: number | null;
+  depreciatedValue?: number;
   location?: string;
   department?: string;
   status?: string;
@@ -78,6 +82,23 @@ export interface FixedAssetSummary {
   totalPurchasePrice: number;
 }
 
+export interface FixedAssetAdvancedReportItem {
+  id: number;
+  name: string;
+  inventoryNumber: string;
+  serialNumber: string;
+  categoryName: string;
+  supplier: string;
+  status?: string;
+  department?: string;
+  location?: string;
+  assignedTo?: string;
+  purchasePrice: number;
+  purchaseDate: string;
+  amortizationYears?: number | null;
+  depreciatedValue?: number;
+}
+
 export interface FixedAssetCategoryRequest {
   name: string;
   description?: string;
@@ -94,6 +115,7 @@ export interface FixedAssetRequest {
   supplier: string;
   purchaseDate: string;
   warrantyUntil?: string | null;
+  amortizationYears?: number | null;
   location?: string;
   department?: string;
   status?: string;
@@ -176,5 +198,60 @@ export class FixedAssetsService {
 
   getSummary(): Observable<FixedAssetSummary[]> {
     return this.http.get<FixedAssetSummary[]>(`${this.baseUrl}/api/FixedAssets/reports/summary`);
+  }
+
+  getAdvancedReport(filters?: {
+    categoryId?: number | null;
+    status?: string;
+    department?: string;
+    location?: string;
+    supplier?: string;
+    assignedTo?: string;
+    purchaseDateFrom?: string;
+    purchaseDateTo?: string;
+    priceMin?: number | null;
+    priceMax?: number | null;
+    amortizationMin?: number | null;
+    amortizationMax?: number | null;
+  }): Observable<FixedAssetAdvancedReportItem[]> {
+    let params = new HttpParams();
+    if (filters?.categoryId) {
+      params = params.set('categoryId', filters.categoryId.toString());
+    }
+    if (filters?.status) {
+      params = params.set('status', filters.status);
+    }
+    if (filters?.department) {
+      params = params.set('department', filters.department);
+    }
+    if (filters?.location) {
+      params = params.set('location', filters.location);
+    }
+    if (filters?.supplier) {
+      params = params.set('supplier', filters.supplier);
+    }
+    if (filters?.assignedTo) {
+      params = params.set('assignedTo', filters.assignedTo);
+    }
+    if (filters?.purchaseDateFrom) {
+      params = params.set('purchaseDateFrom', filters.purchaseDateFrom);
+    }
+    if (filters?.purchaseDateTo) {
+      params = params.set('purchaseDateTo', filters.purchaseDateTo);
+    }
+    if (filters?.priceMin != null) {
+      params = params.set('priceMin', filters.priceMin.toString());
+    }
+    if (filters?.priceMax != null) {
+      params = params.set('priceMax', filters.priceMax.toString());
+    }
+    if (filters?.amortizationMin != null) {
+      params = params.set('amortizationMin', filters.amortizationMin.toString());
+    }
+    if (filters?.amortizationMax != null) {
+      params = params.set('amortizationMax', filters.amortizationMax.toString());
+    }
+
+    return this.http.get<FixedAssetAdvancedReportItem[]>(`${this.baseUrl}/api/FixedAssets/reports/advanced`, { params });
   }
 }

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { NbToastrService } from '@nebular/theme';
 import {
+  FixedAssetAdvancedReportItem,
   FixedAssetAssignmentRequest,
   FixedAssetCategory,
   FixedAssetCategoryRequest,
@@ -34,13 +36,20 @@ export class OsnovnaSredstvaComponent implements OnInit {
   assignmentForm: FormGroup;
   serviceForm: FormGroup;
   filterForm: FormGroup;
+  reportForm: FormGroup;
 
   isSubmitting = false;
   isLoadingAssets = false;
+  isLoadingReport = false;
 
   statusOptions = ['Aktivan', 'Na servisu', 'Razdužen', 'U pripremi'];
+  reportItems: FixedAssetAdvancedReportItem[] = [];
 
-  constructor(private fb: FormBuilder, private fixedAssetsService: FixedAssetsService) {
+  constructor(
+    private fb: FormBuilder,
+    private fixedAssetsService: FixedAssetsService,
+    private toastrService: NbToastrService
+  ) {
     this.categoryForm = this.fb.group({
       name: ['', [Validators.required, Validators.maxLength(150)]],
       description: ['', [Validators.maxLength(400)]],
@@ -57,6 +66,7 @@ export class OsnovnaSredstvaComponent implements OnInit {
       supplier: ['', [Validators.required, Validators.maxLength(200)]],
       purchaseDate: ['', Validators.required],
       warrantyUntil: [null],
+      amortizationYears: [null, [Validators.min(1), Validators.max(100)]],
       location: [''],
       department: [''],
       status: ['Aktivan'],
@@ -91,12 +101,28 @@ export class OsnovnaSredstvaComponent implements OnInit {
       categoryId: [null],
       status: ['']
     });
+
+    this.reportForm = this.fb.group({
+      categoryId: [null],
+      status: [''],
+      department: [''],
+      location: [''],
+      supplier: [''],
+      assignedTo: [''],
+      purchaseDateFrom: [''],
+      purchaseDateTo: [''],
+      priceMin: [null],
+      priceMax: [null],
+      amortizationMin: [null],
+      amortizationMax: [null]
+    });
   }
 
   ngOnInit(): void {
     this.loadSummary();
     this.loadCategories();
     this.loadAssets();
+    this.loadAdvancedReport();
   }
 
   loadSummary(): void {
@@ -134,6 +160,7 @@ export class OsnovnaSredstvaComponent implements OnInit {
         supplier: detail.supplier,
         purchaseDate: detail.purchaseDate,
         warrantyUntil: detail.warrantyUntil,
+        amortizationYears: detail.amortizationYears,
         location: detail.location,
         department: detail.department,
         status: detail.status,
@@ -149,7 +176,8 @@ export class OsnovnaSredstvaComponent implements OnInit {
     this.assetForm.reset({
       categoryId: null,
       status: 'Aktivan',
-      isActive: true
+      isActive: true,
+      amortizationYears: null
     });
   }
 
@@ -169,6 +197,7 @@ export class OsnovnaSredstvaComponent implements OnInit {
   submitAsset(): void {
     if (this.assetForm.invalid) {
       this.assetForm.markAllAsTouched();
+      this.toastrService.warning('Provjerite obavezna polja.', 'Validacija');
       return;
     }
 
@@ -179,11 +208,20 @@ export class OsnovnaSredstvaComponent implements OnInit {
       ? this.fixedAssetsService.updateAsset(this.selectedAsset.id, payload)
       : this.fixedAssetsService.createAsset(payload);
 
-    request$.subscribe((detail) => {
-      this.selectedAsset = detail;
-      this.isSubmitting = false;
-      this.loadAssets();
-      this.loadSummary();
+    request$.subscribe({
+      next: (detail) => {
+        this.selectedAsset = detail;
+        this.isSubmitting = false;
+        this.loadAssets();
+        this.loadSummary();
+        this.loadAdvancedReport();
+        this.toastrService.success('Osnovno sredstvo je sačuvano.', 'Uspjeh');
+      },
+      error: (error) => {
+        this.isSubmitting = false;
+        const message = error?.error?.poruka || 'Greška pri spremanju osnovnog sredstva.';
+        this.toastrService.danger(message, 'Greška');
+      }
     });
   }
 
@@ -240,6 +278,60 @@ export class OsnovnaSredstvaComponent implements OnInit {
 
   applyFilters(): void {
     this.loadAssets();
+  }
+
+  loadAdvancedReport(): void {
+    this.isLoadingReport = true;
+    const filters = this.reportForm.value;
+    const normalizedFilters = {
+      ...filters,
+      purchaseDateFrom: filters.purchaseDateFrom || undefined,
+      purchaseDateTo: filters.purchaseDateTo || undefined,
+      priceMin: filters.priceMin ? Number(filters.priceMin) : null,
+      priceMax: filters.priceMax ? Number(filters.priceMax) : null,
+      amortizationMin: filters.amortizationMin ? Number(filters.amortizationMin) : null,
+      amortizationMax: filters.amortizationMax ? Number(filters.amortizationMax) : null
+    };
+    this.fixedAssetsService.getAdvancedReport(normalizedFilters).subscribe({
+      next: (items) => {
+        this.reportItems = items;
+        this.isLoadingReport = false;
+      },
+      error: () => {
+        this.reportItems = [];
+        this.isLoadingReport = false;
+      }
+    });
+  }
+
+  get amortizedValue(): number | null {
+    const purchasePrice = Number(this.assetForm.get('purchasePrice')?.value);
+    const amortizationYears = Number(this.assetForm.get('amortizationYears')?.value);
+    const purchaseDateValue = this.assetForm.get('purchaseDate')?.value;
+
+    if (!purchasePrice || !amortizationYears || !purchaseDateValue) {
+      return null;
+    }
+
+    const purchaseDate = new Date(purchaseDateValue);
+    if (Number.isNaN(purchaseDate.getTime())) {
+      return null;
+    }
+
+    const today = new Date();
+    const diffYears = Math.min(
+      amortizationYears,
+      (today.getTime() - purchaseDate.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
+    );
+    const depreciatedValue = purchasePrice - (purchasePrice / amortizationYears) * diffYears;
+    return Math.max(0, Number(depreciatedValue.toFixed(2)));
+  }
+
+  get reportTotals(): { totalAssets: number; totalPurchasePrice: number; totalDepreciatedValue: number } {
+    const totalAssets = this.reportItems.length;
+    const totalPurchasePrice = this.reportItems.reduce((sum, item) => sum + (item.purchasePrice || 0), 0);
+    const totalDepreciatedValue = this.reportItems.reduce((sum, item) => sum + (item.depreciatedValue || 0), 0);
+    return { totalAssets, totalPurchasePrice, totalDepreciatedValue };
   }
 
   private flattenCategories(categories: FixedAssetCategory[], level = 0): CategoryOption[] {

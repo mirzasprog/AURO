@@ -70,8 +70,28 @@
           <input nbInput fullWidth placeholder="Serijski broj" formControlName="serialNumber" />
           <input nbInput fullWidth placeholder="Nabavna cijena" formControlName="purchasePrice" type="number" />
           <input nbInput fullWidth placeholder="Dobavljač" formControlName="supplier" />
-          <input nbInput fullWidth placeholder="Datum nabavke" formControlName="purchaseDate" type="date" />
-          <input nbInput fullWidth placeholder="Garantni rok" formControlName="warrantyUntil" type="date" />
+          <div class="field">
+            <label>Datum nabavke</label>
+            <input nbInput fullWidth placeholder="Datum nabavke" formControlName="purchaseDate" type="date" />
+          </div>
+          <div class="field">
+            <label>Garantni rok do</label>
+            <input nbInput fullWidth placeholder="Garantni rok" formControlName="warrantyUntil" type="date" />
+          </div>
+          <div class="field">
+            <label>Amortizacija (godine)</label>
+            <input nbInput fullWidth placeholder="Broj godina amortizacije" formControlName="amortizationYears" type="number" />
+          </div>
+          <div class="field">
+            <label>Amortizovana vrijednost (KM)</label>
+            <input
+              nbInput
+              fullWidth
+              placeholder="Automatski izračun"
+              [value]="amortizedValue !== null ? (amortizedValue | number: '1.2-2') : ''"
+              readonly
+            />
+          </div>
           <input nbInput fullWidth placeholder="Lokacija" formControlName="location" />
           <input nbInput fullWidth placeholder="Sektor" formControlName="department" />
           <nb-select placeholder="Status" formControlName="status" fullWidth>
@@ -147,6 +167,91 @@
           <span>{{ asset.purchasePrice | number: '1.2-2' }} KM</span>
         </button>
       </div>
+    </nb-card-body>
+  </nb-card>
+
+  <nb-card class="advanced-reports">
+    <nb-card-header>
+      <div>
+        <h4>Napredni izvještaji</h4>
+        <p>Filtrirajte osnovna sredstva po ključnim kriterijima i pratite amortizovanu vrijednost.</p>
+      </div>
+    </nb-card-header>
+    <nb-card-body>
+      <form [formGroup]="reportForm" class="report-filter-grid" (ngSubmit)="loadAdvancedReport()">
+        <nb-select placeholder="Kategorija" formControlName="categoryId" fullWidth>
+          <nb-option [value]="null">Sve kategorije</nb-option>
+          <nb-option *ngFor="let option of categoryOptions" [value]="option.id">{{ option.label }}</nb-option>
+        </nb-select>
+        <nb-select placeholder="Status" formControlName="status" fullWidth>
+          <nb-option value="">Svi statusi</nb-option>
+          <nb-option *ngFor="let status of statusOptions" [value]="status">{{ status }}</nb-option>
+        </nb-select>
+        <input nbInput fullWidth placeholder="Sektor" formControlName="department" />
+        <input nbInput fullWidth placeholder="Lokacija" formControlName="location" />
+        <input nbInput fullWidth placeholder="Dobavljač" formControlName="supplier" />
+        <input nbInput fullWidth placeholder="Zadužen/a" formControlName="assignedTo" />
+        <div class="field">
+          <label>Datum nabavke od</label>
+          <input nbInput fullWidth formControlName="purchaseDateFrom" type="date" />
+        </div>
+        <div class="field">
+          <label>Datum nabavke do</label>
+          <input nbInput fullWidth formControlName="purchaseDateTo" type="date" />
+        </div>
+        <input nbInput fullWidth placeholder="Cijena od" formControlName="priceMin" type="number" />
+        <input nbInput fullWidth placeholder="Cijena do" formControlName="priceMax" type="number" />
+        <input nbInput fullWidth placeholder="Amortizacija od (god.)" formControlName="amortizationMin" type="number" />
+        <input nbInput fullWidth placeholder="Amortizacija do (god.)" formControlName="amortizationMax" type="number" />
+        <button nbButton status="info" type="submit" [disabled]="isLoadingReport">
+          {{ isLoadingReport ? 'Učitavanje...' : 'Generiši izvještaj' }}
+        </button>
+      </form>
+
+      <div class="report-summary">
+        <div>
+          <span>Broj sredstava</span>
+          <strong>{{ reportTotals.totalAssets }}</strong>
+        </div>
+        <div>
+          <span>Ukupna nabavna vrijednost</span>
+          <strong>{{ reportTotals.totalPurchasePrice | number: '1.2-2' }} KM</strong>
+        </div>
+        <div>
+          <span>Ukupna amortizovana vrijednost</span>
+          <strong>{{ reportTotals.totalDepreciatedValue | number: '1.2-2' }} KM</strong>
+        </div>
+      </div>
+
+      <div class="report-table" *ngIf="reportItems.length; else emptyReport">
+        <div class="report-row header">
+          <span>Naziv</span>
+          <span>Inventurni broj</span>
+          <span>Serijski broj</span>
+          <span>Kategorija</span>
+          <span>Status</span>
+          <span>Sektor</span>
+          <span>Lokacija</span>
+          <span>Dobavljač</span>
+          <span>Nabavna cijena</span>
+          <span>Amortizovana vrijednost</span>
+        </div>
+        <div class="report-row" *ngFor="let item of reportItems">
+          <span>{{ item.name }}</span>
+          <span>{{ item.inventoryNumber }}</span>
+          <span>{{ item.serialNumber }}</span>
+          <span>{{ item.categoryName }}</span>
+          <span>{{ item.status || '-' }}</span>
+          <span>{{ item.department || '-' }}</span>
+          <span>{{ item.location || '-' }}</span>
+          <span>{{ item.supplier }}</span>
+          <span>{{ item.purchasePrice | number: '1.2-2' }} KM</span>
+          <span>{{ (item.depreciatedValue || 0) | number: '1.2-2' }} KM</span>
+        </div>
+      </div>
+      <ng-template #emptyReport>
+        <p class="empty-report">Nema podataka za odabrane kriterije.</p>
+      </ng-template>
     </nb-card-body>
   </nb-card>
 

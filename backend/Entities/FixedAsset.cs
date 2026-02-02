@@ -21,6 +21,7 @@ namespace backend.Entities
         public string Supplier { get; set; } = null!;
         public DateTime PurchaseDate { get; set; }
         public DateTime? WarrantyUntil { get; set; }
+        public int? AmortizationYears { get; set; }
         public string? Location { get; set; }
         public string? Department { get; set; }
         public string? Status { get; set; }

@@ -172,6 +172,8 @@ namespace backend.Entities
                     .HasMaxLength(200)
                     .IsRequired();
 
+                entity.Property(e => e.AmortizationYears);
+
                 entity.Property(e => e.Location)
                     .HasMaxLength(150);
 

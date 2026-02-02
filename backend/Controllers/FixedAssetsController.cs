@@ -115,7 +115,9 @@ namespace backend.Controllers
                     Location = a.Location,
                     AssignedTo = a.AssignedTo,
                     PurchasePrice = a.PurchasePrice,
-                    PurchaseDate = a.PurchaseDate
+                    PurchaseDate = a.PurchaseDate,
+                    AmortizationYears = a.AmortizationYears,
+                    DepreciatedValue = CalculateDepreciatedValue(a.PurchasePrice, a.PurchaseDate, a.AmortizationYears)
                 })
                 .ToListAsync();
 
@@ -154,6 +156,18 @@ namespace backend.Controllers
                 return NotFound(new { poruka = "Kategorija nije pronađena." });
             }
 
+            var duplicateInventory = await _context.FixedAssets.AnyAsync(a => a.InventoryNumber == request.InventoryNumber);
+            if (duplicateInventory)
+            {
+                return Conflict(new { poruka = "Inventurni broj već postoji." });
+            }
+
+            var duplicateSerial = await _context.FixedAssets.AnyAsync(a => a.SerialNumber == request.SerialNumber);
+            if (duplicateSerial)
+            {
+                return Conflict(new { poruka = "Serijski broj već postoji." });
+            }
+
             var asset = new FixedAsset
             {
                 CategoryId = request.CategoryId,
@@ -165,6 +179,7 @@ namespace backend.Controllers
                 Supplier = request.Supplier,
                 PurchaseDate = request.PurchaseDate,
                 WarrantyUntil = request.WarrantyUntil,
+                AmortizationYears = request.AmortizationYears,
                 Location = request.Location,
                 Department = request.Department,
                 Status = request.Status,
@@ -201,6 +216,20 @@ namespace backend.Controllers
                 return NotFound();
             }
 
+            var duplicateInventory = await _context.FixedAssets
+                .AnyAsync(a => a.InventoryNumber == request.InventoryNumber && a.Id != id);
+            if (duplicateInventory)
+            {
+                return Conflict(new { poruka = "Inventurni broj već postoji." });
+            }
+
+            var duplicateSerial = await _context.FixedAssets
+                .AnyAsync(a => a.SerialNumber == request.SerialNumber && a.Id != id);
+            if (duplicateSerial)
+            {
+                return Conflict(new { poruka = "Serijski broj već postoji." });
+            }
+
             asset.CategoryId = request.CategoryId;
             asset.Name = request.Name;
             asset.Description = request.Description;
@@ -210,6 +239,7 @@ namespace backend.Controllers
             asset.Supplier = request.Supplier;
             asset.PurchaseDate = request.PurchaseDate;
             asset.WarrantyUntil = request.WarrantyUntil;
+            asset.AmortizationYears = request.AmortizationYears;
             asset.Location = request.Location;
             asset.Department = request.Department;
             asset.Status = request.Status;
@@ -326,6 +356,110 @@ namespace backend.Controllers
             return Ok(summary);
         }
 
+        [HttpGet("reports/advanced")]
+        public async Task<ActionResult<List<FixedAssetAdvancedReportItem>>> GetAdvancedReport(
+            [FromQuery] int? categoryId,
+            [FromQuery] string? status,
+            [FromQuery] string? department,
+            [FromQuery] string? location,
+            [FromQuery] string? supplier,
+            [FromQuery] string? assignedTo,
+            [FromQuery] DateTime? purchaseDateFrom,
+            [FromQuery] DateTime? purchaseDateTo,
+            [FromQuery] decimal? priceMin,
+            [FromQuery] decimal? priceMax,
+            [FromQuery] int? amortizationMin,
+            [FromQuery] int? amortizationMax)
+        {
+            var query = _context.FixedAssets
+                .AsNoTracking()
+                .Include(a => a.Category)
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(a => a.CategoryId == categoryId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                query = query.Where(a => a.Status == status);
+            }
+
+            if (!string.IsNullOrWhiteSpace(department))
+            {
+                query = query.Where(a => a.Department != null && a.Department.Contains(department));
+            }
+
+            if (!string.IsNullOrWhiteSpace(location))
+            {
+                query = query.Where(a => a.Location != null && a.Location.Contains(location));
+            }
+
+            if (!string.IsNullOrWhiteSpace(supplier))
+            {
+                query = query.Where(a => a.Supplier.Contains(supplier));
+            }
+
+            if (!string.IsNullOrWhiteSpace(assignedTo))
+            {
+                query = query.Where(a => a.AssignedTo != null && a.AssignedTo.Contains(assignedTo));
+            }
+
+            if (purchaseDateFrom.HasValue)
+            {
+                query = query.Where(a => a.PurchaseDate >= purchaseDateFrom.Value);
+            }
+
+            if (purchaseDateTo.HasValue)
+            {
+                query = query.Where(a => a.PurchaseDate <= purchaseDateTo.Value);
+            }
+
+            if (priceMin.HasValue)
+            {
+                query = query.Where(a => a.PurchasePrice >= priceMin.Value);
+            }
+
+            if (priceMax.HasValue)
+            {
+                query = query.Where(a => a.PurchasePrice <= priceMax.Value);
+            }
+
+            if (amortizationMin.HasValue)
+            {
+                query = query.Where(a => a.AmortizationYears.HasValue && a.AmortizationYears >= amortizationMin.Value);
+            }
+
+            if (amortizationMax.HasValue)
+            {
+                query = query.Where(a => a.AmortizationYears.HasValue && a.AmortizationYears <= amortizationMax.Value);
+            }
+
+            var report = await query
+                .OrderByDescending(a => a.PurchaseDate)
+                .Select(a => new FixedAssetAdvancedReportItem
+                {
+                    Id = a.Id,
+                    Name = a.Name,
+                    InventoryNumber = a.InventoryNumber,
+                    SerialNumber = a.SerialNumber,
+                    CategoryName = a.Category.Name,
+                    Supplier = a.Supplier,
+                    Status = a.Status,
+                    Department = a.Department,
+                    Location = a.Location,
+                    AssignedTo = a.AssignedTo,
+                    PurchasePrice = a.PurchasePrice,
+                    PurchaseDate = a.PurchaseDate,
+                    AmortizationYears = a.AmortizationYears,
+                    DepreciatedValue = CalculateDepreciatedValue(a.PurchasePrice, a.PurchaseDate, a.AmortizationYears)
+                })
+                .ToListAsync();
+
+            return Ok(report);
+        }
+
         private static FixedAssetCategoryDto MapCategory(FixedAssetCategory category)
         {
             return new FixedAssetCategoryDto
@@ -383,6 +517,8 @@ namespace backend.Controllers
                 Supplier = asset.Supplier,
                 PurchaseDate = asset.PurchaseDate,
                 WarrantyUntil = asset.WarrantyUntil,
+                AmortizationYears = asset.AmortizationYears,
+                DepreciatedValue = CalculateDepreciatedValue(asset.PurchasePrice, asset.PurchaseDate, asset.AmortizationYears),
                 Location = asset.Location,
                 Department = asset.Department,
                 Status = asset.Status,
@@ -392,6 +528,22 @@ namespace backend.Controllers
                 Assignments = asset.Assignments.OrderByDescending(a => a.StartDate).Select(MapAssignment).ToList(),
                 ServiceRecords = asset.ServiceRecords.OrderByDescending(s => s.ServiceDate).Select(MapServiceRecord).ToList()
             };
+        }
+
+        private static decimal CalculateDepreciatedValue(decimal purchasePrice, DateTime purchaseDate, int? amortizationYears)
+        {
+            if (!amortizationYears.HasValue || amortizationYears.Value <= 0)
+            {
+                return purchasePrice;
+            }
+
+            var totalYears = amortizationYears.Value;
+            var daysInUse = (DateTime.UtcNow.Date - purchaseDate.Date).TotalDays;
+            var yearsInUse = Math.Min(totalYears, daysInUse / 365.25);
+            var yearlyDepreciation = purchasePrice / totalYears;
+            var depreciatedValue = purchasePrice - yearlyDepreciation * (decimal)yearsInUse;
+
+            return Math.Max(0, decimal.Round(depreciatedValue, 2));
         }
     }
 }

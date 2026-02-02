@@ -22,6 +22,7 @@ CREATE TABLE [dbo].[FixedAssets](
     [Supplier] NVARCHAR(200) NOT NULL,
     [PurchaseDate] DATE NOT NULL,
     [WarrantyUntil] DATE NULL,
+    [AmortizationYears] INT NULL,
     [Location] NVARCHAR(150) NULL,
     [Department] NVARCHAR(150) NULL,
     [Status] NVARCHAR(50) NULL,
