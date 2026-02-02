@@ -187,6 +187,11 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: "grid-outline",
     link: "/pages/prodajne-pozicije"
   },
+  {
+    title: "Osnovna sredstva",
+    icon: "cube-outline",
+    link: "/pages/osnovna-sredstva"
+  },
   //Reklamacija kvaliteta Voća i povrća -- rola: prodavnica [8], kontrolaKvaliteta
   {
     title: "Kvaliteta VIP-a",

@@ -119,6 +119,152 @@ namespace backend.Entities
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            modelBuilder.Entity<FixedAssetCategory>(entity =>
+            {
+                entity.ToTable("FixedAssetCategories");
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(150)
+                    .IsRequired();
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(400);
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("GETDATE()");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasColumnType("datetime2");
+
+                entity.HasOne(e => e.ParentCategory)
+                    .WithMany(e => e.Subcategories)
+                    .HasForeignKey(e => e.ParentCategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FixedAsset>(entity =>
+            {
+                entity.ToTable("FixedAssets");
+
+                entity.Property(e => e.Name)
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.InventoryNumber)
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.SerialNumber)
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.PurchasePrice)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.Supplier)
+                    .HasMaxLength(200)
+                    .IsRequired();
+
+                entity.Property(e => e.Location)
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Department)
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.AssignedTo)
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Notes)
+                    .HasMaxLength(1000);
+
+                entity.Property(e => e.IsActive)
+                    .HasDefaultValue(true);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("GETDATE()");
+
+                entity.Property(e => e.UpdatedAt)
+                    .HasColumnType("datetime2");
+
+                entity.HasOne(e => e.Category)
+                    .WithMany(e => e.Assets)
+                    .HasForeignKey(e => e.CategoryId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<FixedAssetAssignment>(entity =>
+            {
+                entity.ToTable("FixedAssetAssignments");
+
+                entity.Property(e => e.AssignedTo)
+                    .HasMaxLength(150)
+                    .IsRequired();
+
+                entity.Property(e => e.AssignedBy)
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Department)
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Location)
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.Note)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(e => e.Asset)
+                    .WithMany(e => e.Assignments)
+                    .HasForeignKey(e => e.AssetId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<FixedAssetServiceRecord>(entity =>
+            {
+                entity.ToTable("FixedAssetServiceRecords");
+
+                entity.Property(e => e.Vendor)
+                    .HasMaxLength(200);
+
+                entity.Property(e => e.Description)
+                    .HasMaxLength(500);
+
+                entity.Property(e => e.Cost)
+                    .HasColumnType("decimal(18, 2)");
+
+                entity.Property(e => e.DocumentNumber)
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("datetime2")
+                    .HasDefaultValueSql("GETDATE()");
+
+                entity.HasOne(e => e.Asset)
+                    .WithMany(e => e.ServiceRecords)
+                    .HasForeignKey(e => e.AssetId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
             modelBuilder.Entity<ChatMessage>(entity =>
             {
                 entity.ToTable("ChatMessages");
