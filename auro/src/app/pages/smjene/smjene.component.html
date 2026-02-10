@@ -4,7 +4,7 @@
     <div class="toolbar-left">
       <div class="field-group">
         <label>Prodavnica</label>
-        <nb-select *ngIf="canManageStores" placeholder="Odaberite prodavnicu" [(ngModel)]="selectedStoreId"
+        <nb-select *ngIf="canManageStores" placeholder="Odaberite prodavnicu" [ngModelOptions]="{standalone: true}" [(ngModel)]="selectedStoreId"
           (selectedChange)="onStoreChange()">
           <nb-option *ngFor="let store of stores" [value]="store.id">
             {{ store.name }}
@@ -26,7 +26,7 @@
           </button>
         </div>
         <div class="col">
-          <nb-select [(ngModel)]="exportFormat" style="margin-left: 10px;">
+          <nb-select [ngModelOptions]="{standalone: true}" [(ngModel)]="exportFormat" style="margin-left: 10px;">
             <nb-option value="xlsx">XLSX</nb-option>
             <nb-option value="csv">CSV</nb-option>
           </nb-select>
@@ -64,7 +64,7 @@
             </button>
           </div>
 
-          <div>
+          <div class="month-grid--fullcalendar">
             <full-calendar #fullCalendar [options]="calendarOptions"></full-calendar>
           </div>
         </div>
