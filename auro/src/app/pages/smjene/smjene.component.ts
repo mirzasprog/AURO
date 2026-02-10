@@ -1,13 +1,17 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
-import { NbDialogService } from '@nebular/theme';
-import { CalendarOptions, DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import hrLocale from '@fullcalendar/core/locales/hr';
+import { NbDialogService, NbThemeService } from '@nebular/theme';
+import { 
+  CalendarOptions, 
+  DatesSetArg, 
+  EventClickArg, 
+  EventInput, 
+  EventDropArg,
+  DateSelectArg
+} from '@fullcalendar/core';
 import { FullCalendarComponent } from '@fullcalendar/angular';
 import { Subject, forkJoin, of } from 'rxjs';
-import { catchError, map, takeUntil, tap } from 'rxjs/operators';
+import { catchError, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
 import { DailyTaskStore } from '../../@core/data/daily-task';
 import { PagedResult, ShiftCopyWeekRequest, ShiftCreateRequest, ShiftDto, ShiftEmployee, ShiftMutationResponse, ShiftUpdateRequest } from '../../@core/data/shifts';
@@ -31,7 +35,6 @@ interface DaySchedule {
   shiftsFirstShift: ShiftDto[];
   shiftsSecondShift: ShiftDto[];
 }
-
 
 @Component({
   selector: 'ngx-smjene',
@@ -57,26 +60,37 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
   user: any;
   currentMonth: Date = new Date();
+  currentTheme: string = 'default';
+  currentView: string = 'dayGridMonth';
   private destroy$ = new Subject<void>();
 
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
   readonly shiftStatuses = ['Draft', 'Published', 'Completed', 'Cancelled'];
+  
   calendarOptions: CalendarOptions = {
-  //  plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    locale: hrLocale,
+    locale: 'hr',
     firstDay: 1,
     fixedWeekCount: true,
-    height: 'calc(100vh - 280px)',
+    height: 'auto',
     contentHeight: 'auto',
     headerToolbar: false,
-    displayEventTime: false,
-    dayMaxEvents: 2,
+    displayEventTime: true,
+    dayMaxEvents: 3,
+    editable: true,
+    droppable: true,
+    eventDurationEditable: false,
+    eventStartEditable: true,
     eventClick: (arg) => this.onCalendarEventClick(arg),
+    eventDrop: (arg) => this.onEventDrop(arg),
     dateClick: ({ date }) => this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts)),
+    select: (arg) => this.onDateSelect(arg),
     datesSet: (arg) => this.onCalendarDatesSet(arg),
     events: [],
+    selectable: true,
+    selectMirror: true,
   };
+  
   private activeMonthKey = '';
 
   @ViewChild('dayDetailsDialog', { static: true }) dayDetailsDialog!: TemplateRef<{ schedule: DaySchedule }>;
@@ -88,13 +102,23 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     private readonly dailyTaskService: DailyTaskService,
     private readonly shiftsService: ShiftsService,
     private readonly dataService: DataService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly themeService: NbThemeService
   ) {}
 
   ngOnInit(): void {
     this.weekPicker = this.formatDateInput(this.weekStart);
     this.selectedDay = new Date();
     this.currentMonth = new Date();
+    
+    // Pratimo promjenu teme
+    this.themeService.onThemeChange()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(theme => {
+        this.currentTheme = theme.name;
+        this.updateCalendarTheme();
+      });
+    
     this.authService.getToken()
       .pipe(takeUntil(this.destroy$))
       .subscribe((token: NbAuthJWTToken) => {
@@ -118,6 +142,198 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  // ============================================
+  // THEME MANAGEMENT
+  // ============================================
+  
+  private updateCalendarTheme(): void {
+    if (!this.fullCalendar) return;
+    
+    const api = this.fullCalendar.getApi();
+    const isDark = this.currentTheme === 'dark' || this.currentTheme === 'cosmic';
+    
+    const calendarEl = api.el;
+    if (isDark) {
+      calendarEl.classList.add('fc-theme-dark');
+      calendarEl.classList.remove('fc-theme-light');
+    } else {
+      calendarEl.classList.add('fc-theme-light');
+      calendarEl.classList.remove('fc-theme-dark');
+    }
+    
+    this.cdr.detectChanges();
+  }
+
+  // ============================================
+  // CALENDAR VIEW MANAGEMENT
+  // ============================================
+  
+  changeView(viewType: string): void {
+    if (!this.fullCalendar) return;
+    this.currentView = viewType;
+    this.fullCalendar.getApi().changeView(viewType);
+  }
+
+  goToToday(): void {
+    if (!this.fullCalendar) return;
+    this.fullCalendar.getApi().today();
+  }
+
+  goToDate(date: Date): void {
+    if (!this.fullCalendar) return;
+    this.fullCalendar.getApi().gotoDate(date);
+  }
+
+  // ============================================
+  // DRAG & DROP FUNCTIONALITY
+  // ============================================
+  
+  private onEventDrop(arg: EventDropArg): void {
+    const eventId = arg.event.id;
+    const shiftId = parseInt(eventId.replace('shift-', ''));
+    const shift = this.monthShifts.find(s => s.shiftId === shiftId);
+    
+    if (!shift) {
+      arg.revert();
+      Swal.fire('Greška', 'Smjena nije pronađena.', 'error');
+      return;
+    }
+
+    const newDate = arg.event.start;
+    if (!newDate) {
+      arg.revert();
+      return;
+    }
+
+    const newDateString = this.formatDateInput(newDate);
+    
+    Swal.fire({
+      title: 'Premjesti smjenu?',
+      html: `
+        <p><strong>${shift.employeeName}</strong></p>
+        <p>Sa: ${this.formatDateDisplay(shift.shiftDate)}</p>
+        <p>Na: ${this.formatDateDisplay(newDateString)}</p>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Premjesti',
+      cancelButtonText: 'Odustani',
+    }).then((result) => {
+      if (!result.isConfirmed) {
+        arg.revert();
+        return;
+      }
+
+      const payload: ShiftUpdateRequest = {
+        storeId: shift.storeId,
+        employeeHrId: shift.employeeId,
+        employeeName: shift.employeeName,
+        shiftDate: newDateString,
+        startTime: shift.startTime,
+        endTime: shift.endTime,
+        breakMinutes: shift.breakMinutes ?? 0,
+        shiftType: shift.shiftType,
+        departmentId: shift.departmentId,
+        status: shift.status,
+        note: shift.note
+      };
+
+      this.shiftsService.updateShift(shift.shiftId, payload)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            this.replaceShift(response.shift);
+            this.loadMonthShifts();
+            Swal.fire('Uspjeh', 'Smjena je premještena.', 'success');
+            if (response.warning) {
+              Swal.fire('Upozorenje', response.warning, 'warning');
+            }
+          },
+          error: (err) => {
+            arg.revert();
+            const poruka = err.error?.poruka ?? err.statusText;
+            Swal.fire('Greška', `Ne možemo premjestiti smjenu: ${poruka}`, 'error');
+          }
+        });
+    });
+  }
+
+  private onDateSelect(arg: DateSelectArg): void {
+    if (!this.canEditShifts) return;
+    const schedule = this.buildDaySchedule(arg.start, this.monthShifts);
+    this.openDayDetailsDialog(schedule);
+  }
+
+  // ============================================
+  // ENHANCED CALENDAR EVENTS
+  // ============================================
+  
+  private buildCalendarEvents(): EventInput[] {
+    return this.monthShifts.map((shift) => {
+      const startDateTime = `${shift.shiftDate}T${shift.startTime}`;
+      const endDateTime = `${shift.shiftDate}T${shift.endTime}`;
+      
+      return {
+        id: `shift-${shift.shiftId}`,
+        title: `${shift.employeeName} (${shift.shiftType})`,
+        start: startDateTime,
+        end: endDateTime,
+        allDay: false,
+        extendedProps: {
+          shiftId: shift.shiftId,
+          employeeId: shift.employeeId,
+          employeeName: shift.employeeName,
+          shiftType: shift.shiftType,
+          status: shift.status,
+          departmentId: shift.departmentId,
+          breakMinutes: shift.breakMinutes,
+          note: shift.note
+        },
+        editable: this.canEditShifts,
+        className: this.getShiftEventClass(shift)
+      };
+    });
+  }
+
+  private getShiftEventClass(shift: ShiftDto): string {
+    const type = shift.shiftType?.toLowerCase() || '';
+    if (type === 'morning') return 'shift-event--morning';
+    if (type === 'afternoon') return 'shift-event--afternoon';
+    if (type === 'night') return 'shift-event--night';
+    return 'shift-event--custom';
+  }
+
+  // ============================================
+  // NAVIGATION CONTROLS
+  // ============================================
+  
+  nextPeriod(): void {
+    if (!this.fullCalendar) return;
+    this.fullCalendar.getApi().next();
+  }
+
+  prevPeriod(): void {
+    if (!this.fullCalendar) return;
+    this.fullCalendar.getApi().prev();
+  }
+
+  get currentViewTitle(): string {
+    if (!this.fullCalendar) return '';
+    return this.fullCalendar.getApi().view.title;
+  }
+
+  get canNavigateNext(): boolean {
+    return true;
+  }
+
+  get canNavigatePrev(): boolean {
+    return true;
+  }
+
+  // ============================================
+  // EXISTING METHODS
+  // ============================================
 
   get canManageStores(): boolean {
     return this.role !== 'prodavnica';
@@ -208,31 +424,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   onStoreChange(): void {
     this.loadEmployees();
     this.loadShifts();
-    this.loadMonthShifts();
-  }
-
-  onTabChange(event: any): void {
-    const tabTitle = event.tabTitle || '';
-    if (tabTitle.includes('Mjesečni')) {
-      this.loadMonthShifts();
-    }
-  }
-
-  nextMonth(): void {
-    if (this.fullCalendar) {
-      this.fullCalendar.getApi().next();
-      return;
-    }
-    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
-    this.loadMonthShifts();
-  }
-
-  prevMonth(): void {
-    if (this.fullCalendar) {
-      this.fullCalendar.getApi().prev();
-      return;
-    }
-    this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
     this.loadMonthShifts();
   }
 
@@ -413,8 +604,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
     employeesReady$.pipe(takeUntil(this.destroy$)).subscribe(
       (employees) => {
-        const mappedEmployees = this.mapEmployeesToShiftEmployees(employees);
-
         const dialogRef = this.dialogService.open(ShiftFormDialogComponent, {
           context: {
             title: 'Nova smjena',
@@ -672,6 +861,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   private replaceShift(updated: ShiftDto): void {
     this.shifts = this.shifts.map((item) => item.shiftId === updated.shiftId ? updated : item);
+    this.monthShifts = this.monthShifts.map((item) => item.shiftId === updated.shiftId ? updated : item);
   }
 
   private getWeekStart(date: Date): Date {
@@ -704,11 +894,20 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  formatDateInput(date: Date): string {
+  formatDateInput(date: Date = new Date()): string {
     const year = date.getFullYear();
     const month = `${date.getMonth() + 1}`.padStart(2, '0');
     const day = `${date.getDate()}`.padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private formatDateDisplay(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('hr-HR', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
   }
 
   openDayDetailsDialog(schedule: DaySchedule): void {
@@ -719,11 +918,17 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   private onCalendarEventClick(arg: EventClickArg): void {
-    const date = arg.event.start;
-    if (!date) {
-      return;
+    const shiftId = parseInt(arg.event.id.replace('shift-', ''));
+    const shift = this.monthShifts.find(s => s.shiftId === shiftId);
+    
+    if (shift && this.canEditShifts) {
+      this.openEditShift(shift);
+    } else if (shift) {
+      const date = arg.event.start;
+      if (date) {
+        this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts));
+      }
     }
-    this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts));
   }
 
   private onCalendarDatesSet(arg: DatesSetArg): void {
@@ -742,33 +947,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     };
     this.cdr.detectChanges();
   }
-
-  private buildCalendarEvents(): EventInput[] {
-    const byDate = new Map<string, ShiftDto[]>();
-    this.monthShifts.forEach((shift) => {
-      const key = this.toDateKey(shift.shiftDate);
-      if (!key) {
-        return;
-      }
-      if (!byDate.has(key)) {
-        byDate.set(key, []);
-      }
-      byDate.get(key)!.push(shift);
-    });
-
-    return Array.from(byDate.entries()).map(([date, shifts]) => {
-      const morning = shifts.filter((s) => (s.shiftType || '').toLowerCase() === 'morning').length;
-      const afternoon = shifts.filter((s) => (s.shiftType || '').toLowerCase() === 'afternoon').length;
-      return {
-        id: `day-${date}`,
-        title: `Smjene: ${shifts.length} (I: ${morning} / II: ${afternoon})`,
-        start: date,
-        allDay: true,
-        className: ['shift-event--day-summary'],
-      };
-    });
-  }
-
 
   private buildDaySchedule(date: Date, shifts: ShiftDto[]): DaySchedule {
     const dateString = this.formatDateInput(date);

@@ -1,10 +1,11 @@
 <div class="smjene-container">
-  <!-- TOOLBAR -->
+  <!-- ENHANCED TOOLBAR -->
   <div class="toolbar-section">
     <div class="toolbar-left">
       <div class="field-group">
         <label>Prodavnica</label>
-        <nb-select *ngIf="canManageStores" placeholder="Odaberite prodavnicu" [ngModelOptions]="{standalone: true}" [(ngModel)]="selectedStoreId"
+        <nb-select *ngIf="canManageStores" placeholder="Odaberite prodavnicu" 
+          [ngModelOptions]="{standalone: true}" [(ngModel)]="selectedStoreId"
           (selectedChange)="onStoreChange()">
           <nb-option *ngFor="let store of stores" [value]="store.id">
             {{ store.name }}
@@ -17,64 +18,118 @@
     </div>
 
     <div class="toolbar-right">
-      <div class="row">
-        <div class="col">
-          <button *ngIf="role == 'prodavnica'" nbButton status="primary" size="small" (click)="openAddShift()"
-            [disabled]="!canEditShifts">
-            <nb-icon icon="plus-outline"></nb-icon>
-            Nova smjena
-          </button>
-        </div>
-        <div class="col">
-          <nb-select [ngModelOptions]="{standalone: true}" [(ngModel)]="exportFormat" style="margin-left: 10px;">
-            <nb-option value="xlsx">XLSX</nb-option>
-            <nb-option value="csv">CSV</nb-option>
-          </nb-select>
+      <div class="button-group">
+        <button *ngIf="canEditShifts" nbButton status="primary" size="small" 
+          (click)="openAddShift()">
+          <nb-icon icon="plus-outline"></nb-icon>
+          Nova smjena
+        </button>
+        
+        <nb-select [ngModelOptions]="{standalone: true}" [(ngModel)]="exportFormat" 
+          size="small">
+          <nb-option value="xlsx">XLSX</nb-option>
+          <nb-option value="csv">CSV</nb-option>
+        </nb-select>
 
-        </div>
-        <div class="col">
-          <button style="float: inline-end;" nbButton status="success" size="small" (click)="exportShifts()"
-            class="action-btn">
-            <nb-icon icon="download-outline"></nb-icon>
-            Export
-          </button>
-        </div>
+        <button nbButton status="success" size="small" (click)="exportShifts()">
+          <nb-icon icon="download-outline"></nb-icon>
+          Export
+        </button>
       </div>
     </div>
   </div>
 
-    <!-- MJESEČNI PREGLED -->
-      <div>
-        <div *ngIf="monthLoading" class="loading-state">
-          <nb-spinner size="large"></nb-spinner>
-          <p>Učitavanje mjesečnog pregleda...</p>
-        </div>
-
-        <div *ngIf="!monthLoading" class="month-calendar month-calendar--clean">
-          <div class="month-header">
-            <button nbButton status="basic" size="small" (click)="prevMonth()" class="month-nav-btn">
-              <nb-icon icon="chevron-left-outline"></nb-icon>
-            </button>
-            <div class="month-title-section">
-              <h3>{{ currentMonth | date: 'MMMM yyyy' | uppercase }}</h3>
-              <p class="month-subtitle">Pregled smjena po danima u mjesecu</p>
-            </div>
-            <button nbButton status="basic" size="small" (click)="nextMonth()" class="month-nav-btn">
-              <nb-icon icon="chevron-right-outline"></nb-icon>
-            </button>
-          </div>
-
-          <div class="month-grid--fullcalendar">
-            <full-calendar #fullCalendar [options]="calendarOptions"></full-calendar>
-          </div>
-        </div>
+  <!-- ENHANCED CALENDAR CONTROLS -->
+  <div class="calendar-controls">
+    <div class="controls-left">
+      <button nbButton status="basic" size="small" (click)="goToToday()" class="today-btn">
+        <nb-icon icon="calendar-outline"></nb-icon>
+        Danas
+      </button>
+      
+      <div class="nav-buttons">
+        <button nbButton status="basic" size="small" (click)="prevPeriod()" 
+          [disabled]="!canNavigatePrev">
+          <nb-icon icon="chevron-left-outline"></nb-icon>
+        </button>
+        
+        <h2 class="current-view-title">{{ currentViewTitle }}</h2>
+        
+        <button nbButton status="basic" size="small" (click)="nextPeriod()" 
+          [disabled]="!canNavigateNext">
+          <nb-icon icon="chevron-right-outline"></nb-icon>
+        </button>
       </div>
+    </div>
+
+    <div class="controls-right">
+      <nb-button-group size="small">
+        <button nbButton [status]="currentView === 'dayGridMonth' ? 'primary' : 'basic'" 
+          (click)="changeView('dayGridMonth')">
+          <nb-icon icon="grid-outline"></nb-icon>
+          Mjesec
+        </button>
+        <button nbButton [status]="currentView === 'timeGridWeek' ? 'primary' : 'basic'" 
+          (click)="changeView('timeGridWeek')">
+          <nb-icon icon="calendar-outline"></nb-icon>
+          Sedmica
+        </button>
+        <button nbButton [status]="currentView === 'timeGridDay' ? 'primary' : 'basic'" 
+          (click)="changeView('timeGridDay')">
+          <nb-icon icon="sun-outline"></nb-icon>
+          Dan
+        </button>
+        <button nbButton [status]="currentView === 'listWeek' ? 'primary' : 'basic'" 
+          (click)="changeView('listWeek')">
+          <nb-icon icon="list-outline"></nb-icon>
+          Lista
+        </button>
+      </nb-button-group>
+    </div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div class="calendar-wrapper" [class.loading]="monthLoading">
+    <div *ngIf="monthLoading" class="loading-overlay">
+      <nb-spinner size="large"></nb-spinner>
+      <p>Učitavanje smjena...</p>
+    </div>
+
+    <div class="calendar-container">
+      <full-calendar 
+        #fullCalendar 
+        [options]="calendarOptions"
+        class="full-calendar-enhanced">
+      </full-calendar>
+    </div>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="calendar-legend">
+    <div class="legend-item">
+      <span class="legend-color shift-event--morning"></span>
+      <span>Prva smjena</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-color shift-event--afternoon"></span>
+      <span>Druga smjena</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-color shift-event--night"></span>
+      <span>Noćna smjena</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-color shift-event--custom"></span>
+      <span>Custom</span>
+    </div>
+  </div>
+
   <!-- DAY DETAILS MODAL -->
   <ng-template #dayDetailsDialog let-data let-ref="dialogRef">
     <div class="day-details-modal">
       <div class="modal-header">
         <div>
-          <h3> Dnevne {{ data.schedule.dayName }}</h3>
+          <h3>Dnevne {{ data.schedule.dayName }}</h3>
           <span>{{ data.schedule.date | date: 'dd.MM.yyyy' }}</span>
         </div>
         <button nbButton status="danger" size="tiny" (click)="ref.close()" aria-label="Zatvori">
@@ -88,8 +143,14 @@
             Nema zaposlenih
           </div>
           <div *ngFor="let shift of data.schedule.shiftsFirstShift" class="modal-shift">
-            <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
-            <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
+            <div class="shift-details">
+              <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
+              <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
+            </div>
+            <button *ngIf="canEditShifts" nbButton size="tiny" status="info" 
+              (click)="openEditShift(shift); ref.close()">
+              <nb-icon icon="edit-outline"></nb-icon>
+            </button>
           </div>
         </div>
         <div class="modal-column">
@@ -98,8 +159,14 @@
             Nema zaposlenih
           </div>
           <div *ngFor="let shift of data.schedule.shiftsSecondShift" class="modal-shift">
-            <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
-            <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
+            <div class="shift-details">
+              <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
+              <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
+            </div>
+            <button *ngIf="canEditShifts" nbButton size="tiny" status="info" 
+              (click)="openEditShift(shift); ref.close()">
+              <nb-icon icon="edit-outline"></nb-icon>
+            </button>
           </div>
         </div>
       </div>
