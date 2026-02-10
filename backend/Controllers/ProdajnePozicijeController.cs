@@ -108,6 +108,7 @@ namespace backend.Controllers
                 BrojPozicije = pozicija.BrojPozicije,
                 Trgovac = pozicija.Trgovac,
                 Trader = pozicija.Trader,
+                NazivArtikla = pozicija.NazivArtikla,
                 ZakupDo = pozicija.ZakupDo,
                 VrijednostZakupa = pozicija.VrijednostZakupa,
                 VrstaUgovora = pozicija.VrstaUgovora,
@@ -173,7 +174,9 @@ namespace backend.Controllers
             [FromQuery] string? trader = null,
             [FromQuery] string? status = null,
             [FromQuery] DateTime? zakupOd = null,
-            [FromQuery] DateTime? zakupDo = null)
+            [FromQuery] DateTime? zakupDo = null,
+            [FromQuery] bool isticeUskoro = false,
+            [FromQuery] bool samoSlobodne = false)
         {
             var layout = await _context.ProdajniLayout
                 .AsNoTracking()
@@ -232,6 +235,16 @@ namespace backend.Controllers
             {
                 filteredPozicije = filteredPozicije.Where(p => p.ZakupDo.HasValue && p.ZakupDo.Value.Date <= zakupDo.Value.Date);
             }
+            if (samoSlobodne)
+            {
+                filteredPozicije = filteredPozicije.Where(p =>
+                    string.IsNullOrWhiteSpace(p.Trgovac) && string.IsNullOrWhiteSpace(p.Trader));
+            }
+            if (isticeUskoro)
+            {
+                var limitDate = DateTime.Today.AddDays(60);
+                filteredPozicije = filteredPozicije.Where(p => p.ZakupDo.HasValue && p.ZakupDo.Value.Date <= limitDate);
+            }
 
             var pozicijeZaIzvjestaj = filteredPozicije.ToList();
             var ukupno = layout.Sirina * layout.Duzina;
@@ -258,31 +271,23 @@ namespace backend.Controllers
 
             var pozicijeSheet = workbook.AddWorksheet("Pozicije");
             pozicijeSheet.Cell(1, 1).Value = "Tip";
-            pozicijeSheet.Cell(1, 2).Value = "Naziv";
+            pozicijeSheet.Cell(1, 2).Value = "Dobavljač";
             pozicijeSheet.Cell(1, 3).Value = "Broj pozicije";
-            pozicijeSheet.Cell(1, 4).Value = "Trader";
-            pozicijeSheet.Cell(1, 5).Value = "Širina";
-            pozicijeSheet.Cell(1, 6).Value = "Dužina";
-            pozicijeSheet.Cell(1, 7).Value = "X";
-            pozicijeSheet.Cell(1, 8).Value = "Y";
-            pozicijeSheet.Cell(1, 9).Value = "Rotacija";
-            pozicijeSheet.Cell(1, 10).Value = "Zona";
-            pozicijeSheet.Cell(1, 11).Value = "Površina";
+            pozicijeSheet.Cell(1, 4).Value = "Naziv artikla";
+            pozicijeSheet.Cell(1, 5).Value = "Zakup do";
+            pozicijeSheet.Cell(1, 6).Value = "Vrijednost zakupa";
 
             var row = 2;
             foreach (var pozicija in pozicijeZaIzvjestaj.OrderBy(p => p.Tip).ThenBy(p => p.Naziv))
             {
                 pozicijeSheet.Cell(row, 1).Value = pozicija.Tip;
-                pozicijeSheet.Cell(row, 2).Value = pozicija.Naziv;
+                pozicijeSheet.Cell(row, 2).Value = !string.IsNullOrWhiteSpace(pozicija.Trgovac)
+                    ? pozicija.Trgovac
+                    : pozicija.Trader;
                 pozicijeSheet.Cell(row, 3).Value = pozicija.BrojPozicije;
-                pozicijeSheet.Cell(row, 4).Value = pozicija.Trader;
-                pozicijeSheet.Cell(row, 5).Value = pozicija.Sirina;
-                pozicijeSheet.Cell(row, 6).Value = pozicija.Duzina;
-                pozicijeSheet.Cell(row, 7).Value = pozicija.PozicijaX;
-                pozicijeSheet.Cell(row, 8).Value = pozicija.PozicijaY;
-                pozicijeSheet.Cell(row, 9).Value = pozicija.Rotacija;
-                pozicijeSheet.Cell(row, 10).Value = pozicija.Zona;
-                pozicijeSheet.Cell(row, 11).Value = pozicija.Sirina * pozicija.Duzina;
+                pozicijeSheet.Cell(row, 4).Value = pozicija.NazivArtikla;
+                pozicijeSheet.Cell(row, 5).Value = pozicija.ZakupDo;
+                pozicijeSheet.Cell(row, 6).Value = pozicija.VrijednostZakupa;
                 row++;
             }
 
@@ -330,6 +335,7 @@ namespace backend.Controllers
                 BrojPozicije = pozicija.BrojPozicije,
                 Trgovac = pozicija.Trgovac,
                 Trader = pozicija.Trader,
+                NazivArtikla = pozicija.NazivArtikla,
                 ZakupDo = pozicija.ZakupDo,
                 VrijednostZakupa = pozicija.VrijednostZakupa,
                 VrstaUgovora = pozicija.VrstaUgovora,

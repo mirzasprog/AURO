@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { NbDialogService } from '@nebular/theme';
 import { CalendarOptions, DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
@@ -67,7 +67,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     locale: hrLocale,
     firstDay: 1,
     fixedWeekCount: true,
-    height: 'auto',
+    height: 'calc(100vh - 280px)',
+    contentHeight: 'auto',
     headerToolbar: false,
     displayEventTime: false,
     dayMaxEvents: 2,
@@ -86,7 +87,8 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     private readonly dialogService: NbDialogService,
     private readonly dailyTaskService: DailyTaskService,
     private readonly shiftsService: ShiftsService,
-    private readonly dataService: DataService
+    private readonly dataService: DataService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -729,7 +731,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     const monthKey = `${this.currentMonth.getFullYear()}-${this.currentMonth.getMonth()}`;
     if (this.activeMonthKey !== monthKey) {
       this.activeMonthKey = monthKey;
-      this.loadMonthShifts();
+      Promise.resolve().then(() => this.loadMonthShifts());
     }
   }
 
@@ -738,21 +740,31 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       ...this.calendarOptions,
       events: this.buildCalendarEvents(),
     };
+    this.cdr.detectChanges();
   }
 
   private buildCalendarEvents(): EventInput[] {
-    return this.monthShifts.map((shift) => {
-      const type = (shift.shiftType || '').toLowerCase();
-      const employeeName = shift.employeeName || `#${shift.employeeId}`;
-      const startTime = shift.startTime ? shift.startTime.slice(0, 5) : '';
-      const endTime = shift.endTime ? shift.endTime.slice(0, 5) : '';
-      const timeRange = startTime && endTime ? ` (${startTime} - ${endTime})` : '';
+    const byDate = new Map<string, ShiftDto[]>();
+    this.monthShifts.forEach((shift) => {
+      const key = this.toDateKey(shift.shiftDate);
+      if (!key) {
+        return;
+      }
+      if (!byDate.has(key)) {
+        byDate.set(key, []);
+      }
+      byDate.get(key)!.push(shift);
+    });
+
+    return Array.from(byDate.entries()).map(([date, shifts]) => {
+      const morning = shifts.filter((s) => (s.shiftType || '').toLowerCase() === 'morning').length;
+      const afternoon = shifts.filter((s) => (s.shiftType || '').toLowerCase() === 'afternoon').length;
       return {
-        id: String(shift.shiftId),
-        title: `${employeeName}${timeRange}`,
-        start: this.toDateKey(shift.shiftDate),
+        id: `day-${date}`,
+        title: `Smjene: ${shifts.length} (I: ${morning} / II: ${afternoon})`,
+        start: date,
         allDay: true,
-        className: type ? [`shift-event--${type}`] : [],
+        className: ['shift-event--day-summary'],
       };
     });
   }

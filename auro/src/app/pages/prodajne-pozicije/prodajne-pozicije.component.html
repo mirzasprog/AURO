@@ -89,6 +89,11 @@
                  </tr>
                </tbody>
              </table>
+             <div class="table-paginator" *ngIf="totalStatistikaPoTipuPages > 1">
+              <button nbButton size="tiny" status="basic" (click)="goToStatistikaPoTipuPage('prev')" [disabled]="statistikaPoTipuPage === 1">Prethodna</button>
+              <span>{{ statistikaPoTipuPage }} / {{ totalStatistikaPoTipuPages }}</span>
+              <button nbButton size="tiny" status="basic" (click)="goToStatistikaPoTipuPage('next')" [disabled]="statistikaPoTipuPage === totalStatistikaPoTipuPages">Sljedeća</button>
+             </div>
              </nb-card-body>
          </nb-card>
          
@@ -103,6 +108,11 @@
                    </tr>
                  </tbody>
                </table>
+               <div class="table-paginator" *ngIf="totalStatistikaPoNazivuPages > 1">
+                <button nbButton size="tiny" status="basic" (click)="goToStatistikaPoNazivuPage('prev')" [disabled]="statistikaPoNazivuPage === 1">Prethodna</button>
+                <span>{{ statistikaPoNazivuPage }} / {{ totalStatistikaPoNazivuPages }}</span>
+                <button nbButton size="tiny" status="basic" (click)="goToStatistikaPoNazivuPage('next')" [disabled]="statistikaPoNazivuPage === totalStatistikaPoNazivuPages">Sljedeća</button>
+               </div>
                </nb-card-body>
          </nb-card>
       </div>
@@ -141,15 +151,14 @@
       
       <div class="report-table">
         <table>
-          <thead><tr><th>Broj</th><th>Naziv</th><th>Tip</th><th>Zakupac</th><th>Do</th><th>Iznos</th></tr></thead>
+          <thead><tr><th>Broj</th><th>Dobavljač</th><th>Naziv artikla</th><th>Zakup do</th><th>Vrijednost zakupa</th></tr></thead>
           <tbody>
             <tr *ngFor="let p of filtriranePozicije">
               <td>{{ p.brojPozicije }}</td>
-              <td>{{ p.naziv }}</td>
-              <td>{{ p.tip }}</td>
-              <td>{{ p.trgovac || p.trader }}</td>
+              <td>{{ p.trgovac || p.trader || '-' }}</td>
+              <td>{{ p.nazivArtikla || p.naziv || '-' }}</td>
               <td>{{ p.zakupDo | date }}</td>
-              <td>{{ p.vrijednostZakupa }}</td>
+              <td>{{ p.vrijednostZakupa | number:'1.0-2' }}</td>
             </tr>
           </tbody>
         </table>

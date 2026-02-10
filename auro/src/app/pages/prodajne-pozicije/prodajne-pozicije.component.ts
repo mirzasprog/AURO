@@ -75,6 +75,7 @@ export class ProdajnePozicijeComponent implements OnInit {
   statistikaPoNazivuPageSize = 5;
   totalStatistikaPoNazivuPages = 1;
   paginatedStatistikaPoNazivu: NazivStatistika[] = [];
+  private readonly layoutCache = new Map<number, ProdajnePozicijeResponse>();
   
   // Reports modal
   showIzvjestajiModal = false;
@@ -158,14 +159,17 @@ export class ProdajnePozicijeComponent implements OnInit {
   ucitajLayout(): void {
     if (!this.odabranaProdavnicaId) return;
 
+    const cachedResponse = this.layoutCache.get(this.odabranaProdavnicaId);
+    if (cachedResponse) {
+      this.primijeniLayoutResponse(cachedResponse);
+      return;
+    }
+
     this.loading = true;
     this.dataService.preuzmiProdajnePozicije(this.odabranaProdavnicaId).subscribe({
       next: (response: ProdajnePozicijeResponse) => {
-        this.layout = response.layout ?? null;
-        this.pozicije = response.pozicije ?? [];
-        this.osvjeziEditor();
-        this.izracunajStatistiku();
-        this.loading = false;
+        this.layoutCache.set(this.odabranaProdavnicaId!, response);
+        this.primijeniLayoutResponse(response);
       },
       error: () => {
         this.loading = false;
@@ -221,6 +225,7 @@ export class ProdajnePozicijeComponent implements OnInit {
       pozicije
     }).subscribe({
       next: (response) => {
+        this.layoutCache.set(this.odabranaProdavnicaId!, response);
         this.layout = response.layout ?? layout;
         this.pozicije = response.pozicije ?? pozicije;
         this.osvjeziEditor();
@@ -296,7 +301,7 @@ export class ProdajnePozicijeComponent implements OnInit {
 
     return this.pozicije.filter((p) => {
       if (search) {
-        const searchable = `${p.brojPozicije ?? ''} ${p.naziv ?? ''} ${p.trgovac ?? ''} ${p.trader ?? ''}`.toLowerCase();
+        const searchable = `${p.brojPozicije ?? ''} ${p.naziv ?? ''} ${p.nazivArtikla ?? ''} ${p.trgovac ?? ''} ${p.trader ?? ''}`.toLowerCase();
         if (!searchable.includes(search)) return false;
       }
       if (tip && (p.tip ?? '').toLowerCase() !== tip) return false;
@@ -335,7 +340,9 @@ export class ProdajnePozicijeComponent implements OnInit {
       trader: this.reportFilters.trader || undefined,
       status: this.reportFilters.status !== 'ALL' ? this.reportFilters.status : undefined,
       zakupOd: this.reportFilters.zakupOd || undefined,
-      zakupDo: this.reportFilters.zakupDo || undefined
+      zakupDo: this.reportFilters.zakupDo || undefined,
+      isticeUskoro: this.reportFilters.isticeUskoro || undefined,
+      samoSlobodne: this.reportFilters.samoSlobodne || undefined
     };
     this.dataService.exportujProdajnePozicijeNapredni(this.odabranaProdavnicaId, params).subscribe({
       next: (blob) => FileSaver.saveAs(blob, this.generisiNazivFajla()),
@@ -374,7 +381,7 @@ export class ProdajnePozicijeComponent implements OnInit {
     });
     this.statistikaPoTipu = Object.values(grupisano).map(s => ({
        ...s, ucesce: this.ukupnaPovrsina > 0 ? Math.round((s.zauzetaPovrsina/this.ukupnaPovrsina)*10000)/100 : 0 
-    }));
+    })).sort((a, b) => b.broj - a.broj);
     
     const grupisanoPoNazivu: Record<string, NazivStatistika> = {};
     this.pozicije.forEach(p => {
@@ -383,7 +390,7 @@ export class ProdajnePozicijeComponent implements OnInit {
       grupisanoPoNazivu[naziv].broj++;
       grupisanoPoNazivu[naziv].vrijednost += p.vrijednostZakupa ?? 0;
     });
-    this.statistikaPoNazivu = Object.values(grupisanoPoNazivu);
+    this.statistikaPoNazivu = Object.values(grupisanoPoNazivu).sort((a, b) => b.broj - a.broj);
     
     this.updateTipPagination();
     this.updateNazivPagination();
@@ -411,12 +418,22 @@ export class ProdajnePozicijeComponent implements OnInit {
   }
   private updateTipPagination(): void {
     this.totalStatistikaPoTipuPages = Math.max(Math.ceil(this.statistikaPoTipu.length / this.statistikaPoTipuPageSize), 1);
+    this.statistikaPoTipuPage = Math.min(this.statistikaPoTipuPage, this.totalStatistikaPoTipuPages);
     const start = (this.statistikaPoTipuPage - 1) * this.statistikaPoTipuPageSize;
     this.paginatedStatistikaPoTipu = this.statistikaPoTipu.slice(start, start + this.statistikaPoTipuPageSize);
   }
   private updateNazivPagination(): void {
     this.totalStatistikaPoNazivuPages = Math.max(Math.ceil(this.statistikaPoNazivu.length / this.statistikaPoNazivuPageSize), 1);
+    this.statistikaPoNazivuPage = Math.min(this.statistikaPoNazivuPage, this.totalStatistikaPoNazivuPages);
     const start = (this.statistikaPoNazivuPage - 1) * this.statistikaPoNazivuPageSize;
     this.paginatedStatistikaPoNazivu = this.statistikaPoNazivu.slice(start, start + this.statistikaPoNazivuPageSize);
+  }
+
+  private primijeniLayoutResponse(response: ProdajnePozicijeResponse): void {
+    this.layout = response.layout ?? null;
+    this.pozicije = response.pozicije ?? [];
+    this.osvjeziEditor();
+    this.izracunajStatistiku();
+    this.loading = false;
   }
 }

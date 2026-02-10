@@ -251,6 +251,8 @@ export class DataService {
       status?: string;
       zakupOd?: string;
       zakupDo?: string;
+      isticeUskoro?: boolean;
+      samoSlobodne?: boolean;
     }
   ): Observable<Blob> {
     const query = new URLSearchParams();
@@ -262,6 +264,8 @@ export class DataService {
     if (params.status) query.append('status', params.status);
     if (params.zakupOd) query.append('zakupOd', params.zakupOd);
     if (params.zakupDo) query.append('zakupDo', params.zakupDo);
+    if (params.isticeUskoro) query.append('isticeUskoro', 'true');
+    if (params.samoSlobodne) query.append('samoSlobodne', 'true');
 
     const suffix = query.toString();
     const url = this.baseUrl + `/api/ProdajnePozicije/${storeId}/export${suffix ? `?${suffix}` : ''}`;

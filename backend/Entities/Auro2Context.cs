@@ -1148,6 +1148,10 @@ namespace backend.Entities
                     .HasMaxLength(200)
                     .IsUnicode(false);
 
+                entity.Property(e => e.NazivArtikla)
+                    .HasMaxLength(200)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.ZakupDo).HasColumnType("datetime");
 
                 entity.Property(e => e.VrijednostZakupa).HasColumnType("decimal(18, 2)");

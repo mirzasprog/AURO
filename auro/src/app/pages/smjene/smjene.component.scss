@@ -1284,20 +1284,24 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .month-grid--fullcalendar {
-  border: 2px solid #c9cdd3;
+  border: 2px solid $border;
   border-top: none;
-  background: #fff;
-  padding: 0.5rem;
+  background: $bg-base;
+  padding: 0.75rem;
+  border-radius: 0 0 10px 10px;
+  min-height: calc(100vh - 260px);
 
   ::ng-deep {
     .fc {
       font-family: inherit;
+      color: $text-primary;
+      min-height: calc(100vh - 280px);
     }
 
     .fc-theme-standard td,
     .fc-theme-standard th,
     .fc-theme-standard .fc-scrollgrid {
-      border-color: #e0e3e7;
+      border-color: $border;
     }
 
     .fc .fc-daygrid-day-top {
@@ -1305,11 +1309,11 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
       padding: 0.25rem;
       font-size: 0.8rem;
       font-weight: 600;
-      color: #202124;
+      color: $text-primary;
     }
 
     .fc .fc-daygrid-day.fc-day-today {
-      background: rgba(26, 115, 232, 0.08);
+      background: rgba(51, 102, 255, 0.12);
     }
 
     .fc .fc-daygrid-day-events {
@@ -1318,12 +1322,13 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
     .fc-event {
       border: none;
-      border-radius: 6px;
-      padding: 0.1rem 0.35rem;
-      font-size: 0.72rem;
-      line-height: 1.2;
-      margin-bottom: 0.2rem;
+      border-radius: 8px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      line-height: 1.25;
+      margin-bottom: 0.3rem;
       cursor: pointer;
+      font-weight: 600;
     }
 
     .shift-event--morning {
@@ -1340,6 +1345,28 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     .shift-event--custom {
       background: #5f6368;
       color: #fff;
+    }
+
+    .shift-event--day-summary {
+      background: linear-gradient(135deg, $primary, $primary-dark);
+      color: #fff;
+      box-shadow: $shadow-sm;
+    }
+
+    .fc .fc-daygrid-day-frame {
+      min-height: 110px;
+    }
+
+    .fc .fc-toolbar-title,
+    .fc .fc-col-header-cell-cushion,
+    .fc .fc-daygrid-day-number {
+      color: $text-primary;
+    }
+
+    .fc .fc-popover {
+      background: $bg-elevated;
+      color: $text-primary;
+      border-color: $border;
     }
   }
 }
