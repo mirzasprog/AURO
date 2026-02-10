@@ -7,6 +7,7 @@ import { SmjeneRoutingModule } from './smjene-routing.module';
 import { SmjeneComponent } from './smjene.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
+import { FullCalendarModule } from '@fullcalendar/angular';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.com
     NbSpinnerModule,
     NbDatepickerModule,
     NbDialogModule.forChild(),
+    FullCalendarModule,
   ],
 })
 export class SmjeneModule {}

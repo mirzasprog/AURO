@@ -1,6 +1,11 @@
 import { Component, OnDestroy, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { NbDialogService } from '@nebular/theme';
+import { CalendarOptions, DatesSetArg, EventClickArg, EventInput } from '@fullcalendar/core';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+import hrLocale from '@fullcalendar/core/locales/hr';
+import { FullCalendarComponent } from '@fullcalendar/angular';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, map, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
@@ -27,11 +32,6 @@ interface DaySchedule {
   shiftsSecondShift: ShiftDto[];
 }
 
-interface CalendarDay {
-  date: Date;
-  inMonth: boolean;
-  schedule: DaySchedule;
-}
 
 @Component({
   selector: 'ngx-smjene',
@@ -61,9 +61,25 @@ export class SmjeneComponent implements OnInit, OnDestroy {
 
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
   readonly shiftStatuses = ['Draft', 'Published', 'Completed', 'Cancelled'];
-  readonly weekDayLabels = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'];
+  calendarOptions: CalendarOptions = {
+    plugins: [dayGridPlugin, interactionPlugin],
+    initialView: 'dayGridMonth',
+    locale: hrLocale,
+    firstDay: 1,
+    fixedWeekCount: true,
+    height: 'auto',
+    headerToolbar: false,
+    displayEventTime: false,
+    dayMaxEvents: 2,
+    eventClick: (arg) => this.onCalendarEventClick(arg),
+    dateClick: ({ date }) => this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts)),
+    datesSet: (arg) => this.onCalendarDatesSet(arg),
+    events: [],
+  };
+  private activeMonthKey = '';
 
   @ViewChild('dayDetailsDialog', { static: true }) dayDetailsDialog!: TemplateRef<{ schedule: DaySchedule }>;
+  @ViewChild('fullCalendar') fullCalendar?: FullCalendarComponent;
 
   constructor(
     private readonly authService: NbAuthService,
@@ -162,22 +178,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     return this.filteredShifts.filter((shift) => this.toDateKey(shift.shiftDate) === dayKey);
   }
 
-  get monthCalendarDays(): CalendarDay[] {
-    const monthStart = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
-    const monthEnd = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
-    const calendarStart = this.getWeekStart(monthStart);
-    
-    return Array.from({ length: 42 }, (_, index) => {
-      const date = new Date(calendarStart);
-      date.setDate(calendarStart.getDate() + index);
-      return {
-        date,
-        inMonth: date.getMonth() === monthStart.getMonth(),
-        schedule: this.buildDaySchedule(date, this.monthShifts),
-      };
-    });
-  }
-
   get departments(): string[] {
     const ids = new Set<string>();
     this.shifts.forEach((shift) => {
@@ -217,11 +217,19 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   }
 
   nextMonth(): void {
+    if (this.fullCalendar) {
+      this.fullCalendar.getApi().next();
+      return;
+    }
     this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 1);
     this.loadMonthShifts();
   }
 
   prevMonth(): void {
+    if (this.fullCalendar) {
+      this.fullCalendar.getApi().prev();
+      return;
+    }
     this.currentMonth = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() - 1, 1);
     this.loadMonthShifts();
   }
@@ -372,6 +380,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.monthShifts = this.normalizeShiftItems(result);
+          this.refreshCalendarEvents();
           this.monthLoading = false;
         },
         error: (err) => {
@@ -704,6 +713,47 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     this.dialogService.open(this.dayDetailsDialog, {
       context: { schedule },
       closeOnBackdropClick: true,
+    });
+  }
+
+  private onCalendarEventClick(arg: EventClickArg): void {
+    const date = arg.event.start;
+    if (!date) {
+      return;
+    }
+    this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts));
+  }
+
+  private onCalendarDatesSet(arg: DatesSetArg): void {
+    this.currentMonth = new Date(arg.view.currentStart);
+    const monthKey = `${this.currentMonth.getFullYear()}-${this.currentMonth.getMonth()}`;
+    if (this.activeMonthKey !== monthKey) {
+      this.activeMonthKey = monthKey;
+      this.loadMonthShifts();
+    }
+  }
+
+  private refreshCalendarEvents(): void {
+    this.calendarOptions = {
+      ...this.calendarOptions,
+      events: this.buildCalendarEvents(),
+    };
+  }
+
+  private buildCalendarEvents(): EventInput[] {
+    return this.monthShifts.map((shift) => {
+      const type = (shift.shiftType || '').toLowerCase();
+      const employeeName = shift.employeeName || `#${shift.employeeId}`;
+      const startTime = shift.startTime ? shift.startTime.slice(0, 5) : '';
+      const endTime = shift.endTime ? shift.endTime.slice(0, 5) : '';
+      const timeRange = startTime && endTime ? ` (${startTime} - ${endTime})` : '';
+      return {
+        id: String(shift.shiftId),
+        title: `${employeeName}${timeRange}`,
+        start: this.toDateKey(shift.shiftDate),
+        allDay: true,
+        className: type ? [`shift-event--${type}`] : [],
+      };
     });
   }
 
