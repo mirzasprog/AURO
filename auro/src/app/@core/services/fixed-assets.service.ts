@@ -52,6 +52,7 @@ export interface FixedAssetDetail {
 
 export interface FixedAssetAssignment {
   id: number;
+  documentNumber?: string; 
   assignedTo: string;
   assignedBy?: string;
   department?: string;
@@ -60,6 +61,9 @@ export interface FixedAssetAssignment {
   endDate?: string | null;
   status?: string;
   note?: string;
+  signaturePredao?: string; 
+  signaturePreuzeo?: string; 
+  snapshotValue?: number;    
 }
 
 export interface FixedAssetServiceRecord {
@@ -133,6 +137,8 @@ export interface FixedAssetAssignmentRequest {
   endDate?: string | null;
   status?: string;
   note?: string;
+  signaturePredao?: string; 
+  signaturePreuzeo?: string; 
 }
 
 export interface FixedAssetServiceRecordRequest {

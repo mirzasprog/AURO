@@ -1,0 +1,225 @@
+<nb-card>
+  <nb-card-header>
+    <div class="modal-header">
+      <div>
+        <h5>{{ modalTitle }}</h5>
+        <small>{{ modalDescription }}</small>
+      </div>
+    </div>
+  </nb-card-header>
+
+  <nb-card-body>
+    <div class="form-grid">
+
+      <!-- Osnovni podaci -->
+      <div class="form-section">
+        <h6 class="section-title">
+          <nb-icon icon="info-outline"></nb-icon>
+          Osnovni podaci
+        </h6>
+
+        <div class="form-group">
+          <label>Broj pozicije *</label>
+          <input
+            nbInput
+            fullWidth
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="novaPozicija.brojPozicije"
+            placeholder="P-001"
+            [status]="validationErrors['brojPozicije'] ? 'danger' : 'basic'">
+          <span class="error-message" *ngIf="validationErrors['brojPozicije']">
+            {{ validationErrors['brojPozicije'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Naziv</label>
+          <input
+            nbInput
+            fullWidth
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="novaPozicija.naziv"
+            placeholder="Naziv pozicije">
+        </div>
+
+        <div class="form-group">
+          <label>Tip pozicije *</label>
+          <nb-select
+            fullWidth
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="novaPozicija.tip"
+            [status]="validationErrors['tip'] ? 'danger' : 'basic'"
+            placeholder="Odaberite tip">
+            <nb-option *ngFor="let tip of tipovi" [value]="tip">
+              {{ tip }}
+            </nb-option>
+          </nb-select>
+          <span class="error-message" *ngIf="validationErrors['tip']">
+            {{ validationErrors['tip'] }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label>Odjel / Zona</label>
+          <nb-select
+            fullWidth
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="novaPozicija.zona"
+            placeholder="Odaberite odjel">
+            <nb-option value="">Nije odabrano</nb-option>
+            <nb-option *ngFor="let odjel of odjeli" [value]="odjel">
+              {{ odjel }}
+            </nb-option>
+          </nb-select>
+        </div>
+      </div>
+
+      <!-- Pozicija i dimenzije -->
+      <div class="form-section">
+        <h6 class="section-title">
+          <nb-icon icon="move-outline"></nb-icon>
+          Pozicija i dimenzije
+        </h6>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>X pozicija *</label>
+            <input
+              nbInput
+              fullWidth
+              type="number"
+              [ngModelOptions]="{standalone: true}"
+              [(ngModel)]="novaPozicija.pozicijaX"
+              min="0"
+              [max]="layout.sirina - 1"
+              [status]="validationErrors['pozicijaX'] ? 'danger' : 'basic'">
+            <span class="error-message" *ngIf="validationErrors['pozicijaX']">
+              {{ validationErrors['pozicijaX'] }}
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label>Y pozicija *</label>
+            <input
+              nbInput
+              fullWidth
+              type="number"
+              [ngModelOptions]="{standalone: true}"
+              [(ngModel)]="novaPozicija.pozicijaY"
+              min="0"
+              [max]="layout.duzina - 1"
+              [status]="validationErrors['pozicijaY'] ? 'danger' : 'basic'">
+            <span class="error-message" *ngIf="validationErrors['pozicijaY']">
+              {{ validationErrors['pozicijaY'] }}
+            </span>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Širina *</label>
+            <input
+              nbInput
+              fullWidth
+              type="number"
+              [ngModelOptions]="{standalone: true}"
+              [(ngModel)]="novaPozicija.sirina"
+              min="1"
+              [status]="validationErrors['sirina'] ? 'danger' : 'basic'">
+            <span class="error-message" *ngIf="validationErrors['sirina']">
+              {{ validationErrors['sirina'] }}
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label>Dužina *</label>
+            <input
+              nbInput
+              fullWidth
+              type="number"
+              [ngModelOptions]="{standalone: true}"
+              [(ngModel)]="novaPozicija.duzina"
+              min="1"
+              [status]="validationErrors['duzina'] ? 'danger' : 'basic'">
+            <span class="error-message" *ngIf="validationErrors['duzina']">
+              {{ validationErrors['duzina'] }}
+            </span>
+          </div>
+        </div>
+
+        <nb-alert *ngIf="validationErrors['position']" status="danger" closable="false">
+          <nb-icon icon="alert-triangle-outline"></nb-icon>
+          {{ validationErrors['position'] }}
+        </nb-alert>
+
+        <div class="layout-info">
+          <nb-icon icon="grid-outline"></nb-icon>
+          <small>Layout: {{ layout.sirina }} × {{ layout.duzina }}</small>
+        </div>
+      </div>
+
+      <!-- Zakup -->
+      <div class="form-section">
+        <h6 class="section-title">
+          <nb-icon icon="calendar-outline"></nb-icon>
+          Zakup
+        </h6>
+
+        <div class="form-group">
+          <label>Dobavljač / Trgovac</label>
+          <input nbInput fullWidth [ngModelOptions]="{standalone: true}" [(ngModel)]="novaPozicija.trgovac">
+        </div>
+
+        <div class="form-group">
+          <label>Trader</label>
+          <input nbInput fullWidth [ngModelOptions]="{standalone: true}" [(ngModel)]="novaPozicija.trader">
+        </div>
+
+        <div class="form-group">
+          <label>Naziv artikla</label>
+          <input nbInput fullWidth [ngModelOptions]="{standalone: true}" [(ngModel)]="novaPozicija.nazivArtikla">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Vrsta ugovora</label>
+            <input nbInput fullWidth [ngModelOptions]="{standalone: true}" [(ngModel)]="novaPozicija.vrstaUgovora">
+          </div>
+
+          <div class="form-group">
+            <label>Tip pozicije</label>
+            <input nbInput fullWidth [ngModelOptions]="{standalone: true}" [(ngModel)]="novaPozicija.tipPozicije">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Zakup do</label>
+          <input nbInput fullWidth type="date" [ngModelOptions]="{standalone: true}" [(ngModel)]="novaPozicija.zakupDo">
+        </div>
+
+        <div class="form-group">
+          <label>Vrijednost zakupa (KM)</label>
+          <input
+            nbInput
+            fullWidth
+            type="number"
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="novaPozicija.vrijednostZakupa"
+            min="0"
+            step="0.01">
+        </div>
+      </div>
+
+    </div>
+  </nb-card-body>
+
+  <nb-card-footer>
+    <div class="modal-actions">
+      <button nbButton status="basic" (click)="odustani()">Odustani</button>
+      <button nbButton status="success" (click)="sacuvaj()">
+        <nb-icon icon="checkmark-outline"></nb-icon>
+        {{ saveButtonText }}
+      </button>
+    </div>
+  </nb-card-footer>
+</nb-card>

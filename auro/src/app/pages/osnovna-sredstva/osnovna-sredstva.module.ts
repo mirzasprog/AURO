@@ -11,9 +11,11 @@ import {
 } from '@nebular/theme';
 import { OsnovnaSredstvaComponent } from './osnovna-sredstva.component';
 import { OsnovnaSredstvaRoutingModule } from './osnovna-sredstva-routing.module';
-
+import { AssetFormDialogComponent } from './asset-form-dialog';
+import { CategoryFormDialogComponent } from './category-form-dialog';
+import { ReportDialogComponent } from './report-dialog';
 @NgModule({
-  declarations: [OsnovnaSredstvaComponent],
+  declarations: [OsnovnaSredstvaComponent, AssetFormDialogComponent, CategoryFormDialogComponent, ReportDialogComponent],
   imports: [
     CommonModule,
     ReactiveFormsModule,

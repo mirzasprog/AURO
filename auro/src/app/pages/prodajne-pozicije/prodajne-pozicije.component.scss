@@ -19,6 +19,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  flex: 1;
 }
 
 .title-block h4 {
@@ -26,10 +27,60 @@
   font-weight: 700;
   font-size: 1.5rem;
   color: var(--text-basic-color);
+  white-space: nowrap;
 }
 
 .store-select {
-  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 350px;
+  max-width: 450px;
+  flex: 1;
+}
+
+.store-search-input {
+  width: 100%;
+}
+
+.store-option {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.25rem 0;
+}
+
+.store-code {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  color: var(--color-primary-500);
+  font-size: 0.75rem;
+  background: var(--color-primary-100);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  min-width: 60px;
+  text-align: center;
+}
+
+.store-name {
+  flex: 1;
+  font-size: 0.875rem;
+  color: var(--text-basic-color);
+}
+
+.no-results {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  color: var(--text-hint-color);
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.no-results nb-icon {
+  font-size: 1.25rem;
+  opacity: 0.5;
 }
 
 .header-actions {
@@ -48,7 +99,37 @@ nb-card-body {
   gap: 2rem;
 }
 
-/* New Modern Stats Overview */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--text-hint-color);
+}
+
+.empty-state h5 {
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-basic-color);
+}
+
+/* Quick Filters */
+.quick-filters {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem 1.5rem;
+  background: var(--background-basic-color-2);
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-basic-color-3);
+}
+
+.quick-filters nb-checkbox {
+  font-weight: 500;
+}
+
+/* Modern Stats Overview */
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -229,12 +310,15 @@ nb-card-body {
   justify-content: center;
   z-index: 10000;
   padding: 1rem;
+  backdrop-filter: blur(4px);
 }
 
 .report-card {
   width: min(1100px, 95vw);
   max-height: 90vh;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .report-header {
@@ -257,6 +341,17 @@ nb-card-body {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-hint-color);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.report-checkbox-filters {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  background: var(--background-basic-color-2);
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .report-table {
@@ -284,12 +379,22 @@ nb-card-body {
   position: sticky;
   top: 0;
   z-index: 1;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+  color: var(--text-hint-color);
+}
+
+.report-table tbody tr:hover {
+  background: var(--background-basic-color-2);
 }
 
 .report-table .empty {
   text-align: center;
-  padding: 1rem;
+  padding: 2rem;
   color: var(--text-hint-color);
+  font-style: italic;
 }
 
 .report-actions {
@@ -297,6 +402,8 @@ nb-card-body {
   justify-content: flex-end;
   gap: 0.75rem;
   flex-wrap: wrap;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-basic-color-3);
 }
 
 .table {
@@ -389,6 +496,15 @@ nb-card-body {
     align-items: stretch;
   }
 
+  .title-block {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .store-select {
+    max-width: 100%;
+  }
+
   .header-actions {
     width: 100%;
     justify-content: stretch;
@@ -400,6 +516,11 @@ nb-card-body {
 
   .stats-overview {
     grid-template-columns: 1fr;
+  }
+
+  .quick-filters {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 
   .tables-grid {
@@ -414,5 +535,14 @@ nb-card-body {
 
   .pagination-actions {
     justify-content: space-between;
+  }
+
+  .report-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .report-checkbox-filters {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }

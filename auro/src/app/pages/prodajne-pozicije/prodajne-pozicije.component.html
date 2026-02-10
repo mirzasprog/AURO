@@ -2,27 +2,41 @@
   <nb-card-header class="page-header">
     <div class="title-block">
       <h4>Prodajne Pozicije</h4>
+      
       <div class="store-select">
-        <nb-select 
-          id="prodavnica" 
-          placeholder="Odaberite prodavnicu" 
-          [(ngModel)]="odabranaProdavnicaId" 
-          (selectedChange)="onProdavnicaChange()"
-          size="medium">
-          <nb-option *ngFor="let prodavnica of prodavnice" [value]="prodavnica.id">
-            {{ prodavnica.name }}
+        <input 
+          nbInput
+          type="text"
+          fullWidth
+          placeholder="🔍 Pretraži prodavnicu..."
+          [nbAutocomplete]="auto"
+          [ngModelOptions]="{standalone: true}"
+          [(ngModel)]="prodavnicaInputString"
+          class="store-search-input"
+        />
+        <nb-autocomplete #auto (selectedChange)="onProdavnicaSelect($event)">
+          <nb-option *ngFor="let prodavnica of filtrovaneProdavnice" [value]="prodavnica.name">
+            <div class="store-option">
+              <span class="store-code">{{ prodavnica.code }}</span>
+              <span class="store-name">{{ prodavnica.name }}</span>
+            </div>
           </nb-option>
-        </nb-select>
+          <nb-option *ngIf="filtrovaneProdavnice.length === 0" disabled>
+             Nema rezultata
+          </nb-option>
+        </nb-autocomplete>
       </div>
     </div>
+
     <div class="header-actions">
-      <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId" size="small">
-        <nb-icon icon="download-outline"></nb-icon>
-        Excel
+      <button nbButton status="success" (click)="otvoriDodajPozicijuModal()" [disabled]="!odabranaProdavnicaId" size="small">
+        <nb-icon icon="plus-outline"></nb-icon> Dodaj poziciju
       </button>
-      <button nbButton status="primary" outline size="small" (click)="otvoriIzvjestaje()">
-        <nb-icon icon="bar-chart-outline"></nb-icon>
-        Izvještaji
+      <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId" size="small">
+        <nb-icon icon="download-outline"></nb-icon> Excel
+      </button>
+      <button nbButton status="primary" outline size="small" (click)="otvoriIzvjestaje()" [disabled]="!odabranaProdavnicaId">
+        <nb-icon icon="bar-chart-outline"></nb-icon> Izvještaji
       </button>
     </div>
   </nb-card-header>
@@ -30,253 +44,119 @@
   <nb-card-body>
     <nb-spinner *ngIf="loading" size="large"></nb-spinner>
 
-    <div *ngIf="!loading" class="content">
-      <!-- KPI Cards sa novim dizajnom -->
+    <div *ngIf="!loading && !odabranaProdavnicaId" class="empty-state">
+      <nb-icon icon="map-outline" style="font-size: 4rem; opacity: 0.3;"></nb-icon>
+      <h5>Odaberite prodavnicu</h5>
+      <p>Koristite pretragu iznad da odaberete prodavnicu.</p>
+    </div>
+
+    <div *ngIf="!loading && odabranaProdavnicaId" class="content">
+      
+      <div class="quick-filters">
+        <nb-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.samoSlobodne" status="primary">Samo slobodne</nb-checkbox>
+        <nb-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.isticeUskoro" status="warning">Zakup ističe uskoro</nb-checkbox>
+      </div>
+
       <div class="stats-overview">
         <div class="stat-card stat-total">
-          <div class="stat-header">
-            <nb-icon icon="grid-outline"></nb-icon>
-            <span class="stat-label">Ukupno pozicija</span>
-          </div>
+          <div class="stat-header"><nb-icon icon="grid-outline"></nb-icon><span class="stat-label">Ukupno</span></div>
           <div class="stat-value">{{ ukupnoPozicija }}</div>
         </div>
-        
         <div class="stat-card stat-occupied">
-          <div class="stat-header">
-            <nb-icon icon="checkmark-circle-2-outline"></nb-icon>
-            <span class="stat-label">Zauzeto</span>
-          </div>
+          <div class="stat-header"><nb-icon icon="checkmark-circle-2-outline"></nb-icon><span class="stat-label">Zauzeto</span></div>
           <div class="stat-value">{{ zauzetoPozicija }}</div>
           <div class="stat-percentage">{{ ukupnoPozicija > 0 ? ((zauzetoPozicija / ukupnoPozicija) * 100).toFixed(1) : 0 }}%</div>
         </div>
-        
         <div class="stat-card stat-free">
-          <div class="stat-header">
-            <nb-icon icon="stop-circle-outline"></nb-icon>
-            <span class="stat-label">Slobodno</span>
-          </div>
+          <div class="stat-header"><nb-icon icon="stop-circle-outline"></nb-icon><span class="stat-label">Slobodno</span></div>
           <div class="stat-value">{{ slobodnoPozicija }}</div>
-          <div class="stat-percentage">{{ ukupnoPozicija > 0 ? ((slobodnoPozicija / ukupnoPozicija) * 100).toFixed(1) : 0 }}%</div>
         </div>
-        
-        <div class="stat-card stat-expiring">
-          <div class="stat-header">
-            <nb-icon icon="alert-triangle-outline"></nb-icon>
-            <span class="stat-label">Ističe uskoro</span>
-          </div>
-          <div class="stat-value">{{ isticeUskoroPozicija }}</div>
-        </div>
-        
         <div class="stat-card stat-revenue">
-          <div class="stat-header">
-            <nb-icon icon="trending-up-outline"></nb-icon>
-            <span class="stat-label">Ukupna vrijednost</span>
-          </div>
+          <div class="stat-header"><nb-icon icon="trending-up-outline"></nb-icon><span class="stat-label">Vrijednost</span></div>
           <div class="stat-value">{{ vrijednostZakupaUkupno | number:'1.0-2' }} KM</div>
-          <div class="stat-subtitle">mjesečni prihod</div>
         </div>
       </div>
 
       <div class="tables-grid">
-        <nb-card class="data-card">
-          <nb-card-header>
-            <nb-icon icon="layers-outline"></nb-icon>
-            Vrijednost po tipu pozicije
-          </nb-card-header>
-          <nb-card-body>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Tip pozicije</th>
-                  <th>Zakup</th>
-                  <th>Vrijednost</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let stavka of paginatedStatistikaPoTipu">
-                  <td>{{ stavka.tip }}</td>
-                  <td><span class="badge">{{ stavka.broj }}</span></td>
-                  <td class="value-cell">KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
-                </tr>
-                <tr *ngIf="!statistikaPoTipu.length">
-                  <td colspan="3" class="empty">Nema unesenih pozicija.</td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="table-pagination" *ngIf="statistikaPoTipu.length > statistikaPoTipuPageSize">
-              <div class="pagination-meta">
-                Stranica {{ statistikaPoTipuPage }} od {{ totalStatistikaPoTipuPages }}
-              </div>
-              <div class="pagination-actions">
-                <button nbButton size="small" status="primary"
-                        (click)="goToStatistikaPoTipuPage('prev')"
-                        [disabled]="statistikaPoTipuPage === 1">
-                  <nb-icon icon="arrow-back-outline"></nb-icon>
-                </button>
-                <button nbButton size="small" status="primary"
-                        (click)="goToStatistikaPoTipuPage('next')"
-                        [disabled]="statistikaPoTipuPage === totalStatistikaPoTipuPages">
-                  <nb-icon icon="arrow-forward-outline"></nb-icon>
-                </button>
-              </div>
-            </div>
-          </nb-card-body>
-        </nb-card>
-
-        <nb-card class="data-card">
-          <nb-card-header>
-            <nb-icon icon="pricetags-outline"></nb-icon>
-            Vrijednost po nazivu pozicije
-          </nb-card-header>
-          <nb-card-body>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Naziv pozicije</th>
-                  <th>Zakup</th>
-                  <th>Vrijednost</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let stavka of paginatedStatistikaPoNazivu">
-                  <td>{{ stavka.naziv }}</td>
-                  <td><span class="badge">{{ stavka.broj }}</span></td>
-                  <td class="value-cell">KM {{ stavka.vrijednost | number:'1.0-2' }}</td>
-                </tr>
-                <tr *ngIf="!statistikaPoNazivu.length">
-                  <td colspan="3" class="empty">Nema unesenih pozicija.</td>
-                </tr>
-              </tbody>
-            </table>
-            <div class="table-pagination" *ngIf="statistikaPoNazivu.length > statistikaPoNazivuPageSize">
-              <div class="pagination-meta">
-                Stranica {{ statistikaPoNazivuPage }} od {{ totalStatistikaPoNazivuPages }}
-              </div>
-              <div class="pagination-actions">
-                <button nbButton size="small" status="primary"
-                        (click)="goToStatistikaPoNazivuPage('prev')"
-                        [disabled]="statistikaPoNazivuPage === 1">
-                  <nb-icon icon="arrow-back-outline"></nb-icon>
-                </button>
-                <button nbButton size="small" status="primary"
-                        (click)="goToStatistikaPoNazivuPage('next')"
-                        [disabled]="statistikaPoNazivuPage === totalStatistikaPoNazivuPages">
-                  <nb-icon icon="arrow-forward-outline"></nb-icon>
-                </button>
-              </div>
-            </div>
-          </nb-card-body>
-        </nb-card>
+         <nb-card class="data-card">
+           <nb-card-header>Po tipu</nb-card-header>
+           <nb-card-body>
+             <table class="table">
+               <thead><tr><th>Tip</th><th>Broj</th><th>Vrijednost</th></tr></thead>
+               <tbody>
+                 <tr *ngFor="let s of paginatedStatistikaPoTipu">
+                   <td>{{ s.tip }}</td><td>{{ s.broj }}</td><td>{{ s.vrijednost | number:'1.0-2' }}</td>
+                 </tr>
+               </tbody>
+             </table>
+             </nb-card-body>
+         </nb-card>
+         
+         <nb-card class="data-card">
+            <nb-card-header>Po nazivu</nb-card-header>
+            <nb-card-body>
+               <table class="table">
+                 <thead><tr><th>Naziv</th><th>Broj</th><th>Vrijednost</th></tr></thead>
+                 <tbody>
+                   <tr *ngFor="let s of paginatedStatistikaPoNazivu">
+                     <td>{{ s.naziv }}</td><td>{{ s.broj }}</td><td>{{ s.vrijednost | number:'1.0-2' }}</td>
+                   </tr>
+                 </tbody>
+               </table>
+               </nb-card-body>
+         </nb-card>
       </div>
 
-      <!-- INLINE EDITOR -->
       <ngx-layout-editor-dialog
         *ngIf="showEditor && editorLayout"
         [layout]="editorLayout"
-        [pozicije]="editorPozicije"
+        [pozicije]="filtriraneEditorPozicije"
         (sacuvajLayout)="onSacuvajLayout($event)"
       ></ngx-layout-editor-dialog>
     </div>
   </nb-card-body>
 </nb-card>
 
-<div class="report-backdrop" *ngIf="showIzvjestajiModal">
-  <nb-card class="report-card">
+<div class="report-backdrop" *ngIf="showIzvjestajiModal" (click)="zatvoriIzvjestaje()">
+  <nb-card class="report-card" (click)="$event.stopPropagation()">
     <nb-card-header>
       <div class="report-header">
-        <div>
-          <h6>Napredni izvještaj</h6>
-          <small>Filtrirajte pozicije i preuzmite Excel izvještaj.</small>
-        </div>
-        <button nbButton size="tiny" ghost status="basic" (click)="zatvoriIzvjestaje()">
-          <nb-icon icon="close-outline"></nb-icon>
-        </button>
+        <h6>Napredni izvještaj</h6>
+        <button nbButton ghost size="tiny" (click)="zatvoriIzvjestaje()"><nb-icon icon="close-outline"></nb-icon></button>
       </div>
     </nb-card-header>
     <nb-card-body>
       <div class="report-filters">
         <div class="filter-item">
-          <label>Pretraga</label>
-          <input nbInput fullWidth size="small" [(ngModel)]="reportFilters.search" placeholder="Broj, naziv, dobavljač..." />
+           <label>Pretraga</label>
+           <input nbInput fullWidth size="small" [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.search">
         </div>
-        <div class="filter-item">
-          <label>Tip pozicije</label>
-          <nb-select fullWidth size="small" [(ngModel)]="reportFilters.tip">
-            <nb-option value="">Svi tipovi</nb-option>
-            <nb-option *ngFor="let tip of reportTipovi" [value]="tip">{{ tip }}</nb-option>
-          </nb-select>
-        </div>
-        <div class="filter-item">
-          <label>Odjel</label>
-          <nb-select fullWidth size="small" [(ngModel)]="reportFilters.odjel">
-            <nb-option value="">Svi odjeli</nb-option>
-            <nb-option *ngFor="let odjel of reportOdjeli" [value]="odjel">{{ odjel }}</nb-option>
-          </nb-select>
-        </div>
-        <div class="filter-item">
-          <label>Dobavljač</label>
-          <input nbInput fullWidth size="small" [(ngModel)]="reportFilters.trgovac" placeholder="Naziv dobavljača" />
-        </div>
-        <div class="filter-item">
-          <label>Trader</label>
-          <input nbInput fullWidth size="small" [(ngModel)]="reportFilters.trader" placeholder="Naziv trader-a" />
-        </div>
-        <div class="filter-item">
-          <label>Status</label>
-          <nb-select fullWidth size="small" [(ngModel)]="reportFilters.status">
-            <nb-option value="ALL">Svi</nb-option>
-            <nb-option value="Zauzeta">Zauzete</nb-option>
-            <nb-option value="Slobodna">Slobodne</nb-option>
-          </nb-select>
-        </div>
-        <div class="filter-item">
-          <label>Zakup od</label>
-          <input nbInput fullWidth size="small" type="date" [(ngModel)]="reportFilters.zakupOd" />
-        </div>
-        <div class="filter-item">
-          <label>Zakup do</label>
-          <input nbInput fullWidth size="small" type="date" [(ngModel)]="reportFilters.zakupDo" />
-        </div>
+        <div class="filter-item"><label>Odjel</label>
+           <nb-select fullWidth size="small" [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.odjel">
+             <nb-option value="">Svi</nb-option>
+             <nb-option *ngFor="let o of reportOdjeli" [value]="o">{{o}}</nb-option>
+           </nb-select>
+         </div>
       </div>
-
+      
       <div class="report-table">
         <table>
-          <thead>
-            <tr>
-              <th>Broj pozicije</th>
-              <th>Naziv</th>
-              <th>Tip</th>
-              <th>Odjel</th>
-              <th>Dobavljač</th>
-              <th>Trader</th>
-              <th>Zakup do</th>
-              <th>Vrijednost</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Broj</th><th>Naziv</th><th>Tip</th><th>Zakupac</th><th>Do</th><th>Iznos</th></tr></thead>
           <tbody>
-            <tr *ngFor="let pozicija of filtriranePozicije">
-              <td>{{ pozicija.brojPozicije || '-' }}</td>
-              <td>{{ pozicija.naziv || '-' }}</td>
-              <td>{{ pozicija.tip || '-' }}</td>
-              <td>{{ pozicija.zona || '-' }}</td>
-              <td>{{ pozicija.trgovac || '-' }}</td>
-              <td>{{ pozicija.trader || '-' }}</td>
-              <td>{{ pozicija.zakupDo || '-' }}</td>
-              <td>{{ pozicija.vrijednostZakupa || '-' }}</td>
-            </tr>
-            <tr *ngIf="!filtriranePozicije.length">
-              <td colspan="8" class="empty">Nema podataka za odabrane filtere.</td>
+            <tr *ngFor="let p of filtriranePozicije">
+              <td>{{ p.brojPozicije }}</td>
+              <td>{{ p.naziv }}</td>
+              <td>{{ p.tip }}</td>
+              <td>{{ p.trgovac || p.trader }}</td>
+              <td>{{ p.zakupDo | date }}</td>
+              <td>{{ p.vrijednostZakupa }}</td>
             </tr>
           </tbody>
         </table>
       </div>
     </nb-card-body>
-    <nb-card-footer class="report-actions">
-      <button nbButton status="basic" (click)="zatvoriIzvjestaje()">Zatvori</button>
-      <button nbButton status="primary" (click)="exportujNapredniExcel()">
-        <nb-icon icon="download-outline"></nb-icon>
-        Excel izvještaj
-      </button>
+    <nb-card-footer>
+      <button nbButton status="primary" (click)="exportujNapredniExcel()">Excel export</button>
     </nb-card-footer>
   </nb-card>
 </div>

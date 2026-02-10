@@ -20,6 +20,7 @@ export interface ProdajnaPozicija {
 
 export interface ProdajniLayout {
   id?: number;
+  naziv?: string; // <--- Dodano polje da popravimo TS grešku
   prodavnicaId?: number;
   sirina: number;
   duzina: number;
@@ -35,6 +36,7 @@ export interface ProdajnePozicijeResponse {
 }
 
 export interface ProdajnePozicijeUpsertRequest {
+  id?: number; // Dodano id ako radimo update postojećeg
   sirina: number;
   duzina: number;
   backgroundFileName?: string | null;

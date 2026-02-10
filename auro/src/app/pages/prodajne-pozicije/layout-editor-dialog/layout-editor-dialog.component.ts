@@ -2,25 +2,20 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
   HostListener,
   Input,
   Output,
+  EventEmitter,
   ViewChild
 } from '@angular/core';
 import { ProdajnaPozicija, ProdajniLayout } from '../../../@core/data/prodajne-pozicije';
+import { NbDialogService } from '@nebular/theme';
+import { DodajPozicijuModalComponent } from '../dodaj-poziciju-modal/dodaj-poziciju-modal.component';
 
 interface ProdajniTip {
   value: string;
   label: string;
   defaultSize: { sirina: number; duzina: number };
-}
-
-interface NovaPozicija {
-  tip: string;
-  naziv: string;
-  brojPozicije: string;
-  zona: string;
 }
 
 @Component({
@@ -35,6 +30,10 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLDivElement>;
   @ViewChild('backgroundInput', { static: false }) backgroundInputRef?: ElementRef<HTMLInputElement>;
+
+  constructor(
+    private readonly dialogService: NbDialogService
+  ) {}
 
   tipovi: ProdajniTip[] = [
     { value: 'paletno_mjesto', label: 'Paletno mjesto', defaultSize: { sirina: 1.2, duzina: 1 } },
@@ -55,7 +54,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     { value: 'stalak_mini', label: 'Stalak mini', defaultSize: { sirina: 2, duzina: 2 } },
   ];
 
-  odabraniTip = this.tipovi[0];
   selectedIndex: number | null = null;
   warnings: string[] = [];
 
@@ -66,20 +64,9 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   vrsteUgovora = ['Nije postavljeno', 'Mjesečni', 'Godišnji', 'Sezonski'];
   tipoviPozicije = ['Nije postavljeno', 'Oprema', 'Promo', 'Standard', 'Specijal', '500+'];
   odjeli = [
-    'Pakirana',
-    'Svježa',
-    'Neprehrana 1',
-    'Neprehrana 2',
-    'Delikates',
-    'Gastro',
-    'Piće i grickalice',
-    'Voće i povrće',
-    'Mesnica',
-    'Cigarete i duhanski proizvodi',
-    'Neprehrana svježa',
-    'Neprehrana prehrana',
-    'Neprehrana prehrana svježa',
-    'Prehrana svježa',
+    'Pakirana', 'Svježa', 'Neprehrana 1', 'Neprehrana 2', 'Delikates', 'Gastro',
+    'Piće i grickalice', 'Voće i povrće', 'Mesnica', 'Cigarete i duhanski proizvodi',
+    'Neprehrana svježa', 'Neprehrana prehrana', 'Neprehrana prehrana svježa', 'Prehrana svježa'
   ];
 
   // Filteri
@@ -91,7 +78,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   filterIsticeUskoro = false;
   filterSamoSlobodne = false;
   pragDanaIsteka = 60;
-
   odabraniDobavljaci: string[] = [];
   filtrirajUskoro = false;
 
@@ -111,15 +97,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private panStartY = 0;
   private panOriginX = 0;
   private panOriginY = 0;
-
   private activePointerId: number | null = null;
   private backgroundNaturalSize: { width: number; height: number } | null = null;
 
   panX = 0;
   panY = 0;
-
-  isDodavanjeModalOpen = false;
-  novaPozicija: NovaPozicija = this.kreirajNovuPoziciju();
 
   ngAfterViewInit(): void {
     this.ensureLayoutDimensions();
@@ -140,9 +122,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   @HostListener('document:pointermove', ['$event'])
   onPointerMove(event: PointerEvent): void {
-    if (this.activePointerId === null || event.pointerId !== this.activePointerId) {
-      return;
-    }
+    if (this.activePointerId === null || event.pointerId !== this.activePointerId) return;
 
     if (this.isPanning) {
       this.panX = this.panOriginX + (event.clientX - this.panStartX);
@@ -150,14 +130,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       return;
     }
 
-    if (this.dragMode === null || this.dragIndex === null || !this.startPozicija) {
-      return;
-    }
+    if (this.dragMode === null || this.dragIndex === null || !this.startPozicija) return;
 
     const currentScale = this.getCurrentScale();
     const deltaX = (event.clientX - this.startX) / currentScale;
     const deltaY = (event.clientY - this.startY) / currentScale;
-
     const target = this.pozicije[this.dragIndex];
 
     if (this.dragMode === 'move') {
@@ -172,10 +149,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   @HostListener('document:pointerup', ['$event'])
   @HostListener('document:pointercancel', ['$event'])
   onPointerUp(event: PointerEvent): void {
-    if (this.activePointerId === null || event.pointerId !== this.activePointerId) {
-      return;
-    }
-
+    if (this.activePointerId === null || event.pointerId !== this.activePointerId) return;
     this.activePointerId = null;
     this.dragMode = null;
     this.dragIndex = null;
@@ -184,18 +158,12 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onPointerDown(event: PointerEvent, index: number): void {
-    if (event.button !== 0) {
-      return;
-    }
-
+    if (event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
-
     this.activePointerId = event.pointerId;
     const target = event.currentTarget as HTMLElement;
-    if (target && target.setPointerCapture) {
-      target.setPointerCapture(event.pointerId);
-    }
+    if (target && target.setPointerCapture) target.setPointerCapture(event.pointerId);
 
     this.selectPozicija(index);
     this.dragMode = 'move';
@@ -206,18 +174,12 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onResizePointerDown(event: PointerEvent, index: number): void {
-    if (event.button !== 0) {
-      return;
-    }
-
+    if (event.button !== 0) return;
     event.preventDefault();
     event.stopPropagation();
-
     this.activePointerId = event.pointerId;
     const target = event.currentTarget as HTMLElement;
-    if (target && target.setPointerCapture) {
-      target.setPointerCapture(event.pointerId);
-    }
+    if (target && target.setPointerCapture) target.setPointerCapture(event.pointerId);
 
     this.selectPozicija(index);
     this.dragMode = 'resize';
@@ -228,25 +190,14 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   onCanvasPointerDown(event: PointerEvent): void {
-    if (event.button !== 0) {
-      return;
-    }
-
+    if (event.button !== 0) return;
     const target = event.target as HTMLElement;
-    const closestItem = target.closest('.layout-item');
-    const closestHandle = target.closest('.resize-handle');
-
-    if (closestItem || closestHandle) {
-      return;
-    }
+    if (target.closest('.layout-item') || target.closest('.resize-handle')) return;
 
     event.preventDefault();
-
     this.activePointerId = event.pointerId;
     const canvas = event.currentTarget as HTMLElement;
-    if (canvas && canvas.setPointerCapture) {
-      canvas.setPointerCapture(event.pointerId);
-    }
+    if (canvas && canvas.setPointerCapture) canvas.setPointerCapture(event.pointerId);
 
     this.isPanning = true;
     this.panStartX = event.clientX;
@@ -255,53 +206,65 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.panOriginY = this.panY;
   }
 
+  // KRITIČNO: Ispravljeno dodavanje pozicije
   otvoriModalZaDodavanje(): void {
-    this.novaPozicija = this.kreirajNovuPoziciju();
-    this.isDodavanjeModalOpen = true;
+    this.dialogService.open(DodajPozicijuModalComponent, {
+      context: {
+        layout: this.layout,
+        postojecePozicije: this.pozicije
+      },
+      closeOnBackdropClick: false,
+      closeOnEsc: true
+    }).onClose.subscribe((novaPozicija: ProdajnaPozicija | null) => {
+      if (novaPozicija) {
+        // KRITIČNO: Dodaj u listu pozicija
+        this.pozicije.push(novaPozicija);
+        // Selektuj novu poziciju
+        this.selectedIndex = this.pozicije.length - 1;
+        // Ažuriraj upozorenja
+        this.azurirajUpozorenja();
+        // Resetuj cache za prikazane pozicije
+        this._lastPozicijeLength = -1;
+      }
+    });
   }
 
-  zatvoriModalZaDodavanje(): void {
-    this.isDodavanjeModalOpen = false;
-  }
+    // NOVO: Funkcija za editovanje pozicije duplim klikom
+  otvoriModalZaEditovanje(index: number): void {
+    if (index < 0 || index >= this.pozicije.length) return;
 
-  potvrdiDodavanje(): void {
-    const index = this.pozicije.length + 1;
-    const tip = this.tipovi.find((item) => item.value === this.novaPozicija.tip) ?? this.tipovi[0];
-    const startPozicija = this.getDefaultStartPositionForSize(tip.defaultSize.sirina, tip.defaultSize.duzina);
+    const pozicijaZaEdit = { ...this.pozicije[index] };
 
-    const novaPoz: ProdajnaPozicija = {
-      tip: this.novaPozicija.tip,
-      naziv: this.novaPozicija.naziv || `${this.getTipLabel(this.novaPozicija.tip)} ${index}`,
-      brojPozicije: this.novaPozicija.brojPozicije || `P${index.toString().padStart(3, '0')}`,
-      sirina: tip.defaultSize.sirina,
-      duzina: tip.defaultSize.duzina,
-      pozicijaX: startPozicija.x,
-      pozicijaY: startPozicija.y,
-      rotacija: 0,
-      zona: this.novaPozicija.zona,
-      trgovac: '',
-      trader: '',
-      zakupDo: null,
-      vrijednostZakupa: null,
-      vrstaUgovora: 'Nije postavljeno',
-      tipPozicije: 'Nije postavljeno'
-    };
-
-    this.pozicije.push(novaPoz);
-    this._lastPozicijeLength = -1;
-
-    this.selectedIndex = this.pozicije.length - 1;
-    this.azurirajUpozorenja();
-    this.isDodavanjeModalOpen = false;
+    this.dialogService.open(DodajPozicijuModalComponent, {
+      context: {
+        layout: this.layout,
+        postojecePozicije: this.pozicije.filter((_, i) => i !== index), // Isključi trenutnu poziciju iz provjere preklapanja
+        editMode: true,
+        pozicijaZaEdit: pozicijaZaEdit
+      },
+      closeOnBackdropClick: false,
+      closeOnEsc: true
+    }).onClose.subscribe((editovanaPozicija: ProdajnaPozicija | null) => {
+      if (editovanaPozicija) {
+        // Zamijeni staru poziciju sa editovanom
+        this.pozicije[index] = editovanaPozicija;
+        // Zadrži selekciju
+        this.selectedIndex = index;
+        // Ažuriraj upozorenja
+        this.azurirajUpozorenja();
+        // Resetuj cache
+        this._lastPozicijeLength = -1;
+      }
+    });
   }
 
   selectPozicija(index: number): void {
+
     this.selectedIndex = index;
   }
 
   obrisiPoziciju(): void {
     if (this.selectedIndex === null) return;
-
     this.pozicije.splice(this.selectedIndex, 1);
     this.selectedIndex = null;
     this._lastPozicijeLength = -1;
@@ -310,21 +273,16 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   kopirajPoziciju(): void {
     if (this.selectedIndex === null) return;
-
     const original = this.pozicije[this.selectedIndex];
     const copyIndex = this.pozicije.length + 1;
-
     const kopija: ProdajnaPozicija = {
       ...original,
       id: undefined,
       naziv: `${original.naziv} (kopija)`,
-      brojPozicije: original.brojPozicije
-        ? `${original.brojPozicije}-K${copyIndex}`
-        : `P${copyIndex.toString().padStart(3, '0')}`,
+      brojPozicije: original.brojPozicije ? `${original.brojPozicije}-K${copyIndex}` : `P${copyIndex.toString().padStart(3, '0')}`,
       pozicijaX: original.pozicijaX + 0.5,
       pozicijaY: original.pozicijaY + 0.5
     };
-
     this.pozicije.push(kopija);
     this._lastPozicijeLength = -1;
     this.selectedIndex = this.pozicije.length - 1;
@@ -338,18 +296,15 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   stampajNacrt(): void {
     const html = this.buildPrintHtml();
     const printWindow = window.open('', '_blank', 'width=1200,height=900');
-    if (!printWindow) {
-      return;
-    }
+    if (!printWindow) return;
     printWindow.document.open();
     printWindow.document.write(html);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => {
-      printWindow.print();
-    }, 300);
+    setTimeout(() => { printWindow.print(); }, 300);
   }
 
+  // HELPERS ZA STILIZACIJU
   getStyle(pozicija: ProdajnaPozicija): Record<string, string> {
     return {
       width: `${pozicija.sirina * this.baseScale}px`,
@@ -371,6 +326,33 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       ...this.getStyle(pozicija),
       ...this.getTipColorStyle(pozicija),
       '--label-size': `${this.getLabelFontSize(pozicija)}px`
+    };
+  }
+
+  getCanvasStyle(): Record<string, string> {
+    const { sirina, duzina } = this.ensureLayoutDimensions();
+    return {
+      width: `${sirina * this.baseScale}px`,
+      height: `${duzina * this.baseScale}px`,
+      transform: `scale(${this.zoom})`,
+      transformOrigin: 'center center'
+    };
+  }
+
+  getPanStyle(): Record<string, string> {
+    return { transform: `translate(${this.panX}px, ${this.panY}px)` };
+  }
+
+  getBackgroundStyle(): Record<string, string> {
+    const rotation = this.layout.backgroundRotation ?? 0;
+    const renderSize = this.getBackgroundRenderSize();
+    return {
+      width: renderSize ? `${renderSize.width}px` : '100%',
+      height: renderSize ? `${renderSize.height}px` : '100%',
+      left: '50%',
+      top: '50%',
+      transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+      transformOrigin: 'center'
     };
   }
 
@@ -402,11 +384,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   }
 
   private izracunajSkalu(): void {
+    if (!this.canvasRef) return;
     const canvasWidth = this.canvasRef.nativeElement.clientWidth;
     const canvasHeight = this.canvasRef.nativeElement.clientHeight;
     const { sirina, duzina } = this.ensureLayoutDimensions();
-
-    const paddingFactor = 0.85; // 15% padding
+    const paddingFactor = 0.85;
     this.baseScale = Math.min(
       (canvasWidth * paddingFactor) / sirina,
       (canvasHeight * paddingFactor) / duzina
@@ -419,46 +401,11 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   azurirajUpozorenja(): void {
     const warnings: string[] = [];
-
     this.pozicije.forEach((pozicija, index) => {
-      if (this.isOutOfBounds(pozicija)) {
-        warnings.push(`Objekat "${pozicija.naziv}" izlazi iz granica prodavnice.`);
-      }
-      if (this.isOverlapping(index)) {
-        warnings.push(`Objekat "${pozicija.naziv}" se preklapa sa drugim objektom.`);
-      }
+      if (this.isOutOfBounds(pozicija)) warnings.push(`Objekat "${pozicija.naziv}" izlazi iz granica.`);
+      if (this.isOverlapping(index)) warnings.push(`Objekat "${pozicija.naziv}" se preklapa.`);
     });
-
     this.warnings = warnings;
-  }
-
-  getCanvasStyle(): Record<string, string> {
-    const { sirina, duzina } = this.ensureLayoutDimensions();
-    return {
-      width: `${sirina * this.baseScale}px`,
-      height: `${duzina * this.baseScale}px`,
-      transform: `scale(${this.zoom})`,
-      transformOrigin: 'center center'
-    };
-  }
-
-  getPanStyle(): Record<string, string> {
-    return {
-      transform: `translate(${this.panX}px, ${this.panY}px)`
-    };
-  }
-
-  getBackgroundStyle(): Record<string, string> {
-    const rotation = this.layout.backgroundRotation ?? 0;
-    const renderSize = this.getBackgroundRenderSize();
-    return {
-      width: renderSize ? `${renderSize.width}px` : '100%',
-      height: renderSize ? `${renderSize.height}px` : '100%',
-      left: '50%',
-      top: '50%',
-      transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-      transformOrigin: 'center'
-    };
   }
 
   onZoomChange(value: number): void {
@@ -483,17 +430,14 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   onBackgroundSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-
     const file = input.files[0];
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/pjpeg', 'application/acad', 'image/vnd.dwg', 'application/dwg'];
     const extension = file.name.split('.').pop()?.toLowerCase();
     const allowedExtensions = ['jpg', 'jpeg', 'dwg'];
-
     if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(extension ?? '')) {
       this.warnings = ['Podržani formati su JPEG ili DWG.'];
       return;
     }
-
     const reader = new FileReader();
     reader.onload = () => {
       this.layout.backgroundData = reader.result as string;
@@ -512,9 +456,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     this.layout.backgroundContentType = null;
     this.layout.backgroundRotation = 0;
     this.backgroundNaturalSize = null;
-    if (this.backgroundInputRef) {
-      this.backgroundInputRef.nativeElement.value = '';
-    }
+    if (this.backgroundInputRef) this.backgroundInputRef.nativeElement.value = '';
     this.izracunajSkalu();
   }
 
@@ -584,7 +526,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       `Zakup do: ${this.formatDateValue(pozicija.zakupDo)}`,
       `Vrijednost zakupa: ${this.formatCurrencyValue(pozicija.vrijednostZakupa)}`
     ];
-
     return lines.join('\n');
   }
 
@@ -597,6 +538,7 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   }
 
+  // FILTRIRANJE OPTIMIZACIJA
   private _cachedPrikazanePozicije: Array<{ pozicija: ProdajnaPozicija; index: number }> = [];
   private _lastPozicijeLength = 0;
   private _lastDobavljaciLength = 0;
@@ -631,7 +573,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       this._lastFiltrirajUskoro = this.filtrirajUskoro;
       this._lastFilterHash = filterHash;
     }
-    
     return this._cachedPrikazanePozicije;
   }
 
@@ -640,61 +581,22 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       const searchTerm = this.filterBrojPozicije.toLowerCase().trim();
       const brojPozicije = (pozicija.brojPozicije || '').toLowerCase();
       const naziv = (pozicija.naziv || '').toLowerCase();
-
-      if (!brojPozicije.includes(searchTerm) && !naziv.includes(searchTerm)) {
-        return false;
-      }
+      if (!brojPozicije.includes(searchTerm) && !naziv.includes(searchTerm)) return false;
     }
-
-    if (this.filterTrgovci.length > 0) {
-      if (!pozicija.trgovac || !this.filterTrgovci.includes(pozicija.trgovac)) {
-        return false;
-      }
-    }
-
-    if (this.filterOdjeli.length > 0) {
-      if (!pozicija.zona || !this.filterOdjeli.includes(pozicija.zona)) {
-        return false;
-      }
-    }
-
-    if (this.filterTipovi.length > 0) {
-      if (!this.filterTipovi.includes(pozicija.tip)) {
-        return false;
-      }
-    }
-
-    if (this.filterIsticeUskoro) {
-      if (!this.jeUgovorUskoro(pozicija.zakupDo)) {
-        return false;
-      }
-    }
-
-    if (this.filterSamoSlobodne) {
-      if (pozicija.trgovac && pozicija.trgovac.trim()) {
-        return false;
-      }
-    }
-
-    if (this.odabraniDobavljaci.length) {
-      if (!pozicija.trgovac || !this.odabraniDobavljaci.includes(pozicija.trgovac)) {
-        return false;
-      }
-    }
-
-    if (this.filtrirajUskoro) {
-      return this.jeUgovorUskoro(pozicija.zakupDo);
-    }
-
+    if (this.filterTrgovci.length > 0 && (!pozicija.trgovac || !this.filterTrgovci.includes(pozicija.trgovac))) return false;
+    if (this.filterOdjeli.length > 0 && (!pozicija.zona || !this.filterOdjeli.includes(pozicija.zona))) return false;
+    if (this.filterTipovi.length > 0 && !this.filterTipovi.includes(pozicija.tip)) return false;
+    if (this.filterIsticeUskoro && !this.jeUgovorUskoro(pozicija.zakupDo)) return false;
+    if (this.filterSamoSlobodne && pozicija.trgovac && pozicija.trgovac.trim()) return false;
+    if (this.odabraniDobavljaci.length && (!pozicija.trgovac || !this.odabraniDobavljaci.includes(pozicija.trgovac))) return false;
+    if (this.filtrirajUskoro) return this.jeUgovorUskoro(pozicija.zakupDo);
     return true;
   }
 
   private jeUgovorUskoro(zakupDo?: string | null): boolean {
     if (!zakupDo) return false;
-
     const parsed = new Date(zakupDo);
     if (Number.isNaN(parsed.getTime())) return false;
-
     const granica = new Date();
     granica.setDate(granica.getDate() + this.pragDanaIsteka);
     return parsed <= granica;
@@ -703,17 +605,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   rotirajPodlogu(delta: number): void {
     const trenutna = this.layout.backgroundRotation ?? 0;
     this.layout.backgroundRotation = Math.max(-180, Math.min(180, trenutna + delta));
-  }
-
-  private kreirajNovuPoziciju(): NovaPozicija {
-    const index = this.pozicije.length + 1;
-    const tip = this.odabraniTip.value;
-    return {
-      tip,
-      naziv: `${this.odabraniTip.label} ${index}`,
-      brojPozicije: `P${index.toString().padStart(3, '0')}`,
-      zona: this.odjeli[0] ?? ''
-    };
   }
 
   private getTipLabel(value: string): string {
@@ -731,7 +622,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   private getOdjelColor(zona?: string | null): { border: string; background: string } | null {
     if (!zona) return null;
-
     const map: Record<string, { border: string; background: string }> = {
       Pakirana: { border: '#1d4ed8', background: '#1d4ed8' },
       Svježa: { border: '#059669', background: '#059669' },
@@ -744,7 +634,6 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       Mesnica: { border: '#9f1239', background: '#9f1239' },
       'Cigarete i duhanski proizvodi': { border: '#334155', background: '#334155' }
     };
-
     return map[zona] ?? null;
   }
 
@@ -761,119 +650,28 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
       const background = color?.background ? `${color.background}22` : 'rgba(59, 130, 246, 0.12)';
       const label = this.getPozicijaLabel(pozicija) || 'Pozicija';
       return `
-        <div
-          class="layout-item"
-          style="
-            left: ${pozicija.pozicijaX * scale}px;
-            top: ${pozicija.pozicijaY * scale}px;
-            width: ${pozicija.sirina * scale}px;
-            height: ${pozicija.duzina * scale}px;
-            border-color: ${border};
-            background-color: ${background};
-            transform: rotate(${pozicija.rotacija ?? 0}deg);
-          "
-        >
+        <div class="layout-item" style="
+            left: ${pozicija.pozicijaX * scale}px; top: ${pozicija.pozicijaY * scale}px;
+            width: ${pozicija.sirina * scale}px; height: ${pozicija.duzina * scale}px;
+            border-color: ${border}; background-color: ${background};
+            transform: rotate(${pozicija.rotacija ?? 0}deg);">
           <span class="layout-label">${label}</span>
-        </div>
-      `;
+        </div>`;
     }).join('');
 
     const backgroundMarkup = this.layout.backgroundData && this.isImageBackground()
-      ? `
-        <img
-          class="background-layer"
-          src="${this.layout.backgroundData}"
-          alt="Podloga"
-          style="transform: translate(-50%, -50%) rotate(${rotation}deg);"
-        />
-      `
-      : '';
+      ? `<img class="background-layer" src="${this.layout.backgroundData}" style="transform: translate(-50%, -50%) rotate(${rotation}deg);" />` : '';
 
     return `
       <html>
-        <head>
-          <title>Nacrt prodajnih pozicija</title>
-          <style>
-            * { box-sizing: border-box; }
-            body { margin: 0; font-family: Arial, sans-serif; color: #111; }
-            .page {
-              padding: 24px;
-            }
-            h1 { margin: 0 0 12px; font-size: 20px; }
-            .layout-wrapper {
-              position: relative;
-              width: ${width}px;
-              height: ${height}px;
-              border: 2px solid #111;
-              background: #ffffff;
-              overflow: hidden;
-            }
-            .layout-item {
-              position: absolute;
-              border: 2px solid #3b82f6;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              text-align: center;
-              font-weight: 600;
-              color: #1e3a8a;
-              padding: 2px;
-            }
-            .layout-label {
-              font-size: 10px;
-              background: rgba(255, 255, 255, 0.95);
-              padding: 2px 4px;
-              border-radius: 4px;
-              max-width: 100%;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-            }
-            .background-layer {
-              position: absolute;
-              left: 50%;
-              top: 50%;
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-              pointer-events: none;
-              opacity: 0.9;
-            }
-            .layout-empty {
-              position: absolute;
-              inset: 0;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              color: #64748b;
-              font-size: 14px;
-            }
-            @media print {
-              .page { padding: 0; }
-              h1 { margin-bottom: 8px; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="page">
-            <h1>Nacrt prodajnih pozicija</h1>
-            <div class="layout-wrapper">
-              ${backgroundMarkup}
-              ${pozicijeMarkup || '<div class="layout-empty">Nema pozicija.</div>'}
-            </div>
-          </div>
-        </body>
-      </html>
-    `;
-  }
-
-  private getDefaultStartPositionForSize(sirina: number, duzina: number): { x: number; y: number } {
-    const layout = this.ensureLayoutDimensions();
-    const maxX = Math.max(layout.sirina - sirina, 0);
-    const maxY = Math.max(layout.duzina - duzina, 0);
-    const x = maxX ? maxX / 2 : 0;
-    const y = maxY ? maxY / 2 : 0;
-    return { x, y };
+        <head><title>Nacrt</title><style>
+          * { box-sizing: border-box; } body { margin: 0; font-family: Arial; }
+          .layout-wrapper { position: relative; width: ${width}px; height: ${height}px; border: 2px solid #111; overflow: hidden; }
+          .layout-item { position: absolute; border: 2px solid #3b82f6; display: flex; justify-content: center; align-items: center; font-size: 10px; }
+          .background-layer { position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; object-fit: contain; z-index: -1; }
+        </style></head>
+        <body><div class="layout-wrapper">${backgroundMarkup}${pozicijeMarkup}</div></body>
+      </html>`;
   }
 
   private postaviPoziciju(pozicija: ProdajnaPozicija, x: number, y: number): void {
@@ -895,14 +693,8 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   private ensureLayoutDimensions(): { sirina: number; duzina: number } {
     const sirina = this.layout.sirina && this.layout.sirina > 0 ? this.layout.sirina : this.defaultLayoutSize;
     const duzina = this.layout.duzina && this.layout.duzina > 0 ? this.layout.duzina : this.defaultLayoutSize;
-
-    if (!this.layout.sirina || this.layout.sirina <= 0) {
-      this.layout.sirina = sirina;
-    }
-    if (!this.layout.duzina || this.layout.duzina <= 0) {
-      this.layout.duzina = duzina;
-    }
-
+    if (!this.layout.sirina || this.layout.sirina <= 0) this.layout.sirina = sirina;
+    if (!this.layout.duzina || this.layout.duzina <= 0) this.layout.duzina = duzina;
     return { sirina, duzina };
   }
 
@@ -912,54 +704,38 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
 
   private getLabelFontSize(pozicija: ProdajnaPozicija): number {
     const minDim = Math.min(pozicija.sirina, pozicija.duzina);
-    const baseSize = minDim * this.baseScale * 0.15; // Jako mali font
-    return Math.max(5, Math.min(12, baseSize)); // Min 5px, max 12px
+    const baseSize = minDim * this.baseScale * 0.15;
+    return Math.max(5, Math.min(12, baseSize));
   }
 
   private loadBackgroundImageDimensions(data: string): void {
-    if (!data) {
-      this.backgroundNaturalSize = null;
-      return;
-    }
-
+    if (!data) { this.backgroundNaturalSize = null; return; }
     const image = new Image();
     image.onload = () => {
-      this.backgroundNaturalSize = {
-        width: image.naturalWidth,
-        height: image.naturalHeight
-      };
+      this.backgroundNaturalSize = { width: image.naturalWidth, height: image.naturalHeight };
       this.izracunajSkalu();
     };
-    image.onerror = () => {
-      this.backgroundNaturalSize = null;
-    };
+    image.onerror = () => { this.backgroundNaturalSize = null; };
     image.src = data;
   }
 
   private getBackgroundRenderSize(): { width: number; height: number } | null {
     if (!this.backgroundNaturalSize) return null;
-
     const { sirina, duzina } = this.ensureLayoutDimensions();
     const maxWidth = sirina * this.baseScale;
     const maxHeight = duzina * this.baseScale;
     if (maxWidth <= 0 || maxHeight <= 0) return null;
-
     const scale = Math.min(maxWidth / this.backgroundNaturalSize.width, maxHeight / this.backgroundNaturalSize.height);
-    return {
-      width: this.backgroundNaturalSize.width * scale,
-      height: this.backgroundNaturalSize.height * scale
-    };
+    return { width: this.backgroundNaturalSize.width * scale, height: this.backgroundNaturalSize.height * scale };
   }
 
   private formatDateValue(value?: string | null): string {
     if (!value) return '-';
     const parsed = new Date(value);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return parsed.toLocaleDateString('sr-BA');
+    return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('sr-BA');
   }
 
   private formatCurrencyValue(value?: number | null): string {
-    if (value === null || value === undefined) return '-';
-    return `${value.toFixed(2)} KM`;
+    return (value === null || value === undefined) ? '-' : `${value.toFixed(2)} KM`;
   }
 }

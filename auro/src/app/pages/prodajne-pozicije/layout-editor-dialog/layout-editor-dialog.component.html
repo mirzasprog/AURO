@@ -1,6 +1,9 @@
 <nb-card class="editor-card">
   <nb-card-header>
     <div class="header-toolbar">
+      <div class="header-title">
+        <h5 *ngIf="layout?.naziv" style="margin: 0;">{{ layout.naziv }}</h5>
+      </div>
       <div class="toolbar-left">
         <button nbButton size="small" status="success" (click)="otvoriModalZaDodavanje()">
           <nb-icon icon="plus-outline"></nb-icon>
@@ -65,12 +68,12 @@
   </nb-card-header>
 
   <nb-card-body>
-    <!-- Filters Panel -->
     <div class="filters-panel" *ngIf="showFilters">
       <div class="filters-grid">
         <div class="filter-item">
           <label>Pretraga po broju pozicije</label>
           <input nbInput fullWidth
+                 [ngModelOptions]="{standalone: true}"
                  [(ngModel)]="filterBrojPozicije"
                  (ngModelChange)="primijeniFiltere()"
                  placeholder="P001, P002..."
@@ -81,6 +84,7 @@
         <div class="filter-item">
           <label>Dobavljač</label>
           <nb-select fullWidth multiple
+                     [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="filterTrgovci"
                      (selectedChange)="primijeniFiltere()"
                      placeholder="Svi dobavljači">
@@ -93,6 +97,7 @@
         <div class="filter-item">
           <label>Odjel/Kategorija</label>
           <nb-select fullWidth multiple
+                     [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="filterOdjeli"
                      (selectedChange)="primijeniFiltere()"
                      placeholder="Svi odjeli">
@@ -105,6 +110,7 @@
         <div class="filter-item">
           <label>Tip pozicije</label>
           <nb-select fullWidth multiple
+                     [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="filterTipovi"
                      (selectedChange)="primijeniFiltere()"
                      placeholder="Svi tipovi">
@@ -115,13 +121,19 @@
         </div>
 
         <div class="filter-item filter-checkbox">
-          <nb-checkbox [(ngModel)]="filterIsticeUskoro" (checkedChange)="primijeniFiltere()">
+          <nb-checkbox 
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="filterIsticeUskoro" 
+            (checkedChange)="primijeniFiltere()">
             Zakup ističe uskoro ({{ pragDanaIsteka }} dana)
           </nb-checkbox>
         </div>
 
         <div class="filter-item filter-checkbox">
-          <nb-checkbox [(ngModel)]="filterSamoSlobodne" (checkedChange)="primijeniFiltere()">
+          <nb-checkbox 
+            [ngModelOptions]="{standalone: true}"
+            [(ngModel)]="filterSamoSlobodne" 
+            (checkedChange)="primijeniFiltere()">
             Samo slobodne pozicije
           </nb-checkbox>
         </div>
@@ -138,9 +150,8 @@
       </div>
     </div>
 
-    <div class="editor-layout">
-      <!-- Canvas Area -->
-      <div class="canvas-area">
+    <div class="editor-layout" style="width: 100%;">
+      <div class="canvas-area" style="width: 100%;">
         <div class="canvas-viewport" #canvas (pointerdown)="onCanvasPointerDown($event)">
           <div class="canvas-pan" [ngStyle]="getPanStyle()">
             <div class="canvas-content" [ngStyle]="getCanvasStyle()">
@@ -154,8 +165,8 @@
 
               <div
                 class="layout-item"
-                *ngFor="let item of prikazanePozicije"
-                [class.selected]="selectedIndex === item.index"
+                *ngFor="let item of prikazanePozicije; index as i"
+                [class.selected]="i === selectedIndex"
                 [class.invalid]="isOutOfBounds(item.pozicija) || isOverlapping(item.index)"
                 [class.bubble]="item.pozicija.tip === 'promotivna_pozicija'"
                 [ngStyle]="getPozicijaStyle(item.pozicija)"
@@ -163,6 +174,7 @@
                 nbTooltipClass="pozicija-tooltip"
                 nbTooltipPlacement="top"
                 (pointerdown)="onPointerDown($event, item.index)"
+                (dblclick)="otvoriModalZaEditovanje(item.index)"
                 (click)="selectPozicija(item.index)"
               >
                 <span class="layout-label">{{ getPozicijaLabel(item.pozicija) }}</span>
@@ -182,143 +194,8 @@
           <span>{{ warnings.length }} upozorenja</span>
         </div>
       </div>
-
-      <!-- Sidebar -->
-      <div class="sidebar" *ngIf="selectedIndex !== null">
-        <div class="sidebar-header">
-          <h6>Detalji pozicije</h6>
-          <button nbButton size="tiny" ghost status="basic" (click)="selectedIndex = null">
-            <nb-icon icon="close-outline"></nb-icon>
-          </button>
-        </div>
-
-        <div class="sidebar-content">
-          <div class="form-group">
-            <label>Broj pozicije</label>
-            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].brojPozicije" />
-          </div>
-
-          <div class="form-group">
-            <label>Dobavljač</label>
-            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].trgovac" 
-                   placeholder="Naziv dobavljača" />
-          </div>          
-
-          <div class="form-group">
-            <label>Trader</label>
-            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].trader"
-                   placeholder="Unesite trader" />
-          </div>
-          
-          <div class="form-group">
-            <label>Naziv artikla</label>
-            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].nazivArtikla" 
-                   placeholder="Naziv artikla" />
-          </div>
-
-          <div class="form-group">
-            <label>Zakup do</label>
-            <input nbInput fullWidth type="date" [(ngModel)]="pozicije[selectedIndex].zakupDo" />
-          </div>
-
-          <div class="form-group">
-            <label>Vrijednost zakupa (KM)</label>
-            <input nbInput fullWidth type="number" [(ngModel)]="pozicije[selectedIndex].vrijednostZakupa" 
-                   min="0" step="0.01" placeholder="0" />
-          </div>
-
-          <div class="form-group">
-            <label>Vrsta ugovora</label>
-            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].vrstaUgovora">
-              <nb-option *ngFor="let vrsta of vrsteUgovora" [value]="vrsta">{{ vrsta }}</nb-option>
-            </nb-select>
-          </div>
-
-          <div class="form-group">
-            <label>Tip pozicije (oprema)</label>
-            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].tipPozicije">
-              <nb-option *ngFor="let tip of tipoviPozicije" [value]="tip">{{ tip }}</nb-option>
-            </nb-select>
-          </div>
-
-          <div class="form-group">
-            <label>Tip</label>
-            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].tip" (selectedChange)="azurirajUpozorenja()">
-              <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
-            </nb-select>
-          </div>
-
-          <div class="form-group">
-            <label>Naziv/Oznaka</label>
-            <input nbInput fullWidth [(ngModel)]="pozicije[selectedIndex].naziv" 
-                   (ngModelChange)="azurirajUpozorenja()" />
-          </div>
-
-          <div class="form-group">
-            <label>Odjel</label>
-            <nb-select fullWidth [(ngModel)]="pozicije[selectedIndex].zona">
-              <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
-            </nb-select>
-          </div>
-
-          <div class="sidebar-actions">
-            <button nbButton fullWidth status="danger" outline (click)="obrisiPoziciju()">
-              <nb-icon icon="trash-2-outline"></nb-icon>
-              Obriši poziciju
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   </nb-card-body>
 </nb-card>
 
-<!-- Hidden file input -->
 <input #backgroundInput type="file" accept=".jpg,.jpeg,.dwg" (change)="onBackgroundSelected($event)" style="display: none;" />
-
-<!-- Modal za dodavanje -->
-<div class="modal-backdrop" *ngIf="isDodavanjeModalOpen">
-  <nb-card class="modal-card">
-    <nb-card-header>
-      <span>Dodaj poziciju</span>
-      <button nbButton size="tiny" ghost status="basic" (click)="zatvoriModalZaDodavanje()">
-        <nb-icon icon="close-outline"></nb-icon>
-      </button>
-    </nb-card-header>
-    
-    <nb-card-body>
-      <div class="modal-form">
-        <div class="form-group">
-          <label>Tip pozicije</label>
-          <nb-select fullWidth size="small" [(ngModel)]="novaPozicija.tip">
-            <nb-option *ngFor="let tip of tipovi" [value]="tip.value">{{ tip.label }}</nb-option>
-          </nb-select>
-        </div>
-
-        <div class="form-group">
-          <label>Naziv</label>
-          <input nbInput fullWidth size="small" [(ngModel)]="novaPozicija.naziv" placeholder="Unesite naziv..." />
-        </div>
-
-        <div class="form-group">
-          <label>Broj pozicije</label>
-          <input nbInput fullWidth size="small" [(ngModel)]="novaPozicija.brojPozicije" placeholder="P001" />
-        </div>
-
-        <div class="form-group">
-          <label>Odjel</label>
-          <nb-select fullWidth size="small" [(ngModel)]="novaPozicija.zona">
-            <nb-option *ngFor="let odjel of odjeli" [value]="odjel">{{ odjel }}</nb-option>
-          </nb-select>
-        </div>
-      </div>
-    </nb-card-body>
-
-    <nb-card-footer>
-      <div class="modal-actions">
-        <button nbButton status="basic" (click)="zatvoriModalZaDodavanje()">Odustani</button>
-        <button nbButton status="success" (click)="potvrdiDodavanje()">Dodaj</button>
-      </div>
-    </nb-card-footer>
-  </nb-card>
-</div>
