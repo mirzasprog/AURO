@@ -62,7 +62,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
   readonly shiftStatuses = ['Draft', 'Published', 'Completed', 'Cancelled'];
   calendarOptions: CalendarOptions = {
-    plugins: [dayGridPlugin, interactionPlugin],
+  //  plugins: [dayGridPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
     locale: hrLocale,
     firstDay: 1,

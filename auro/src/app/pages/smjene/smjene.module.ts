@@ -1,3 +1,4 @@
+// smjene.module.ts
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -7,7 +8,17 @@ import { SmjeneRoutingModule } from './smjene-routing.module';
 import { SmjeneComponent } from './smjene.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
+
+// FullCalendar imports
 import { FullCalendarModule } from '@fullcalendar/angular';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import interactionPlugin from '@fullcalendar/interaction';
+
+// Plugin registracija (ovo mora biti **PRIJED importa plugin-a u component**)
+FullCalendarModule.registerPlugins([
+  dayGridPlugin,
+  interactionPlugin,
+]);
 
 @NgModule({
   declarations: [

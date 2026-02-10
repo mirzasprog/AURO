@@ -44,7 +44,7 @@
   </div>
 
     <!-- MJESEČNI PREGLED -->
-      <div class="tab-content">
+      <div>
         <div *ngIf="monthLoading" class="loading-state">
           <nb-spinner size="large"></nb-spinner>
           <p>Učitavanje mjesečnog pregleda...</p>
@@ -64,7 +64,7 @@
             </button>
           </div>
 
-          <div class="month-grid month-grid--fullcalendar">
+          <div>
             <full-calendar #fullCalendar [options]="calendarOptions"></full-calendar>
           </div>
         </div>

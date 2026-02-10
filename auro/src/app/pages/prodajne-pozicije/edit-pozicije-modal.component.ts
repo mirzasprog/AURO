@@ -48,7 +48,7 @@ import { ProdajnaPozicija } from '../../@core/data/prodajne-pozicije';
       </nb-card-footer>
     </nb-card>
   `,
-  styleUrls: ['./edit-pozicije-modal.component.scss']
+ // styleUrls: ['./edit-pozicije-modal.component.scss']
 })
 export class EditPozicijaModalComponent {
   @Input() set pozicija(value: ProdajnaPozicija | undefined) {
