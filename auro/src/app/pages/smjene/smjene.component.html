@@ -64,26 +64,36 @@
             </button>
           </div>
 
-          <div class="month-weekdays">
+          <div class="month-weekdays month-weekdays--new">
             <div *ngFor="let label of weekDayLabels" class="weekday-label">{{ label }}</div>
           </div>
 
-          <div class="month-grid">
-            <div *ngFor="let day of monthCalendarDays" class="month-day" [class.outside]="!day.inMonth"
-              [class.has-shifts]="dayHasShifts(day.schedule)" role="button" tabindex="0"
-              (click)="openDayDetailsDialog(day.schedule)" (keydown.enter)="openDayDetailsDialog(day.schedule)">
-              <div class="month-date">{{ day.date | date: 'd' }}</div>
-              <div class="month-shift-preview">
-                <div class="shift-preview shift-preview--first">
-                  <span class="label">Prva: </span>
-                  <span class="value">{{ formatShiftPreview(day.schedule.shiftsFirstShift) }}</span>
-                </div>
-                <div class="shift-preview shift-preview--second">
-                  <span class="label">Druga: </span>
-                  <span class="value">{{ formatShiftPreview(day.schedule.shiftsSecondShift) }}</span>
-                </div>
+          <div class="month-grid month-grid--new">
+            <button
+              *ngFor="let day of monthCalendarDays"
+              type="button"
+              class="month-day month-day--new"
+              [class.outside]="!day.inMonth"
+              [class.has-shifts]="dayHasShifts(day.schedule)"
+              (click)="openDayDetailsDialog(day.schedule)">
+              <div class="month-day-top">
+                <span class="month-date">{{ day.date | date: 'd' }}</span>
+                <span class="month-total" *ngIf="dayHasShifts(day.schedule)">
+                  {{ day.schedule.shifts.length }}
+                </span>
               </div>
-            </div>
+
+              <div class="month-preview-line month-preview-line--first">
+                Prva: {{ day.schedule.shiftsFirstShift.length }}
+              </div>
+              <div class="month-preview-line month-preview-line--second">
+                Druga: {{ day.schedule.shiftsSecondShift.length }}
+              </div>
+
+              <div class="month-preview-names" *ngIf="dayHasShifts(day.schedule)">
+                {{ formatShiftPreview(day.schedule.shifts, 1) }}
+              </div>
+            </button>
           </div>
         </div>
       </div>

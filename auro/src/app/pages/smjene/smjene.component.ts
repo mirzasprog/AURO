@@ -707,6 +707,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     });
   }
 
+
   private buildDaySchedule(date: Date, shifts: ShiftDto[]): DaySchedule {
     const dateString = this.formatDateInput(date);
     const dayShifts = shifts.filter((shift) => this.toDateKey(shift.shiftDate) === dateString);
