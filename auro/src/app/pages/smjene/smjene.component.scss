@@ -1282,3 +1282,64 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: inset 0 0 0 2px #2563eb;
   }
 }
+
+.month-grid--fullcalendar {
+  border: 2px solid #c9cdd3;
+  border-top: none;
+  background: #fff;
+  padding: 0.5rem;
+
+  ::ng-deep {
+    .fc {
+      font-family: inherit;
+    }
+
+    .fc-theme-standard td,
+    .fc-theme-standard th,
+    .fc-theme-standard .fc-scrollgrid {
+      border-color: #e0e3e7;
+    }
+
+    .fc .fc-daygrid-day-top {
+      justify-content: flex-end;
+      padding: 0.25rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #202124;
+    }
+
+    .fc .fc-daygrid-day.fc-day-today {
+      background: rgba(26, 115, 232, 0.08);
+    }
+
+    .fc .fc-daygrid-day-events {
+      margin: 0 0.25rem;
+    }
+
+    .fc-event {
+      border: none;
+      border-radius: 6px;
+      padding: 0.1rem 0.35rem;
+      font-size: 0.72rem;
+      line-height: 1.2;
+      margin-bottom: 0.2rem;
+      cursor: pointer;
+    }
+
+    .shift-event--morning {
+      background: #1a73e8;
+      color: #fff;
+    }
+
+    .shift-event--afternoon {
+      background: #188038;
+      color: #fff;
+    }
+
+    .shift-event--night,
+    .shift-event--custom {
+      background: #5f6368;
+      color: #fff;
+    }
+  }
+}

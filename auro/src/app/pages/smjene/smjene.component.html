@@ -64,36 +64,8 @@
             </button>
           </div>
 
-          <div class="month-weekdays month-weekdays--new">
-            <div *ngFor="let label of weekDayLabels" class="weekday-label">{{ label }}</div>
-          </div>
-
-          <div class="month-grid month-grid--new">
-            <button
-              *ngFor="let day of monthCalendarDays"
-              type="button"
-              class="month-day month-day--new"
-              [class.outside]="!day.inMonth"
-              [class.has-shifts]="dayHasShifts(day.schedule)"
-              (click)="openDayDetailsDialog(day.schedule)">
-              <div class="month-day-top">
-                <span class="month-date">{{ day.date | date: 'd' }}</span>
-                <span class="month-total" *ngIf="dayHasShifts(day.schedule)">
-                  {{ day.schedule.shifts.length }}
-                </span>
-              </div>
-
-              <div class="month-preview-line month-preview-line--first">
-                Prva: {{ day.schedule.shiftsFirstShift.length }}
-              </div>
-              <div class="month-preview-line month-preview-line--second">
-                Druga: {{ day.schedule.shiftsSecondShift.length }}
-              </div>
-
-              <div class="month-preview-names" *ngIf="dayHasShifts(day.schedule)">
-                {{ formatShiftPreview(day.schedule.shifts, 1) }}
-              </div>
-            </button>
+          <div class="month-grid month-grid--fullcalendar">
+            <full-calendar #fullCalendar [options]="calendarOptions"></full-calendar>
           </div>
         </div>
       </div>
