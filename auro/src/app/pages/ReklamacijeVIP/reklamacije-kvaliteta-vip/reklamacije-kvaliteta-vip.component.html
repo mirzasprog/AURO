@@ -130,7 +130,7 @@
 </nb-card>
 
 <!--Rola: Kontrola kvaliteta-->
-<nb-card id="kartica" *ngIf="this.user.role == 'kontrola_kvaliteta'">
+<nb-card id="kartica" *ngIf="this.user.role == 'kontrola_kvaliteta' || this.user.role == 'uprava'">
   <nb-card-body>
     <div class="row" style="margin: 5px;">
       <div class="col">

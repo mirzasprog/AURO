@@ -15,11 +15,12 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
   @Input() naslov = '';
   @Input() rola = '';
   @Input() brojProdavnice = '';
-
   stavke: VikendAkcijaStavka[] = [];
   ukupnoArtikala = 0;
   loading = false;
   greska = '';
+  trenutnaStranica = 1;
+  readonly pageSize = 4; 
 
   constructor(
     protected readonly dialogRef: NbDialogRef<VikendAkcijeStavkePregledComponent>,
@@ -38,6 +39,7 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
         next: (stavke) => {
           this.stavke = this.pripremiStavkeZaPregled(stavke);
           this.ukupnoArtikala = this.stavke.length;
+          this.trenutnaStranica = 1; 
           this.loading = false;
         },
         error: (err) => {
@@ -77,6 +79,32 @@ export class VikendAkcijeStavkePregledComponent implements OnInit {
     const excelBuffer: any = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data: Blob = new Blob([excelBuffer], { type: EXCEL_TYPE });
     FileSaver.saveAs(data, `vikend-akcija-${this.vikendAkcijaId}.xlsx`);
+  }
+
+  // Paginacija metode
+  get prikazaneStavke(): VikendAkcijaStavka[] {
+    const pocetak = (this.trenutnaStranica - 1) * this.pageSize;
+    const kraj = pocetak + this.pageSize;
+    return this.stavke.slice(pocetak, kraj);
+  }
+
+  get ukupnoStranica(): number {
+    return Math.max(1, Math.ceil(this.stavke.length / this.pageSize));
+  }
+
+  promijeniStranicu(korak: number): void {
+    const novaStranica = this.trenutnaStranica + korak;
+    if (novaStranica < 1 || novaStranica > this.ukupnoStranica) {
+      return;
+    }
+    this.trenutnaStranica = novaStranica;
+  }
+
+  idiNaStranicu(stranica: number): void {
+    if (stranica < 1 || stranica > this.ukupnoStranica) {
+      return;
+    }
+    this.trenutnaStranica = stranica;
   }
 
   private pripremiStavkeZaPregled(stavke: VikendAkcijaStavka[]): VikendAkcijaStavka[] {

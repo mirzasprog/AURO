@@ -51,6 +51,7 @@ export class ProdajnePozicijeComponent implements OnInit {
   
   // Search / Autocomplete varijable
   prodavnicaInputString = ''; // Ono što korisnik vidi u inputu
+  autocompleteOpened = false; // Flag za kontrolu otvaranja
   
   // KPI metrics
   ukupnoPozicija = 0;
@@ -126,10 +127,14 @@ export class ProdajnePozicijeComponent implements OnInit {
   // --- AUTOCOMPLETE LOGIKA ---
   get filtrovaneProdavnice(): ProdavnicaOption[] {
     const search = this.prodavnicaInputString.toLowerCase().trim();
-    if (!search) return this.prodavnice;
+    if (!search) return [];
     return this.prodavnice.filter(p => 
       p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search)
     );
+  }
+
+  onInputFocus(): void {
+    this.autocompleteOpened = true;
   }
 
   onProdavnicaSelect(selectedName: string): void {
@@ -139,6 +144,7 @@ export class ProdajnePozicijeComponent implements OnInit {
     if (store) {
       this.odabranaProdavnicaId = store.id;
       this.prodavnicaInputString = store.name; // Osiguraj da input prikazuje pun naziv
+      this.autocompleteOpened = false;
       this.ucitajLayout();
     } else {
       // Ako korisnik unese nešto što ne postoji i pritisne enter
@@ -287,6 +293,11 @@ export class ProdajnePozicijeComponent implements OnInit {
   // Helperi za izvještaje i filtriranje
   get reportTipovi(): string[] {
     return Array.from(new Set(this.pozicije.map((p) => p.tip))).sort();
+  }
+
+  primijeniReportFiltere(): void {
+    // Ova metoda se poziva kad se promijene checkbox filteri
+    // Ne treba ništa posebno jer se filtriranePozicije računa automatski
   }
 
   get filtriranePozicije(): ProdajnaPozicija[] {

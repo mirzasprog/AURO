@@ -1,561 +1,153 @@
-// ============================================
-// VARIABLE DEFINITIONS
-// ============================================
+  // ============================================
+  // VARIABLE DEFINITIONS
+  // ============================================
+
+  $primary: var(--color-primary-500);
+  $primary-light: var(--color-primary-400);
+  $primary-dark: var(--color-primary-600);
+  $success: var(--color-success-500);
+  $success-light: var(--color-success-400);
+  $info: var(--color-info-500);
+  $warning: var(--color-warning-500);
+  $danger: var(--color-danger-500);
+
+  $bg-base: var(--background-basic-color-1);
+  $bg-elevated: var(--background-basic-color-2);
+  $bg-accent: var(--background-basic-color-3);
+  $bg-card: var(--background-basic-color-4);
+  $border: var(--border-basic-color-2);
+  $border-strong: var(--border-basic-color-1);
+  $border-light: var(--border-basic-color-3);
+  $text-primary: var(--text-basic-color);
+  $text-secondary: var(--text-hint-color);
+  $text-disabled: var(--text-disabled-color);
+
+  $shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  $shadow-md: 0 4px 8px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.1);
+  $shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.16), 0 4px 8px rgba(0, 0, 0, 0.12);
+  $shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.2), 0 10px 15px rgba(0, 0, 0, 0.15);
+
+  $radius: 16px;
+  $radius-md: 12px;
+  $radius-sm: 8px;
+  $radius-xs: 4px;
+
+  $transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+  // ============================================
+  // MAIN CONTAINER
+  // ============================================
 
-$primary: var(--color-primary-500);
-$primary-light: var(--color-primary-400);
-$primary-dark: var(--color-primary-600);
-$success: var(--color-success-500);
-$success-light: var(--color-success-400);
-$info: var(--color-info-500);
-$warning: var(--color-warning-500);
-$danger: var(--color-danger-500);
-
-$bg-base: var(--background-basic-color-1);
-$bg-elevated: var(--background-basic-color-2);
-$bg-accent: var(--background-basic-color-3);
-$bg-card: var(--background-basic-color-4);
-$border: var(--border-basic-color-2);
-$border-strong: var(--border-basic-color-1);
-$border-light: var(--border-basic-color-3);
-$text-primary: var(--text-basic-color);
-$text-secondary: var(--text-hint-color);
-$text-disabled: var(--text-disabled-color);
-
-$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
-$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.14), 0 2px 4px rgba(0, 0, 0, 0.1);
-$shadow-lg: 0 10px 20px rgba(0, 0, 0, 0.16), 0 4px 8px rgba(0, 0, 0, 0.12);
-$shadow-xl: 0 20px 30px rgba(0, 0, 0, 0.2), 0 10px 15px rgba(0, 0, 0, 0.15);
-
-$radius: 16px;
-$radius-md: 12px;
-$radius-sm: 8px;
-$radius-xs: 4px;
-
-$transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-$transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-
-// ============================================
-// MAIN CONTAINER
-// ============================================
-
-.smjene-container {
-  padding: 2rem;
-  background: $bg-accent;
-  min-height: 100vh;
-}
-
-// ============================================
-// TOOLBAR SECTION
-// ============================================
-
-.toolbar-section {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  margin-bottom: 2rem;
-  background: $bg-base;
-  padding: 1.5rem;
-  border-radius: $radius-md;
-  box-shadow: $shadow-md;
-  border: 2px solid $border;
-
-  .toolbar-left {
-    display: flex;
-    gap: 1.25rem;
-  }
-
-  .toolbar-right {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-
-    .button-group {
-      display: flex;
-      gap: 0.75rem;
-      align-items: center;
-    }
-  }
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  flex: 1;
-
-  label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    color: $text-secondary;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .selected-store {
-    padding: 0.75rem 1rem;
-    background: $bg-elevated;
-    border-radius: $radius-sm;
-    border: 2px solid $border;
-    color: $text-primary;
-    font-weight: 600;
-    font-size: 0.9rem;
-    box-shadow: $shadow-sm;
-  }
-}
-
-// ============================================
-// CALENDAR CONTROLS
-// ============================================
-
-.calendar-controls {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: $bg-base;
-  border-radius: $radius-md;
-  box-shadow: $shadow-md;
-  border: 2px solid $border;
-
-  .controls-left {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-
-    .today-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-weight: 600;
-    }
-
-    .nav-buttons {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-
-      button {
-        padding: 0.5rem 0.75rem;
-        min-width: auto;
-      }
-
-      .current-view-title {
-        margin: 0;
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: $text-primary;
-        min-width: 200px;
-        text-align: center;
-      }
-    }
-  }
-
-  .controls-right {
-    ::ng-deep {
-      nb-button-group {
-        display: flex;
-        gap: 0;
-        border-radius: $radius-sm;
-        overflow: hidden;
-        box-shadow: $shadow-sm;
-
-        button {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          font-weight: 600;
-          border-radius: 0;
-          border-right: 1px solid $border;
-
-          &:last-child {
-            border-right: none;
-          }
-
-          &:first-child {
-            border-radius: $radius-sm 0 0 $radius-sm;
-          }
-
-          &:last-child {
-            border-radius: 0 $radius-sm $radius-sm 0;
-          }
-        }
-      }
-    }
-  }
-}
-
-// ============================================
-// CALENDAR WRAPPER
-// ============================================
-
-.calendar-wrapper {
-  position: relative;
-  background: $bg-base;
-  border-radius: $radius-md;
-  box-shadow: $shadow-lg;
-  border: 2px solid $border;
-  overflow: hidden;
-  min-height: 600px;
-
-  &.loading {
-    pointer-events: none;
-  }
-}
-
-.loading-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.9);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1.5rem;
-  z-index: 1000;
-
-  p {
-    color: $text-secondary;
-    font-size: 1rem;
-    font-weight: 600;
-  }
-
-  :host-context(.nb-theme-dark) &,
-  :host-context(.nb-theme-cosmic) & {
-    background: rgba(0, 0, 0, 0.9);
-  }
-}
-
-.calendar-container {
-  padding: 1.5rem;
-}
-
-// ============================================
-// FULLCALENDAR CUSTOMIZATION
-// ============================================
-
-.full-calendar-enhanced {
-  ::ng-deep {
-    .fc {
-      font-family: inherit;
-      color: $text-primary;
-
-      // Tablice i borderi
-      .fc-theme-standard td,
-      .fc-theme-standard th,
-      .fc-theme-standard .fc-scrollgrid {
-        border-color: $border;
-      }
-
-      // Zaglavlje kalendara
-      .fc-col-header-cell {
-        background: $bg-elevated;
-        padding: 1rem 0.5rem;
-        font-weight: 700;
-        font-size: 0.85rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: $text-secondary;
-      }
-
-      // Ćelije dana
-      .fc-daygrid-day,
-      .fc-timegrid-slot {
-        background: $bg-base;
-        transition: $transition-fast;
-
-        &:hover {
-          background: $bg-elevated;
-        }
-      }
-
-      .fc-daygrid-day-top {
-        justify-content: flex-end;
-        padding: 0.5rem;
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: $text-primary;
-      }
-
-      // Današnji dan
-      .fc-day-today {
-        background: rgba(51, 102, 255, 0.08) !important;
-        border: 2px solid $primary-light !important;
-      }
-
-      // Event stilovi
-      .fc-event {
-        border: none;
-        border-radius: $radius-sm;
-        padding: 0.35rem 0.6rem;
-        font-size: 0.8rem;
-        line-height: 1.3;
-        margin-bottom: 0.25rem;
-        cursor: move;
-        font-weight: 600;
-        box-shadow: $shadow-sm;
-        transition: $transition-fast;
-
-        &:hover {
-          transform: translateY(-2px);
-          box-shadow: $shadow-md;
-        }
-
-        .fc-event-main {
-          color: #ffffff;
-        }
-
-        .fc-event-time {
-          font-weight: 700;
-          margin-right: 0.25rem;
-        }
-      }
-
-      // Event po tipu smjene
-      .shift-event--morning {
-        background: linear-gradient(135deg, #1a73e8, #1557b0);
-        border-left: 4px solid #0d47a1;
-      }
-
-      .shift-event--afternoon {
-        background: linear-gradient(135deg, #188038, #0f5a26);
-        border-left: 4px solid #0a3d1a;
-      }
-
-      .shift-event--night {
-        background: linear-gradient(135deg, #5f6368, #3c4043);
-        border-left: 4px solid #202124;
-      }
-
-      .shift-event--custom {
-        background: linear-gradient(135deg, #f9ab00, #e37400);
-        border-left: 4px solid #c26100;
-      }
-
-      // Popover za više evenata
-      .fc-popover {
-        background: $bg-elevated;
-        color: $text-primary;
-        border: 2px solid $border;
-        border-radius: $radius-sm;
-        box-shadow: $shadow-xl;
-
-        .fc-popover-header {
-          background: $bg-base;
-          color: $text-primary;
-          padding: 0.75rem 1rem;
-          font-weight: 700;
-        }
-      }
-
-      // Time Grid View
-      .fc-timegrid-slot {
-        height: 3rem;
-      }
-
-      .fc-timegrid-slot-label {
-        font-size: 0.75rem;
-        color: $text-secondary;
-      }
-
-      // List View
-      .fc-list-day-cushion {
-        background: $bg-elevated;
-        padding: 0.75rem 1rem;
-        font-weight: 700;
-        color: $text-primary;
-      }
-
-      .fc-list-event {
-        &:hover {
-          background: $bg-elevated;
-        }
-
-        .fc-list-event-dot {
-          border-width: 6px;
-        }
-
-        .fc-list-event-time {
-          font-weight: 600;
-          color: $text-secondary;
-        }
-
-        .fc-list-event-title {
-          color: $text-primary;
-        }
-      }
-
-      // Toolbar (ako se koristi)
-      .fc-toolbar-title {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: $text-primary;
-      }
-
-      .fc-button {
-        background: $primary;
-        border-color: $primary;
-        color: #ffffff;
-        text-transform: capitalize;
-        font-weight: 600;
-        border-radius: $radius-sm;
-        box-shadow: $shadow-sm;
-        transition: $transition-fast;
-
-        &:hover {
-          background: $primary-dark;
-          transform: translateY(-1px);
-          box-shadow: $shadow-md;
-        }
-
-        &:active {
-          transform: translateY(0);
-        }
-
-        &:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      }
-    }
-  }
-}
-
-// ============================================
-// DARK MODE CUSTOMIZATION
-// ============================================
-
-:host-context(.nb-theme-dark),
-:host-context(.nb-theme-cosmic) {
-  .full-calendar-enhanced ::ng-deep {
-    .fc {
-      .fc-day-today {
-        background: rgba(51, 102, 255, 0.15) !important;
-      }
-
-      .fc-daygrid-day,
-      .fc-timegrid-slot {
-        &:hover {
-          background: rgba(255, 255, 255, 0.05);
-        }
-      }
-    }
-  }
-
-  .loading-overlay {
-    background: rgba(0, 0, 0, 0.9);
-  }
-}
-
-// ============================================
-// CALENDAR LEGEND
-// ============================================
-
-.calendar-legend {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-  margin-top: 1.5rem;
-  padding: 1rem;
-  background: $bg-base;
-  border-radius: $radius-md;
-  box-shadow: $shadow-sm;
-  border: 2px solid $border;
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: $text-primary;
-
-    .legend-color {
-      width: 20px;
-      height: 20px;
-      border-radius: $radius-xs;
-      box-shadow: $shadow-sm;
-
-      &.shift-event--morning {
-        background: linear-gradient(135deg, #1a73e8, #1557b0);
-      }
-
-      &.shift-event--afternoon {
-        background: linear-gradient(135deg, #188038, #0f5a26);
-      }
-
-      &.shift-event--night {
-        background: linear-gradient(135deg, #5f6368, #3c4043);
-      }
-
-      &.shift-event--custom {
-        background: linear-gradient(135deg, #f9ab00, #e37400);
-      }
-    }
-  }
-}
-
-
-// ============================================
-// RESPONSIVE DESIGN
-// ============================================
-
-@media (max-width: 1200px) {
-  .toolbar-section {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-
-  .calendar-controls {
-    flex-direction: column;
-    gap: 1rem;
-
-    .controls-left,
-    .controls-right {
-      width: 100%;
-      justify-content: center;
-    }
-  }
-}
-
-@media (max-width: 768px) {
   .smjene-container {
-    padding: 1rem;
+    padding: 2rem;
+    background: $bg-accent;
+    min-height: 100vh;
   }
+
+  // ============================================
+  // TOOLBAR SECTION
+  // ============================================
 
   .toolbar-section {
-    padding: 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    background: $bg-base;
+    padding: 1.5rem;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
+    border: 2px solid $border;
 
-    .toolbar-left,
-    .toolbar-right {
-      flex-direction: column;
-      align-items: stretch;
+    .toolbar-left {
+      display: flex;
+      gap: 1.25rem;
     }
 
-    .button-group {
-      flex-direction: column;
+    .toolbar-right {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+
+      .button-group {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+      }
     }
   }
 
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+
+    label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .selected-store {
+      padding: 0.75rem 1rem;
+      background: $bg-elevated;
+      border-radius: $radius-sm;
+      border: 2px solid $border;
+      color: $text-primary;
+      font-weight: 600;
+      font-size: 0.9rem;
+      box-shadow: $shadow-sm;
+    }
+  }
+
+  // ============================================
+  // CALENDAR CONTROLS
+  // ============================================
+
   .calendar-controls {
-    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    background: $bg-base;
+    border-radius: $radius-md;
+    box-shadow: $shadow-md;
+    border: 2px solid $border;
 
     .controls-left {
-      flex-direction: column;
-      gap: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+
+      .today-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 600;
+      }
 
       .nav-buttons {
-        width: 100%;
-        justify-content: space-between;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        button {
+          padding: 0.5rem 0.75rem;
+          min-width: auto;
+        }
 
         .current-view-title {
-          font-size: 1rem;
-          min-width: auto;
+          margin: 0;
+          font-size: 1.25rem;
+          font-weight: 700;
+          color: $text-primary;
+          min-width: 200px;
+          text-align: center;
         }
       }
     }
@@ -563,14 +155,30 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     .controls-right {
       ::ng-deep {
         nb-button-group {
-          width: 100%;
-          
-          button {
-            flex: 1;
-            font-size: 0.75rem;
+          display: flex;
+          gap: 0;
+          border-radius: $radius-sm;
+          overflow: hidden;
+          box-shadow: $shadow-sm;
 
-            nb-icon {
-              display: none;
+          button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            border-radius: 0;
+            border-right: 1px solid $border;
+
+            &:last-child {
+              border-right: none;
+            }
+
+            &:first-child {
+              border-radius: $radius-sm 0 0 $radius-sm;
+            }
+
+            &:last-child {
+              border-radius: 0 $radius-sm $radius-sm 0;
             }
           }
         }
@@ -578,47 +186,866 @@ $transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     }
   }
 
-  .calendar-legend {
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .day-details-modal {
-    min-width: auto;
-    max-width: 100%;
-
-    .modal-body {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .full-calendar-enhanced ::ng-deep {
-    .fc {
-      font-size: 0.85rem;
-
-      .fc-event {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.4rem;
-      }
-
-      .fc-daygrid-day-top {
-        padding: 0.35rem;
-        font-size: 0.75rem;
-      }
-    }
-  }
-}
-
-@media (max-width: 480px) {
-  .smjene-container {
-    padding: 0.75rem;
-  }
+  // ============================================
+  // CALENDAR WRAPPER
+  // ============================================
 
   .calendar-wrapper {
-    min-height: 500px;
+    position: relative;
+    background: $bg-base;
+    border-radius: $radius-md;
+    box-shadow: $shadow-lg;
+    border: 2px solid $border;
+    overflow: hidden;
+    min-height: 600px;
+
+    &.loading {
+      pointer-events: none;
+    }
+  }
+
+  .loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.95);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+
+    p {
+      color: $text-secondary;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    :host-context(.nb-theme-dark) &,
+    :host-context(.nb-theme-cosmic) & {
+      background: rgba(0, 0, 0, 0.95);
+    }
   }
 
   .calendar-container {
-    padding: 0.75rem;
+    padding: 1.5rem;
   }
-}
+
+  // ============================================
+  // FULLCALENDAR CUSTOMIZATION
+  // ============================================
+
+  .full-calendar-enhanced {
+    ::ng-deep {
+      .fc {
+        font-family: inherit;
+        color: $text-primary;
+
+        // Tablice i borderi
+        .fc-theme-standard td,
+        .fc-theme-standard th,
+        .fc-theme-standard .fc-scrollgrid {
+          border-color: $border;
+        }
+
+        // Zaglavlje kalendara
+        .fc-col-header-cell {
+          background: $bg-elevated;
+          padding: 1rem 0.5rem;
+          font-weight: 700;
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          color: $text-secondary;
+        }
+
+        // Ćelije dana
+        .fc-daygrid-day,
+        .fc-timegrid-slot {
+          background: $bg-base;
+          transition: $transition-fast;
+
+          &:hover {
+            background: $bg-elevated;
+          }
+        }
+
+        .fc-daygrid-day-top {
+          justify-content: flex-end;
+          padding: 0.5rem;
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: $text-primary;
+        }
+
+        // Današnji dan
+        .fc-day-today {
+          background: rgba(51, 102, 255, 0.08) !important;
+          border: 2px solid $primary-light !important;
+        }
+
+        // Event stilovi
+        .fc-event {
+          border: none;
+          border-radius: $radius-sm;
+          padding: 0.35rem 0.6rem;
+          font-size: 0.8rem;
+          line-height: 1.3;
+          margin-bottom: 0.25rem;
+          cursor: pointer;
+          font-weight: 600;
+          box-shadow: $shadow-sm;
+          transition: $transition-fast;
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: $shadow-md;
+          }
+
+          .fc-event-main {
+            color: #ffffff;
+          }
+
+          .fc-event-main-frame {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+          }
+
+          .fc-event-time {
+            font-weight: 700;
+            font-size: 0.75rem;
+            opacity: 0.9;
+          }
+
+          .fc-event-title-container {
+            .fc-event-title {
+              font-weight: 600;
+              font-size: 0.8rem;
+            }
+          }
+        }
+
+        // Event po tipu smjene
+        .shift-event--morning {
+          background: linear-gradient(135deg, #1a73e8, #1557b0);
+          border-left: 4px solid #0d47a1;
+        }
+
+        .shift-event--afternoon {
+          background: linear-gradient(135deg, #188038, #0f5a26);
+          border-left: 4px solid #0a3d1a;
+        }
+
+        .shift-event--night {
+          background: linear-gradient(135deg, #5f6368, #3c4043);
+          border-left: 4px solid #202124;
+        }
+
+        .shift-event--custom {
+          background: linear-gradient(135deg, #f9ab00, #e37400);
+          border-left: 4px solid #c26100;
+        }
+
+        // Popover za više evenata
+        .fc-popover {
+          background: $bg-elevated;
+          color: $text-primary;
+          border: 2px solid $border;
+          border-radius: $radius-sm;
+          box-shadow: $shadow-xl;
+
+          .fc-popover-header {
+            background: $bg-base;
+            color: $text-primary;
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+          }
+        }
+
+        // Time Grid View
+        .fc-timegrid-slot {
+          height: 3rem;
+        }
+
+        .fc-timegrid-slot-label {
+          font-size: 0.75rem;
+          color: $text-secondary;
+        }
+
+        .fc-timegrid-axis {
+          background: $bg-elevated;
+        }
+
+        .fc-timegrid-divider {
+          background: $border;
+        }
+
+        .fc-timegrid-event {
+          .fc-event-main {
+            padding: 0.25rem 0.5rem;
+          }
+        }
+
+        // List View
+        .fc-list {
+          border-color: $border;
+        }
+
+        .fc-list-day-cushion {
+          background: $bg-elevated;
+          padding: 0.75rem 1rem;
+          font-weight: 700;
+          color: $text-primary;
+        }
+
+        .fc-list-event {
+          &:hover {
+            background: $bg-elevated;
+          }
+
+          .fc-list-event-dot {
+            border-width: 6px;
+          }
+
+          .fc-list-event-time {
+            font-weight: 600;
+            color: $text-secondary;
+          }
+
+          .fc-list-event-title {
+            color: $text-primary;
+          }
+        }
+
+        // Toolbar (ako se koristi)
+        .fc-toolbar-title {
+          font-size: 1.5rem;
+          font-weight: 700;
+          color: $text-primary;
+        }
+
+        .fc-button {
+          background: $primary;
+          border-color: $primary;
+          color: #ffffff;
+          text-transform: capitalize;
+          font-weight: 600;
+          border-radius: $radius-sm;
+          box-shadow: $shadow-sm;
+          transition: $transition-fast;
+
+          &:hover {
+            background: $primary-dark;
+            transform: translateY(-1px);
+            box-shadow: $shadow-md;
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // DARK MODE CUSTOMIZATION
+  // ============================================
+
+  :host-context(.nb-theme-dark),
+  :host-context(.nb-theme-cosmic) {
+    .full-calendar-enhanced ::ng-deep {
+      .fc {
+        .fc-day-today {
+          background: rgba(51, 102, 255, 0.15) !important;
+        }
+
+        .fc-daygrid-day,
+        .fc-timegrid-slot {
+          &:hover {
+            background: rgba(255, 255, 255, 0.05);
+          }
+        }
+      }
+    }
+
+    .loading-overlay {
+      background: rgba(0, 0, 0, 0.95);
+    }
+  }
+
+  // ============================================
+  // CALENDAR LEGEND
+  // ============================================
+
+  .calendar-legend {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: $bg-base;
+    border-radius: $radius-md;
+    box-shadow: $shadow-sm;
+    border: 2px solid $border;
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: $text-primary;
+
+      .legend-color {
+        width: 20px;
+        height: 20px;
+        border-radius: $radius-xs;
+        box-shadow: $shadow-sm;
+
+        &.shift-event--morning {
+          background: linear-gradient(135deg, #1a73e8, #1557b0);
+        }
+
+        &.shift-event--afternoon {
+          background: linear-gradient(135deg, #188038, #0f5a26);
+        }
+
+        &.shift-event--night {
+          background: linear-gradient(135deg, #5f6368, #3c4043);
+        }
+
+        &.shift-event--custom {
+          background: linear-gradient(135deg, #f9ab00, #e37400);
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // DAY DETAILS MODAL - FIXED
+  // ============================================
+
+  // Global backdrop styling
+  ::ng-deep {
+    .cdk-overlay-dark-backdrop {
+      background: rgba(0, 0, 0, 0.7) !important;
+    }
+
+    .nb-theme-dark .cdk-overlay-dark-backdrop,
+    .nb-theme-cosmic .cdk-overlay-dark-backdrop {
+      background: rgba(0, 0, 0, 0.85) !important;
+    }
+
+    // Osiguraj da je modal overlay iznad backdrop-a
+    .cdk-overlay-container {
+      .cdk-overlay-pane {
+        z-index: 1050;
+      }
+    }
+  }
+
+  .day-details-modal {
+    min-width: 650px;
+    max-width: 850px;
+    background: $bg-base;
+    border-radius: $radius-md;
+    box-shadow: $shadow-xl;
+    overflow: hidden;
+    border: 2px solid $border-strong;
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.75rem 2rem;
+      background: $bg-elevated;
+      border-bottom: 2px solid $border;
+
+      > div {
+        flex: 1;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 1.35rem;
+        font-weight: 700;
+        color: $text-primary;
+        line-height: 1.3;
+      }
+
+      span {
+        display: block;
+        font-size: 0.9rem;
+        color: $text-secondary;
+        margin-top: 0.35rem;
+        font-weight: 500;
+      }
+
+      button {
+        min-width: auto;
+        padding: 0.5rem;
+        flex-shrink: 0;
+      }
+    }
+
+    .modal-body {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      padding: 2rem;
+      background: $bg-base;
+      max-height: 65vh;
+      overflow-y: auto;
+
+      // Custom scrollbar
+      &::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      &::-webkit-scrollbar-track {
+        background: $bg-elevated;
+        border-radius: $radius-xs;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: $border;
+        border-radius: $radius-xs;
+
+        &:hover {
+          background: $border-strong;
+        }
+      }
+
+      .modal-column {
+        h4 {
+          margin: 0 0 1.25rem 0;
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: $text-primary;
+          padding-bottom: 0.85rem;
+          border-bottom: 3px solid $border;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+        }
+
+        .modal-empty {
+          padding: 2.5rem 1.5rem;
+          text-align: center;
+          color: $text-secondary;
+          font-style: italic;
+          background: $bg-elevated;
+          border-radius: $radius-sm;
+          border: 2px dashed $border;
+          font-size: 0.95rem;
+        }
+
+        .modal-shift {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 1.15rem;
+          margin-bottom: 0.85rem;
+          background: $bg-elevated;
+          border-radius: $radius-sm;
+          border: 2px solid $border;
+          transition: $transition-fast;
+
+          &:last-child {
+            margin-bottom: 0;
+          }
+
+          &:hover {
+            background: $bg-accent;
+            border-color: $primary-light;
+            transform: translateX(6px);
+            box-shadow: $shadow-sm;
+          }
+
+          .shift-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            flex: 1;
+
+            .name {
+              font-weight: 650;
+              color: $text-primary;
+              font-size: 1rem;
+              line-height: 1.3;
+            }
+
+            .time {
+              font-size: 0.875rem;
+              color: $text-secondary;
+              font-family: 'Courier New', 'Consolas', monospace;
+              font-weight: 600;
+              letter-spacing: 0.3px;
+            }
+          }
+
+          button {
+            flex-shrink: 0;
+            min-width: auto;
+            margin-left: 0.75rem;
+          }
+        }
+      }
+    }
+  }
+
+  // Dark theme overrides for modal
+  :host-context(.nb-theme-dark),
+  :host-context(.nb-theme-cosmic) {
+    .day-details-modal {
+      .modal-header {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .modal-body {
+        background: rgba(0, 0, 0, 0.2);
+
+        .modal-column {
+          .modal-shift {
+            background: rgba(255, 255, 255, 0.05);
+
+            &:hover {
+              background: rgba(255, 255, 255, 0.08);
+            }
+          }
+
+          .modal-empty {
+            background: rgba(255, 255, 255, 0.03);
+          }
+        }
+      }
+    }
+  }
+
+  // ============================================
+  // RESPONSIVE DESIGN
+  // ============================================
+
+  @media (max-width: 1200px) {
+    .toolbar-section {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+
+    .calendar-controls {
+      flex-direction: column;
+      gap: 1rem;
+
+      .controls-left,
+      .controls-right {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .smjene-container {
+      padding: 1rem;
+    }
+
+    .toolbar-section {
+      padding: 1.25rem;
+
+      .toolbar-left,
+      .toolbar-right {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
+
+    .calendar-controls {
+      padding: 1rem;
+
+      .controls-left {
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .nav-buttons {
+          width: 100%;
+          justify-content: space-between;
+
+          .current-view-title {
+            font-size: 1rem;
+            min-width: auto;
+          }
+        }
+      }
+
+      .controls-right {
+        ::ng-deep {
+          nb-button-group {
+            width: 100%;
+            
+            button {
+              flex: 1;
+              font-size: 0.75rem;
+
+              nb-icon {
+                display: none;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .calendar-legend {
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .day-details-modal {
+      min-width: auto;
+      max-width: calc(100vw - 2rem);
+      margin: 1rem;
+
+      .modal-header {
+        padding: 1.25rem 1.5rem;
+
+        h3 {
+          font-size: 1.15rem;
+        }
+
+        span {
+          font-size: 0.85rem;
+        }
+      }
+
+      .modal-body {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        max-height: 70vh;
+        padding: 1.5rem;
+
+        .modal-column {
+          h4 {
+            font-size: 1rem;
+          }
+
+          .modal-shift {
+            padding: 1rem;
+
+            &:hover {
+              transform: translateX(3px);
+            }
+          }
+        }
+      }
+    }
+
+    .full-calendar-enhanced ::ng-deep {
+      .fc {
+        font-size: 0.85rem;
+
+        .fc-event {
+          font-size: 0.7rem;
+          padding: 0.25rem 0.4rem;
+        }
+
+        .fc-daygrid-day-top {
+          padding: 0.35rem;
+          font-size: 0.75rem;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    .smjene-container {
+      padding: 0.75rem;
+    }
+
+    .calendar-wrapper {
+      min-height: 500px;
+    }
+
+    .calendar-container {
+      padding: 0.75rem;
+    }
+
+    .day-details-modal {
+      min-width: auto;
+      max-width: calc(100vw - 1rem);
+      margin: 0.5rem;
+
+      .modal-header {
+        padding: 1rem;
+      }
+
+      .modal-body {
+        padding: 1rem;
+        gap: 1rem;
+      }
+    }
+  }
+
+  .fc-daycell-custom {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .shift-count-badge {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: #3366ff;
+    color: white;
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .shift-count-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: #3366ff;
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 12px;
+    z-index: 10;
+  }
+
+  .fc-daygrid-day {
+    position: relative;
+  }
+
+  .fc-event {
+    border-radius: 6px !important;
+    font-size: 12px;
+    padding: 2px 4px;
+  }
+
+  .fc-daygrid-event {
+    margin-top: 2px !important;
+  }
+
+  /* ============================================
+    MONTH VIEW SHIFT VISUAL SYSTEM
+  ============================================ */
+
+  .full-calendar-enhanced {
+    ::ng-deep {
+
+      /* omogući absolute pozicioniranje */
+      .fc-daygrid-day {
+        position: relative;
+        transition: all 0.2s ease;
+      }
+
+      /* DAN SA SMJENAMA */
+      .fc-daygrid-day.has-shifts {
+        background: rgba(51, 102, 255, 0.08);
+
+        &:hover {
+          background: rgba(51, 102, 255, 0.15);
+        }
+      }
+
+      /* INTENSITY LEVELS (ako poželiš kasnije) */
+      .fc-daygrid-day.has-shifts.intensity-low {
+        background: rgba(51, 102, 255, 0.06);
+      }
+
+      .fc-daygrid-day.has-shifts.intensity-medium {
+        background: rgba(51, 102, 255, 0.12);
+      }
+
+      .fc-daygrid-day.has-shifts.intensity-high {
+        background: rgba(51, 102, 255, 0.18);
+      }
+
+      /* BADGE */
+      .shift-count-badge {
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        background: linear-gradient(135deg, #3366ff, #274bdb);
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 8px;
+        border-radius: 20px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+        z-index: 5;
+        pointer-events: none;
+      }
+
+      /* DONJI INDICATOR BAR (enterprise feel) */
+      .fc-daygrid-day.has-shifts::after {
+        content: '';
+        position: absolute;
+        bottom: 6px;
+        left: 10px;
+        right: 10px;
+        height: 4px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, #3366ff, #1557b0);
+        opacity: 0.8;
+      }
+
+
+    }
+  }
+
+  /* ============================================
+    MONTH BADGE EVENT
+  ============================================ */
+
+  .full-calendar-enhanced {
+    ::ng-deep {
+
+      .month-badge-event {
+        background: linear-gradient(135deg, #3366ff, #274bdb) !important;
+        border: none !important;
+        border-radius: 20px !important;
+        padding: 4px 10px !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        text-align: center;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .month-badge-event:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+      }
+
+      .month-badge-event .fc-event-main {
+        color: #fff !important;
+      }
+
+      .month-badge-event .fc-event-time {
+        display: none !important;
+      }
+    }
+  }
+ 

@@ -12,16 +12,17 @@
           [nbAutocomplete]="auto"
           [ngModelOptions]="{standalone: true}"
           [(ngModel)]="prodavnicaInputString"
+          (focus)="onInputFocus()"
           class="store-search-input"
         />
-        <nb-autocomplete #auto (selectedChange)="onProdavnicaSelect($event)">
+        <nb-autocomplete #auto (selectedChange)="onProdavnicaSelect($event)" [activeFirst]="false">
           <nb-option *ngFor="let prodavnica of filtrovaneProdavnice" [value]="prodavnica.name">
             <div class="store-option">
               <span class="store-code">{{ prodavnica.code }}</span>
               <span class="store-name">{{ prodavnica.name }}</span>
             </div>
           </nb-option>
-          <nb-option *ngIf="filtrovaneProdavnice.length === 0" disabled>
+          <nb-option *ngIf="filtrovaneProdavnice.length === 0 && prodavnicaInputString.trim()" disabled>
              Nema rezultata
           </nb-option>
         </nb-autocomplete>
@@ -29,13 +30,10 @@
     </div>
 
     <div class="header-actions">
-      <button nbButton status="success" (click)="otvoriDodajPozicijuModal()" [disabled]="!odabranaProdavnicaId" size="small">
-        <nb-icon icon="plus-outline"></nb-icon> Dodaj poziciju
-      </button>
       <button nbButton status="info" (click)="exportujExcel()" [disabled]="!odabranaProdavnicaId" size="small">
         <nb-icon icon="download-outline"></nb-icon> Excel
       </button>
-      <button nbButton status="primary" outline size="small" (click)="otvoriIzvjestaje()" [disabled]="!odabranaProdavnicaId">
+      <button nbButton status="primary" size="small" (click)="otvoriIzvjestaje()" [disabled]="!odabranaProdavnicaId">
         <nb-icon icon="bar-chart-outline"></nb-icon> Izvještaji
       </button>
     </div>
@@ -52,11 +50,6 @@
 
     <div *ngIf="!loading && odabranaProdavnicaId" class="content">
       
-      <div class="quick-filters">
-        <nb-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.samoSlobodne" status="primary">Samo slobodne</nb-checkbox>
-        <nb-checkbox [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.isticeUskoro" status="warning">Zakup ističe uskoro</nb-checkbox>
-      </div>
-
       <div class="stats-overview">
         <div class="stat-card stat-total">
           <div class="stat-header"><nb-icon icon="grid-outline"></nb-icon><span class="stat-label">Ukupno</span></div>
@@ -141,12 +134,32 @@
            <label>Pretraga</label>
            <input nbInput fullWidth size="small" [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.search">
         </div>
-        <div class="filter-item"><label>Odjel</label>
+        <div class="filter-item">
+          <label>Odjel</label>
            <nb-select fullWidth size="small" [ngModelOptions]="{standalone: true}" [(ngModel)]="reportFilters.odjel">
              <nb-option value="">Svi</nb-option>
              <nb-option *ngFor="let o of reportOdjeli" [value]="o">{{o}}</nb-option>
            </nb-select>
          </div>
+      </div>
+      
+      <div class="report-checkbox-filters">
+        <label class="checkbox-label">
+          <input 
+            type="checkbox"
+            [(ngModel)]="reportFilters.isticeUskoro"
+            [ngModelOptions]="{standalone: true}"
+            (change)="primijeniReportFiltere()">
+          <span>Zakup ističe uskoro (60 dana)</span>
+        </label>
+        <label class="checkbox-label">
+          <input 
+            type="checkbox"
+            [(ngModel)]="reportFilters.samoSlobodne"
+            [ngModelOptions]="{standalone: true}"
+            (change)="primijeniReportFiltere()">
+          <span>Samo slobodne pozicije</span>
+        </label>
       </div>
       
       <div class="report-table">
@@ -159,6 +172,9 @@
               <td>{{ p.nazivArtikla || p.naziv || '-' }}</td>
               <td>{{ p.zakupDo | date }}</td>
               <td>{{ p.vrijednostZakupa | number:'1.0-2' }}</td>
+            </tr>
+            <tr *ngIf="filtriranePozicije.length === 0">
+              <td colspan="5" class="empty">Nema rezultata</td>
             </tr>
           </tbody>
         </table>

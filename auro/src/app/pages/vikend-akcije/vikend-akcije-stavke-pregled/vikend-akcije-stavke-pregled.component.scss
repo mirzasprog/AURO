@@ -95,3 +95,42 @@
     min-width: auto;
   }
 }
+
+.paginator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-basic-color-3);
+}
+
+.paginator-info {
+  min-width: 120px;
+  text-align: center;
+  color: var(--text-hint-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.paginator button {
+  min-width: 100px;
+}
+
+.paginator button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .paginator {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .paginator button {
+    width: 100%;
+  }
+}

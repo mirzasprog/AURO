@@ -3,13 +3,17 @@ import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { NbDialogService, NbThemeService } from '@nebular/theme';
 import { 
   CalendarOptions, 
-  DatesSetArg, 
-  EventClickArg, 
-  EventInput, 
+  EventInput,
+  EventClickArg,
   EventDropArg,
-  DateSelectArg
+  DateSelectArg,
+  DatesSetArg
 } from '@fullcalendar/core';
 import { FullCalendarComponent } from '@fullcalendar/angular';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import listPlugin from '@fullcalendar/list';
+import interactionPlugin from '@fullcalendar/interaction';
 import { Subject, forkJoin, of } from 'rxjs';
 import { catchError, takeUntil, tap } from 'rxjs/operators';
 import Swal from 'sweetalert2';
@@ -20,7 +24,7 @@ import { ShiftsService } from '../../@core/utils/shifts.service';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { DataService } from '../../@core/utils/data.service';
-
+import bsLocale from '@fullcalendar/core/locales/bs'; 
 interface WeeklyEmployeeRow {
   employeeId: number;
   employeeName: string;
@@ -34,7 +38,9 @@ interface DaySchedule {
   shifts: ShiftDto[];
   shiftsFirstShift: ShiftDto[];
   shiftsSecondShift: ShiftDto[];
+  shiftsCustom: ShiftDto[];
 }
+
 
 @Component({
   selector: 'ngx-smjene',
@@ -59,6 +65,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   role: string | null = null;
   exportFormat: 'xlsx' | 'csv' = 'xlsx';
   user: any;
+  viewTitle = '';
   currentMonth: Date = new Date();
   currentTheme: string = 'default';
   currentView: string = 'dayGridMonth';
@@ -67,9 +74,11 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   readonly shiftTypes = ['Morning', 'Afternoon', 'Night', 'Custom'];
   readonly shiftStatuses = ['Draft', 'Published', 'Completed', 'Cancelled'];
   
+  // FullCalendar v6 opcije
   calendarOptions: CalendarOptions = {
+    plugins: [dayGridPlugin, timeGridPlugin, listPlugin, interactionPlugin],
     initialView: 'dayGridMonth',
-    locale: 'hr',
+    locale: 'en',
     firstDay: 1,
     fixedWeekCount: true,
     height: 'auto',
@@ -81,14 +90,15 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     droppable: true,
     eventDurationEditable: false,
     eventStartEditable: true,
-    eventClick: (arg) => this.onCalendarEventClick(arg),
-    eventDrop: (arg) => this.onEventDrop(arg),
+    eventClick: (arg: EventClickArg) => this.onCalendarEventClick(arg),
+    eventDrop: (arg: EventDropArg) => this.onEventDrop(arg),
     dateClick: ({ date }) => this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts)),
-    select: (arg) => this.onDateSelect(arg),
-    datesSet: (arg) => this.onCalendarDatesSet(arg),
-    events: [],
+    select: (arg: DateSelectArg) => this.onDateSelect(arg),
+    datesSet: (arg) => this.onCalendarDatesSet(arg), 
+    events: [] as EventInput[],
     selectable: true,
     selectMirror: true,
+
   };
   
   private activeMonthKey = '';
@@ -173,6 +183,7 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     if (!this.fullCalendar) return;
     this.currentView = viewType;
     this.fullCalendar.getApi().changeView(viewType);
+    this.cdr.detectChanges();
   }
 
   goToToday(): void {
@@ -269,32 +280,62 @@ export class SmjeneComponent implements OnInit, OnDestroy {
   // ENHANCED CALENDAR EVENTS
   // ============================================
   
-  private buildCalendarEvents(): EventInput[] {
-    return this.monthShifts.map((shift) => {
-      const startDateTime = `${shift.shiftDate}T${shift.startTime}`;
-      const endDateTime = `${shift.shiftDate}T${shift.endTime}`;
-      
-      return {
-        id: `shift-${shift.shiftId}`,
-        title: `${shift.employeeName} (${shift.shiftType})`,
-        start: startDateTime,
-        end: endDateTime,
-        allDay: false,
-        extendedProps: {
-          shiftId: shift.shiftId,
-          employeeId: shift.employeeId,
-          employeeName: shift.employeeName,
-          shiftType: shift.shiftType,
-          status: shift.status,
-          departmentId: shift.departmentId,
-          breakMinutes: shift.breakMinutes,
-          note: shift.note
-        },
-        editable: this.canEditShifts,
-        className: this.getShiftEventClass(shift)
-      };
+private buildCalendarEvents(): EventInput[] {
+
+  // 🔵 MONTH VIEW → 1 BADGE EVENT PO DANU
+  if (this.currentView === 'dayGridMonth') {
+
+    const grouped = new Map<string, ShiftDto[]>();
+
+    this.monthShifts.forEach(shift => {
+      const key = this.toDateKey(shift.shiftDate);
+      if (!grouped.has(key)) {
+        grouped.set(key, []);
+      }
+      grouped.get(key)!.push(shift);
     });
+
+    const badgeEvents: EventInput[] = [];
+
+    grouped.forEach((shifts, dateKey) => {
+
+      const count = shifts.length;
+
+      badgeEvents.push({
+        id: `badge-${dateKey}`,
+        title: count > 5 ? '5+' : `+${count}`,
+        start: dateKey,
+        allDay: true,
+        editable: false,
+        className: 'month-badge-event',
+        extendedProps: {
+          isMonthBadge: true,
+          dateKey: dateKey
+        }
+      });
+
+    });
+
+    return badgeEvents;
   }
+
+  // 🔵 OSTALI VIEWOVI → NORMALNI EVENTI
+  return this.monthShifts.map((shift) => {
+
+    const dateOnly = this.toDateKey(shift.shiftDate);
+
+    return {
+      id: `shift-${shift.shiftId}`,
+      title: `${shift.employeeName} (${shift.shiftType})`,
+      start: `${dateOnly}T${shift.startTime}`,
+      end: `${dateOnly}T${shift.endTime}`,
+      allDay: false,
+      editable: this.canEditShifts,
+      className: this.getShiftEventClass(shift),
+    };
+  });
+}
+
 
   private getShiftEventClass(shift: ShiftDto): string {
     const type = shift.shiftType?.toLowerCase() || '';
@@ -318,10 +359,6 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     this.fullCalendar.getApi().prev();
   }
 
-  get currentViewTitle(): string {
-    if (!this.fullCalendar) return '';
-    return this.fullCalendar.getApi().view.title;
-  }
 
   get canNavigateNext(): boolean {
     return true;
@@ -568,11 +605,14 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     const monthStart = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth(), 1);
     const monthEnd = new Date(this.currentMonth.getFullYear(), this.currentMonth.getMonth() + 1, 0);
 
+    console.log('Loading month shifts for:', monthStart, 'to', monthEnd);
+
     this.shiftsService.getShifts({ storeId, from: this.formatDateInput(monthStart), to: this.formatDateInput(monthEnd), pageSize: 500 })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (result) => {
           this.monthShifts = this.normalizeShiftItems(result);
+          console.log('Loaded month shifts:', this.monthShifts);
           this.refreshCalendarEvents();
           this.monthLoading = false;
         },
@@ -914,60 +954,82 @@ export class SmjeneComponent implements OnInit, OnDestroy {
     this.dialogService.open(this.dayDetailsDialog, {
       context: { schedule },
       closeOnBackdropClick: true,
+      hasBackdrop: true,
     });
   }
 
-  private onCalendarEventClick(arg: EventClickArg): void {
-    const shiftId = parseInt(arg.event.id.replace('shift-', ''));
-    const shift = this.monthShifts.find(s => s.shiftId === shiftId);
-    
-    if (shift && this.canEditShifts) {
-      this.openEditShift(shift);
-    } else if (shift) {
-      const date = arg.event.start;
-      if (date) {
-        this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts));
-      }
+private onCalendarEventClick(arg: EventClickArg): void {
+
+  const isBadge = arg.event.extendedProps?.['isMonthBadge'];
+
+  // 🔵 Ako je badge → otvori day modal
+  if (isBadge) {
+    const date = arg.event.start;
+    if (date) {
+      this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts));
     }
+    return;
   }
 
-  private onCalendarDatesSet(arg: DatesSetArg): void {
-    this.currentMonth = new Date(arg.view.currentStart);
-    const monthKey = `${this.currentMonth.getFullYear()}-${this.currentMonth.getMonth()}`;
-    if (this.activeMonthKey !== monthKey) {
-      this.activeMonthKey = monthKey;
-      Promise.resolve().then(() => this.loadMonthShifts());
+  // 🔵 Normalni event
+  const shiftId = parseInt(arg.event.id.replace('shift-', ''));
+  const shift = this.monthShifts.find(s => s.shiftId === shiftId);
+
+  if (shift && this.canEditShifts) {
+    this.openEditShift(shift);
+  } else if (shift) {
+    const date = arg.event.start;
+    if (date) {
+      this.openDayDetailsDialog(this.buildDaySchedule(date, this.monthShifts));
     }
   }
+}
 
+
+private onCalendarDatesSet(arg: DatesSetArg): void {
+  this.currentView = arg.view.type;
+  this.currentMonth = new Date(arg.view.currentStart);
+  this.viewTitle = arg.view.title;
+  this.cdr.detectChanges();
+  const monthKey = `${this.currentMonth.getFullYear()}-${this.currentMonth.getMonth()}`;
+  if (this.activeMonthKey !== monthKey) {
+    this.activeMonthKey = monthKey;
+    this.loadMonthShifts();
+  }
+}
   private refreshCalendarEvents(): void {
-    this.calendarOptions = {
-      ...this.calendarOptions,
-      events: this.buildCalendarEvents(),
-    };
+    if (!this.fullCalendar) {
+      console.warn('FullCalendar component not ready');
+      return;
+    }
+    const calendarApi = this.fullCalendar.getApi();
+    const allEvents = calendarApi.getEvents();
+    allEvents.forEach(event => event.remove());
+    const newEvents = this.buildCalendarEvents();
+    newEvents.forEach(event => {
+      calendarApi.addEvent(event);
+    });
+    
     this.cdr.detectChanges();
   }
+private buildDaySchedule(date: Date, shifts: ShiftDto[]): DaySchedule {
 
-  private buildDaySchedule(date: Date, shifts: ShiftDto[]): DaySchedule {
-    const dateString = this.formatDateInput(date);
-    const dayShifts = shifts.filter((shift) => this.toDateKey(shift.shiftDate) === dateString);
-    return {
-      date,
-      dateString,
-      dayName: this.formatDayName(date),
-      shifts: dayShifts,
-      shiftsFirstShift: dayShifts.filter((shift) => shift.shiftType?.toLowerCase() === 'morning'),
-      shiftsSecondShift: dayShifts.filter((shift) => shift.shiftType?.toLowerCase() === 'afternoon'),
-    };
-  }
+  const dateString = this.formatDateInput(date);
 
-  private mapEmployeesToShiftEmployees(employees: any[]): ShiftEmployee[] {
-    return (employees || []).map((emp) => ({
-      employeeId: Number(emp.brojIzDESa) || emp.employeeId,
-      employeeName: `${emp.ime} ${emp.prezime}`.trim(),
-      firstName: emp.ime || '',
-      lastName: emp.prezime || '',
-      brojIzDESa: String(emp.brojIzDESa),
-    }));
-  }
+  const dayShifts = shifts.filter(
+    (shift) => this.toDateKey(shift.shiftDate) === dateString
+  );
+  return {
+    date,
+    dateString,
+    dayName: this.formatDayName(date),
+    shifts: dayShifts,
+    shiftsFirstShift: dayShifts.filter(s => s.shiftType?.toLowerCase() === 'morning'),
+    shiftsSecondShift: dayShifts.filter(s => s.shiftType?.toLowerCase() === 'afternoon'),
+    shiftsCustom: dayShifts.filter(s =>
+      !['morning', 'afternoon', 'night'].includes(s.shiftType?.toLowerCase() || '')
+    )
+  };
+}
+
 }

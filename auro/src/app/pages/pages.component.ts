@@ -208,7 +208,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Prodajne pozicije"], false);
-          this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], false);
          // this.setMenuHidden(["Fakturisanje"], true);
           this.setDailyTasksBadge(false);
         }

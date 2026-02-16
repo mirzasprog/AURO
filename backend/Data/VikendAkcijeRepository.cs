@@ -480,6 +480,21 @@ namespace backend.Data
             };
         }
 
+        private decimal? NormalizirajDecimalniBroj(string vrijednost)
+        {
+            if (string.IsNullOrWhiteSpace(vrijednost))
+            {
+                return null;
+            }
+            vrijednost = vrijednost.Trim();
+            vrijednost = vrijednost.Replace(',', '.');
+            if (decimal.TryParse(vrijednost, NumberStyles.Any, CultureInfo.InvariantCulture, out var rezultat))
+            {
+                return rezultat;
+            }
+            return null;
+        }
+
         private static VikendAkcijaStavkaDto MapirajStavku(VipStavke stavka, VipArtikli? artikal)
         {
             return new VikendAkcijaStavkaDto
@@ -569,26 +584,36 @@ namespace backend.Data
             return vrijednost.ToString()?.Trim() ?? string.Empty;
         }
 
-        private static decimal? ProcitajDecimal(DataRow row, IDictionary<string, int> koloneMapa, string kljuc, bool obavezno, ICollection<string> greske, int redniBroj, string nazivKolone)
+        private decimal? ProcitajDecimal(DataRow row, Dictionary<string, int> koloneMapa, string kljuc, bool obavezno, List<string> rowErrors, int redniBroj, string imeKolone)
         {
-            var tekst = ProcitajTekst(row, koloneMapa, kljuc);
-            if (string.IsNullOrWhiteSpace(tekst))
+            if (!koloneMapa.ContainsKey(kljuc))
             {
                 if (obavezno)
                 {
-                    greske.Add($"Red {redniBroj}: kolona '{nazivKolone}' je obavezna.");
+                    rowErrors.Add($"Red {redniBroj}: kolona '{imeKolone}' nije pronađena.");
                 }
                 return null;
             }
 
-            if (decimal.TryParse(tekst, NumberStyles.Any, CultureInfo.InvariantCulture, out var rezultat)
-                || decimal.TryParse(tekst, NumberStyles.Any, new CultureInfo("bs-Latn-BA"), out rezultat))
+            var index = koloneMapa[kljuc];
+            var vrijednost = row[index];
+
+            if (vrijednost == null || vrijednost == DBNull.Value || string.IsNullOrWhiteSpace(vrijednost.ToString()))
             {
-                return rezultat;
+                if (obavezno)
+                {
+                    rowErrors.Add($"Red {redniBroj}: kolona '{imeKolone}' je obavezna.");
+                }
+                return null;
+            }
+            var normalizovano = NormalizirajDecimalniBroj(vrijednost.ToString());
+            if (normalizovano == null)
+            {
+                rowErrors.Add($"Red {redniBroj}: kolona '{imeKolone}' mora biti validan broj (trenutna vrijednost: '{vrijednost}').");
+                return null;
             }
 
-            greske.Add($"Red {redniBroj}: vrijednost '{tekst}' u koloni '{nazivKolone}' nije validan broj.");
-            return null;
+            return normalizovano;
         }
 
         private static bool JePrazanRed(params string?[] vrijednosti)
@@ -684,7 +709,7 @@ namespace backend.Data
 
                 var result = await _context.Set<NaruceniArtikalAkcijeResponse>()
                     .FromSqlRaw("EXEC VIP.GetNaruceniArtikliSaAkcije @IDAkcije", idAkcijeParam)
-                    .AsNoTracking() // Bolje performanse jer ne trebamo tracking
+                    .AsNoTracking()
                     .ToListAsync();
 
                 return result;
@@ -695,7 +720,7 @@ namespace backend.Data
             }
             catch (ArgumentException)
             {
-                throw; // Re-throw validation errors
+                throw; 
             }
             catch (Exception ex)
             {

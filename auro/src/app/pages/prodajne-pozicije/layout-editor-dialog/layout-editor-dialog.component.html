@@ -1,9 +1,6 @@
 <nb-card class="editor-card">
   <nb-card-header>
     <div class="header-toolbar">
-      <div class="header-title">
-        <h5 *ngIf="layout?.naziv" style="margin: 0;">{{ layout.naziv }}</h5>
-      </div>
       <div class="toolbar-left">
         <button nbButton size="small" status="success" (click)="otvoriModalZaDodavanje()">
           <nb-icon icon="plus-outline"></nb-icon>
@@ -73,8 +70,8 @@
         <div class="filter-item">
           <label>Pretraga po broju pozicije</label>
           <input nbInput fullWidth
-                 [ngModelOptions]="{standalone: true}"
                  [(ngModel)]="filterBrojPozicije"
+                 [ngModelOptions]="{standalone: true}"
                  (ngModelChange)="primijeniFiltere()"
                  placeholder="P001, P002..."
                  [nbTooltip]="'Pretražite po broju pozicije'"
@@ -84,8 +81,8 @@
         <div class="filter-item">
           <label>Dobavljač</label>
           <nb-select fullWidth multiple
-                     [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="filterTrgovci"
+                     [ngModelOptions]="{standalone: true}"
                      (selectedChange)="primijeniFiltere()"
                      placeholder="Svi dobavljači">
             <nb-option *ngFor="let trgovac of dostupniDobavljaci" [value]="trgovac">
@@ -97,8 +94,8 @@
         <div class="filter-item">
           <label>Odjel/Kategorija</label>
           <nb-select fullWidth multiple
-                     [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="filterOdjeli"
+                     [ngModelOptions]="{standalone: true}"
                      (selectedChange)="primijeniFiltere()"
                      placeholder="Svi odjeli">
             <nb-option *ngFor="let odjel of odjeli" [value]="odjel">
@@ -110,8 +107,8 @@
         <div class="filter-item">
           <label>Tip pozicije</label>
           <nb-select fullWidth multiple
-                     [ngModelOptions]="{standalone: true}"
                      [(ngModel)]="filterTipovi"
+                     [ngModelOptions]="{standalone: true}"
                      (selectedChange)="primijeniFiltere()"
                      placeholder="Svi tipovi">
             <nb-option *ngFor="let tip of tipovi" [value]="tip.value">
@@ -121,21 +118,25 @@
         </div>
 
         <div class="filter-item filter-checkbox">
-          <nb-checkbox 
-            [ngModelOptions]="{standalone: true}"
-            [(ngModel)]="filterIsticeUskoro" 
-            (checkedChange)="primijeniFiltere()">
-            Zakup ističe uskoro ({{ pragDanaIsteka }} dana)
-          </nb-checkbox>
+          <label class="checkbox-label">
+            <input 
+              type="checkbox"
+              [(ngModel)]="filterIsticeUskoro"
+              [ngModelOptions]="{standalone: true}"
+              (change)="primijeniFiltere()">
+            <span>Zakup ističe uskoro ({{ pragDanaIsteka }} dana)</span>
+          </label>
         </div>
 
         <div class="filter-item filter-checkbox">
-          <nb-checkbox 
-            [ngModelOptions]="{standalone: true}"
-            [(ngModel)]="filterSamoSlobodne" 
-            (checkedChange)="primijeniFiltere()">
-            Samo slobodne pozicije
-          </nb-checkbox>
+          <label class="checkbox-label">
+            <input 
+              type="checkbox"
+              [(ngModel)]="filterSamoSlobodne"
+              [ngModelOptions]="{standalone: true}"
+              (change)="primijeniFiltere()">
+            <span>Samo slobodne pozicije</span>
+          </label>
         </div>
 
         <div class="filter-actions">
@@ -166,7 +167,7 @@
               <div
                 class="layout-item"
                 *ngFor="let item of prikazanePozicije; index as i"
-                [class.selected]="i === selectedIndex"
+                [class.selected]="item.index === selectedIndex"
                 [class.invalid]="isOutOfBounds(item.pozicija) || isOverlapping(item.index)"
                 [class.bubble]="item.pozicija.tip === 'promotivna_pozicija'"
                 [ngStyle]="getPozicijaStyle(item.pozicija)"

@@ -2,7 +2,14 @@
 :root {
   color-scheme: light;
   --transition-duration: 180ms;
-  --app-background: linear-gradient(180deg, #f4f6fb 0%, #edf1f7 100%);
+  --app-background: #f4f6fb; /* light solid */
+  --app-surface: #ffffff;
+  --dashboard-shell-bg: #f4f6fb;
+  --dashboard-card-background: #ffffff;
+  --dashboard-card-overlay: #ffffff;
+  --dashboard-card-highlight: #ffffff;
+  --quick-action-background: #ffffff;
+  --chart-card-background: #ffffff;
   --app-surface: #ffffff;
   --sidebar-background: #ffffff;
   --sidebar-border: rgba(15, 23, 42, 0.08);
@@ -18,19 +25,10 @@
   --card-border: rgba(15, 23, 42, 0.08);
   --card-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
   --card-hover-shadow: 0 20px 36px rgba(15, 23, 42, 0.12);
-  --glass-blur: blur(10px);
-
-  --dashboard-shell-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(241, 245, 249, 0.95) 100%);
-  --dashboard-card-background: var(--card-background);
-  --dashboard-card-overlay: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.05) 100%);
-  --dashboard-card-highlight: transparent;
-  --dashboard-card-border: var(--card-border);
-  --dashboard-card-shadow: var(--card-shadow);
   --dashboard-subtitle-color: var(--text-muted);
   --dashboard-title-color: var(--heading-color);
   --dashboard-description-color: var(--text-secondary);
 
-  --quick-action-background: linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, rgba(243, 244, 246, 0.92) 100%);
   --quick-action-border: rgba(59, 130, 246, 0.18);
   --quick-action-shadow: 0 12px 26px rgba(15, 23, 42, 0.08);
   --quick-action-icon-bg: rgba(59, 130, 246, 0.12);
@@ -85,8 +83,14 @@
 /* --- DARK THEME ROOT VARS (ostavljam sve tvoje) --- */
 body[data-theme='dark'] {
   color-scheme: dark;
-  --app-background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-  --app-surface: rgba(30, 41, 59, 0.94);
+  --app-background: #0f172a;
+  --app-surface: #1e293b;
+  --dashboard-shell-bg: #0f172a;
+  --dashboard-card-background: #1e293b;
+  --dashboard-card-overlay: #1e293b;
+  --dashboard-card-highlight: #1e293b;
+  --quick-action-background: #1e293b;
+  --chart-card-background: #1e293b;
   --sidebar-background: rgba(15, 23, 42, 0.94);
   --sidebar-border: rgba(148, 163, 184, 0.16);
   --sidebar-text: rgba(226, 232, 240, 0.92);
@@ -223,9 +227,6 @@ body[data-theme='light'] {
    DARK MODE VARIJABLE
 ----------------------------- */
 body[data-theme='dark'] {
-  --dashboard-shell-bg: #0f172a;
-  --dashboard-card-background: #1e293b;
-  --dashboard-card-border: #334155;
   --dashboard-card-shadow: 0 1px 3px rgba(0,0,0,0.4);
 
   --dashboard-title-color: #f1f5f9;
@@ -316,4 +317,185 @@ body[data-theme='dark'] .p-dropdown-panel .p-dropdown-items .p-dropdown-item:hov
   }
 }
 
+/* ============================================
+   NEBULAR MODAL & OVERLAY FIXES
+   (Zalijepiti na dno globalnog CSS-a)
+============================================ */
 
+/* 1. Popravak za tamnu pozadinu (Backdrop)
+   - Uklanja blur/glossy efekt
+   - Postavlja čistu tamnu boju */
+.cdk-overlay-backdrop.cdk-overlay-dark-backdrop {
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: none !important; /* Ključno za micanje glossy efekta */
+    -webkit-backdrop-filter: none !important;
+}
+
+/* 2. Popravak za sam kontejner Modala (Dialog) */
+nb-dialog-container {
+    overflow: hidden !important;
+    border-radius: 16px !important;
+    /* Forsiramo sjenu da se modal odvoji od pozadine */
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* 3. Forsiranje SOLIDNE boje (bez prozirnosti) */
+
+/* LIGHT THEME */
+body nb-dialog-container {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+/* DARK THEME */
+body[data-theme='dark'] nb-dialog-container {
+    /* Koristimo tvoju --app-surface boju (#1e293b) jer je ona SOLIDNA.
+       Tvoja --card-background ima 0.94 opacity, što je uzrokovalo problem. */
+    background-color: #1e293b !important; 
+    color: #f8fafc !important;
+    border: 1px solid rgba(148, 163, 184, 0.2) !important;
+}
+
+
+nb-dialog-container .day-details-modal,
+nb-dialog-container .modal-body {
+    background: transparent !important; 
+}
+
+/* ============================================
+   FULLCALENDAR DARK THEME ADAPTATION
+   ============================================ */
+
+body[data-theme='dark'] .full-calendar-enhanced {
+    /* Glavne FullCalendar CSS varijable za tamnu temu */
+    --fc-border-color: rgba(148, 163, 184, 0.2);
+    --fc-daygrid-event-dot-width: 8px;
+    --fc-page-bg-color: #1e293b; /* Tvoja --app-surface boja */
+    --fc-neutral-bg-color: rgba(15, 23, 42, 0.5);
+    --fc-list-event-hover-bg-color: rgba(148, 163, 184, 0.1);
+    --fc-today-bg-color: rgba(51, 102, 255, 0.15);
+}
+
+/* Osnovni tekst u kalendaru */
+body[data-theme='dark'] .fc {
+    color: #f8fafc !important; /* Tvoja --text-primary boja */
+}
+
+/* Zaglavlje tabele (Dani u sedmici: PON, UTO, SRI...) */
+body[data-theme='dark'] .fc .fc-col-header-cell {
+    background-color: #0f172a !important; /* Tamnija boja zaglavlja */
+    color: #94a3b8 !important; /* --text-muted */
+    border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+/* Ćelije dana i slotovi vremena */
+body[data-theme='dark'] .fc .fc-daygrid-day,
+body[data-theme='dark'] .fc .fc-timegrid-slot,
+body[data-theme='dark'] .fc .fc-scrollgrid,
+body[data-theme='dark'] .fc td,
+body[data-theme='dark'] .fc th {
+    background-color: #1e293b !important;
+    border-color: rgba(148, 163, 184, 0.15) !important;
+}
+
+/* Popover koji iskoči kad klikneš na "+ još" (more) */
+body[data-theme='dark'] .fc .fc-popover {
+    background-color: #1e293b !important;
+    border: 1px solid rgba(148, 163, 184, 0.3) !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
+    color: #f8fafc !important;
+}
+
+body[data-theme='dark'] .fc .fc-popover-header {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+}
+
+/* List view specifičnosti */
+body[data-theme='dark'] .fc-list {
+    background-color: #1e293b !important;
+    border-color: rgba(148, 163, 184, 0.2) !important;
+}
+
+body[data-theme='dark'] .fc-list-day-cushion {
+    background-color: #0f172a !important;
+}
+
+/* Efekat prelaza mišem preko dana */
+body[data-theme='dark'] .fc .fc-daygrid-day:hover {
+    background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+body[data-theme='dark'] .fc .fc-daygrid-more-link {
+    color: #3366ff !important;
+    font-weight: 700;
+}
+
+body[data-theme='dark'] .full-calendar-enhanced {
+
+    border: 2px solid rgba(59, 130, 246, 0.4) !important;
+    border-radius: 12px !important;
+    background-color: #1e293b !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    padding: 10px;
+}
+
+body[data-theme='dark'] .fc .fc-button-primary,
+body[data-theme='dark'] .fc .fc-button {
+    background-color: #2d3748 !important; 
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    color: #ffffff !important;
+    font-weight: 500 !important;
+    text-shadow: none !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+}
+
+
+body[data-theme='dark'] .fc .fc-button-primary:hover,
+body[data-theme='dark'] .fc .fc-button:hover {
+    background-color: #3b82f6 !important;
+    border-color: #60a5fa !important;
+    color: white !important;
+}
+
+body[data-theme='dark'] .fc .fc-button-primary:not(:disabled).fc-button-active,
+body[data-theme='dark'] .fc .fc-button-active {
+    background-color: #2563eb !important;
+    border-color: #3b82f6 !important;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.3) !important;
+}
+
+body[data-theme='dark'] .fc-theme-standard td, 
+body[data-theme='dark'] .fc-theme-standard th {
+    border: 1px solid rgba(148, 163, 184, 0.25) !important; 
+}
+
+
+body[data-theme='dark'] .fc .fc-col-header-cell {
+    background-color: #1a202c !important; 
+    padding: 12px 0 !important;
+}
+
+body[data-theme='dark'] .fc .fc-col-header-cell-cushion {
+    color: #60a5fa !important; 
+    font-weight: 700 !important;
+}
+
+
+body[data-theme='dark'] .fc .fc-daygrid-day-number {
+    color: #e2e8f0 !important;
+    font-weight: 600;
+    padding: 8px !important;
+}
+
+body[data-theme='dark'] .fc .fc-day-today {
+    background-color: rgba(59, 130, 246, 0.1) !important;
+    border: 2px solid #3b82f6 !important; 
+}
+
+
+body[data-theme='dark'] .fc-toolbar-title {
+    color: #ffffff !important;
+    letter-spacing: 1px;
+    font-size: 1.5rem !important;
+}

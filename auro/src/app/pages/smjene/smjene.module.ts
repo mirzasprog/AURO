@@ -19,21 +19,10 @@ import { SmjeneRoutingModule } from './smjene-routing.module';
 import { SmjeneComponent } from './smjene.component';
 import { ShiftFormDialogComponent } from './shift-form-dialog/shift-form-dialog.component';
 import { CopyWeekDialogComponent } from './copy-week-dialog/copy-week-dialog.component';
-
-// FullCalendar imports
+import { registerLocaleData } from '@angular/common'; 
+import localeBs from '@angular/common/locales/bs';    
+registerLocaleData(localeBs);                        
 import { FullCalendarModule } from '@fullcalendar/angular';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import listPlugin from '@fullcalendar/list';
-import interactionPlugin from '@fullcalendar/interaction';
-
-// Plugin registracija
-FullCalendarModule.registerPlugins([
-  dayGridPlugin,
-  timeGridPlugin,
-  listPlugin,
-  interactionPlugin,
-]);
 
 @NgModule({
   declarations: [

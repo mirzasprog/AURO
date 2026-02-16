@@ -53,7 +53,7 @@
           <nb-icon icon="chevron-left-outline"></nb-icon>
         </button>
         
-        <h2 class="current-view-title">{{ currentViewTitle }}</h2>
+        <h2 class="current-view-title">{{ viewTitle  }}</h2>
         
         <button nbButton status="basic" size="small" (click)="nextPeriod()" 
           [disabled]="!canNavigateNext">
@@ -104,26 +104,6 @@
     </div>
   </div>
 
-  <!-- LEGEND -->
-  <div class="calendar-legend">
-    <div class="legend-item">
-      <span class="legend-color shift-event--morning"></span>
-      <span>Prva smjena</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-color shift-event--afternoon"></span>
-      <span>Druga smjena</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-color shift-event--night"></span>
-      <span>Noćna smjena</span>
-    </div>
-    <div class="legend-item">
-      <span class="legend-color shift-event--custom"></span>
-      <span>Custom</span>
-    </div>
-  </div>
-
   <!-- DAY DETAILS MODAL -->
   <ng-template #dayDetailsDialog let-data let-ref="dialogRef">
     <div class="day-details-modal">
@@ -147,10 +127,6 @@
               <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
               <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
             </div>
-            <button *ngIf="canEditShifts" nbButton size="tiny" status="info" 
-              (click)="openEditShift(shift); ref.close()">
-              <nb-icon icon="edit-outline"></nb-icon>
-            </button>
           </div>
         </div>
         <div class="modal-column">
@@ -163,10 +139,6 @@
               <span class="name">{{ shift.employeeName || ('#' + shift.employeeId) }}</span>
               <span class="time">{{ shift.startTime | slice:0:5 }} - {{ shift.endTime | slice:0:5 }}</span>
             </div>
-            <button *ngIf="canEditShifts" nbButton size="tiny" status="info" 
-              (click)="openEditShift(shift); ref.close()">
-              <nb-icon icon="edit-outline"></nb-icon>
-            </button>
           </div>
         </div>
       </div>

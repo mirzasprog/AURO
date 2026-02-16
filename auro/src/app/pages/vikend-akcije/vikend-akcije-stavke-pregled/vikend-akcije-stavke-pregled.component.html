@@ -25,7 +25,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let stavka of stavke">
+          <tr *ngFor="let stavka of prikazaneStavke">
             <td>
               <div class="cell-primary">{{ stavka.sifra || '—' }}</div>
             </td>
@@ -56,6 +56,19 @@
           </tr>
         </tbody>
       </table>
+
+      <!-- Paginator -->
+      <div class="paginator" *ngIf="stavke.length > pageSize">
+        <button nbButton size="tiny" status="info" (click)="promijeniStranicu(-1)"
+          [disabled]="trenutnaStranica === 1">
+          Prethodna
+        </button>
+        <span class="paginator-info">Stranica {{ trenutnaStranica }} / {{ ukupnoStranica }}</span>
+        <button nbButton size="tiny" status="info" (click)="promijeniStranicu(1)"
+          [disabled]="trenutnaStranica >= ukupnoStranica">
+          Sljedeća
+        </button>
+      </div>
     </div>
     <ng-template #loadingStavke>
       <div class="d-flex justify-content-center">
