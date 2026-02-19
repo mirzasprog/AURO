@@ -46,6 +46,25 @@
               fullWidth fieldSize="small">
           </nb-form-field>
         </div>
+
+    <!-- Nabavna cijena -->
+    <div class="col">
+      <label>Nabavna cijena</label><em>*</em>
+      <nb-form-field fieldSize="small">
+        <nb-icon icon="pricetags" nbPrefix></nb-icon>
+        <input nbInput type="text" name="nabavnaCijena" [(ngModel)]="nabavnaCijena" required
+          placeholder="Unesite nabavnu cijenu" autocomplete="off"
+          fullWidth fieldSize="small"
+          #nabavnaCijenaInput="ngModel"
+          pattern="^[0-9]+(\.[0-9]{1,2})?$"
+          (keydown)="onNabavnaCijenaKeydown($event)"
+          (paste)="onNabavnaCijenaPaste($event)">
+      </nb-form-field>
+      <small class="text-danger" 
+        *ngIf="nabavnaCijenaInput.invalid && nabavnaCijenaInput.touched">
+        Unesite ispravan broj (npr. 16.50)
+      </small>
+    </div>
       </div>
       <div class="row form-group">
         <!-- Broj zaduženja maloprodaje -->

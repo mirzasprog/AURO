@@ -211,6 +211,7 @@ namespace backend.Data
                         Razlog = o.Razlog,
                         JedinicaMjere = o.JedinicaMjere,
                         Kolicina = o.Kolicina,
+                        NabavnaCijena = o.NabavnaCijena,
                         BrojDokumenta = o.BrojDokumenta,
                         ReklamiranaKolicina = o.ReklamiranaKolicina,
                         Lot = o.Lot,

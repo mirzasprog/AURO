@@ -8,6 +8,7 @@ export interface ReklamacijaKvaliteta {
   naziv?: string;
   brojProdavnice?: string;
   kolicina: number;
+  nabavnaCijena: number;
   brojDokumenta?: string;
   reklamiranaKolicina: number;
   lot: string;

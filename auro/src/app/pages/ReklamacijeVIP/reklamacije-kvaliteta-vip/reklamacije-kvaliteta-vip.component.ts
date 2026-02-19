@@ -6,12 +6,13 @@ import { DataService } from '../../../@core/utils/data.service';
 import { ReklamacijaKvaliteta } from '../../../@core/data/reklamacijaKvaliteta';
 import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
 import { ExportServiceReklamacije } from '../../../@core/services/generisiIzvjestajReklamacije.service';
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 
 @Component({
   selector: 'ngx-reklamacije-kvaliteta-vip',
   templateUrl: './reklamacije-kvaliteta-vip.component.html',
-  styleUrls: ['./reklamacije-kvaliteta-vip.component.scss']
+  styleUrls: ['./reklamacije-kvaliteta-vip.component.scss'],
+  providers: [CurrencyPipe]
 })
 export class ReklamacijeKvalitetaVIPComponent implements OnInit {
   // Trenutni korisnik
@@ -20,6 +21,7 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
   unesenaKolicina: string = null;
   //Varijabla za spremanje reklamirane kolicnie artikla
   unesenaReklamiranaKolicina: string = null;
+  nabavnaCijena : number;
   //Varijabla koja sprema generisani unikatni broj dokumenta (ID) za inventuru
   jedinstveniID: string;
   //Lista podataka za unos
@@ -34,6 +36,7 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
     brojDokumenta: '',
     reklamiranaKolicina: 1,
     lot:'',
+    nabavnaCijena: null,
     brojZaduzenjaMLP: null,
 
   };
@@ -64,6 +67,9 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
       jedinicaMjere: { title: "Jedinica mjere", type: "string" },
       kolicina: { title: "Zaprimljena količina", type: "number" },
       reklamiranaKolicina: { title: "Reklamirana količina", type: "number" },
+      nabavnaCijena: { title: "Nabavna cijena", type: "number",  valuePrepareFunction: (cell, row) => {
+          return this.currencyPipe.transform(cell, 'BAM', 'symbol', '1.2-2');
+        },},
       lot: { title: 'LOT', type: 'string' },
       brojZaduzenjaMLP: { title: 'Br. zaduženja MLP', type: 'number' },
       komentar: { title: "Komentar", type: "text" },
@@ -84,12 +90,14 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
         }
       },
       brojProdavnice: { title: 'Broj prodavnice', type: 'string' },
-      brojDokumenta: { title: 'Broj dokumenta', type: 'string' },
       sifraArtikla: { title: 'Šifra artikla', type: 'string' },
       naziv: { title: 'Naziv artikla', type: 'string' },
       jedinicaMjere: { title: 'Jedinica mjere', type: 'string' },
       kolicina: { title: 'Zaprimljena količina', type: 'number' },
       reklamiranaKolicina: { title: 'Reklamirana količina', type: 'number' },
+      nabavnaCijena: { title: 'Nabavna cijena', type: 'number', valuePrepareFunction: (cell, row) => {
+          return this.currencyPipe.transform(cell, 'BAM', 'symbol', '1.2-2');
+        }, },
       lot: { title: 'LOT', type: 'string' },
       brojZaduzenjaMLP: { title: 'Br. zaduženja MLP', type: 'string' },
       datumPrijema: {
@@ -111,7 +119,8 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
   constructor(private dataService: DataService,
     private iconService: NbIconLibraries,
     private authService: NbAuthService,
-    private exportService: ExportServiceReklamacije
+    private exportService: ExportServiceReklamacije,
+    private currencyPipe: CurrencyPipe
   ) {
     this.iconService.registerFontPack('font-awesome', { packClass: 'fa' });
     // Dobijanje tokena i postavljanje prijavljenog korisnika
@@ -155,6 +164,11 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
       return;
     }
 
+    if (!this.nabavnaCijena || this.nabavnaCijena <= 0) {
+      Swal.fire("Upozorenje", "Molimo unesite nabavnu cijenu!", "warning");
+      return;
+    }
+
     if (!this.unos.komentar?.trim()) {
       Swal.fire("Upozorenje", "Molimo unesite komentar!", "warning");
       return;
@@ -176,6 +190,7 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
     this.unos.razlog = "Narušen kvalitet voća i povrća";
     this.unos.kolicina = kolicina;
     this.unos.reklamiranaKolicina = reklamiranaKolicina;
+    this.unos.nabavnaCijena = this.nabavnaCijena;
 
     const postoji = this.data.some(x => x.sifraArtikla === this.unos.sifra.trim());
     if (postoji) {
@@ -198,6 +213,7 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
           jedinicaMjere: artikal.jedinicaMjere,
           kolicina: this.unos.kolicina,
           reklamiranaKolicina: this.unos.reklamiranaKolicina,
+          nabavnaCijena: this.unos.nabavnaCijena,
           komentar: this.unos.komentar,
           lot: this.unos.lot,
           brojZaduzenjaMLP : this.unos.brojZaduzenjaMLP,
@@ -261,10 +277,11 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
   //Funkcija za resetovanje unosa korisnika
   resetUnos(): void {
     this.unos = { razlog: '', komentar: '', sifra: '', naziv: '', jedinicaMjere: '', kolicina: 1, brojProdavnice: '',
-     brojDokumenta: '', reklamiranaKolicina: 1, lot:'', brojZaduzenjaMLP: 0,};
+     brojDokumenta: '', reklamiranaKolicina: 1, lot:'', nabavnaCijena:0, brojZaduzenjaMLP: 0,};
     this.unesenaKolicina = '';
     this.unesenaReklamiranaKolicina = '';
     this.datumPrijema = null;
+    this.nabavnaCijena = 0;
   }
 
   //Funkcija za generisanje unikatnog broja dokumenta za inventuru
@@ -287,7 +304,14 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
       Swal.fire("Upozorenje", "Molimo unesite oba datuma!", "warning");
       return;
     }
-    this.dataService.pregledajReklamacijeKvalitete(this.datumOd.toLocaleDateString(), this.datumDo.toLocaleDateString()).subscribe(
+    const formatDate = (d: Date): string => {
+      const year = d.getFullYear();
+      const month = ('0' + (d.getMonth() + 1)).slice(-2);
+      const day = ('0' + d.getDate()).slice(-2);
+      return `${year}-${month}-${day}`;
+    };
+    this.dataService.pregledajReklamacijeKvalitete( formatDate(this.datumOd), 
+  formatDate(this.datumDo)).subscribe(
       (rezultat) => {
 
         this.dataPregledReklamacija = rezultat;
@@ -316,4 +340,28 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
     });
 
   }
+
+  onNabavnaCijenaKeydown(event: KeyboardEvent): void {
+  const forbidden = [',', 'е', 'E']; 
+  if (forbidden.includes(event.key)) {
+    event.preventDefault();
+  }
+  const allowed = /^[0-9\.]$/;
+  if (
+    !allowed.test(event.key) &&
+    !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)
+  ) {
+    event.preventDefault();
+  }
+  if (event.key === '.' && (event.target as HTMLInputElement).value.includes('.')) {
+    event.preventDefault();
+  }
+}
+
+onNabavnaCijenaPaste(event: ClipboardEvent): void {
+  const pasted = event.clipboardData?.getData('text') ?? '';
+  if (!/^\d+(\.\d{1,2})?$/.test(pasted)) {
+    event.preventDefault();
+  }
+}
 }

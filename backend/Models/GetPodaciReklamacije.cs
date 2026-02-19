@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations.Schema;
-
+using Microsoft.EntityFrameworkCore;
 namespace backend.Models
 {
     public class GetPodaciReklamacije 
@@ -13,6 +13,9 @@ namespace backend.Models
         public string? Naziv { get; set; }
         public string? BrojProdavnice { get; set; }
         public int Kolicina { get; set; }
+        
+        [Precision(18,2)]
+        public decimal NabavnaCijena { get; set; }
         public string? BrojDokumenta { get; set; }
         public int ReklamiranaKolicina { get; set; }
         public string? Lot { get; set; }
