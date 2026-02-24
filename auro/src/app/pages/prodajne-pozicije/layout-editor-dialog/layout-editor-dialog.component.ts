@@ -11,6 +11,9 @@ import {
 import { ProdajnaPozicija, ProdajniLayout } from '../../../@core/data/prodajne-pozicije';
 import { NbDialogService } from '@nebular/theme';
 import { DodajPozicijuModalComponent } from '../dodaj-poziciju-modal/dodaj-poziciju-modal.component';
+import { NbAuthJWTToken, NbAuthService } from '@nebular/auth';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 
 interface ProdajniTip {
   value: string;
@@ -27,13 +30,25 @@ export class LayoutEditorDialogComponent implements AfterViewInit {
   @Input() layout!: ProdajniLayout;
   @Input() pozicije: ProdajnaPozicija[] = [];
   @Output() sacuvajLayout = new EventEmitter<{ layout: ProdajniLayout; pozicije: ProdajnaPozicija[] }>();
-
+  private destroy$ = new Subject<void>();
   @ViewChild('canvas', { static: true }) canvasRef!: ElementRef<HTMLDivElement>;
   @ViewChild('backgroundInput', { static: false }) backgroundInputRef?: ElementRef<HTMLInputElement>;
-
+  rola = '';
   constructor(
-    private readonly dialogService: NbDialogService
-  ) {}
+    private readonly dialogService: NbDialogService,
+    private readonly authService: NbAuthService
+  ) {
+        this.authService.onTokenChange()
+          .pipe(takeUntil(this.destroy$))
+          .subscribe((token: NbAuthJWTToken) => {
+            if (token.isValid()) {
+              const payload = token.getPayload();
+              this.rola = payload["role"];
+
+            } 
+           
+          });
+  }
 
   tipovi: ProdajniTip[] = [
     { value: 'paletno_mjesto', label: 'Paletno mjesto', defaultSize: { sirina: 1.2, duzina: 1 } },

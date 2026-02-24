@@ -210,7 +210,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
   source: LocalDataSource = new LocalDataSource();
   storeSearch = '';
   filteredStores = [];
-  rolesWithStoreSelection: string[] = ['uprava', 'podrucni', 'regionalni'];
+  rolesWithStoreSelection: string[] = ['uprava', 'podrucni', 'regionalni', 'asistent_MLP', 'informatika'];
   private destroy$ = new Subject<void>();
   private storeSelection$ = new Subject<string>();
   private storeSelectionSubscription?: Subscription;
@@ -245,7 +245,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
         this.storeSelection$.next(storeId);
         return;
       }
-      else if (this.rola === 'uprava') {
+      else if (this.rola === 'uprava' || this.rola === 'asistent_MLP' || this.rola === 'informatika') {
         this.bootstrapManagementDashboard();
       }
     });
@@ -1692,7 +1692,7 @@ export class RadnaPlocaComponent implements OnInit, OnDestroy {
 
   isRoleStoreDashboardVisible(): boolean {
     // show store/dashboard for prodavnica and also for roles that can select store
-    return this.rola === 'prodavnica' || this.rolesWithStoreSelection.includes(this.rola) || this.rola === 'uprava';
+    return this.rola === 'prodavnica' || this.rolesWithStoreSelection.includes(this.rola) || this.rola === 'uprava' || this.rola === 'asistent_MLP' || this.rola === 'informatika';
   }
 
   private loadStores(): void {

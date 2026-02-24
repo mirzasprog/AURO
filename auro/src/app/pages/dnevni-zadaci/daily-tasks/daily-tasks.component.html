@@ -1,55 +1,91 @@
 <nb-card class="daily-card">
   <nb-card-header class="page-header">
-    <div class="headline">
-      <div>
-        <span class="subtitle">{{ headlineDate | titlecase }}</span>
-        <h2>Dnevni zadaci</h2>
+    <div class="header-top">
+
+      <div class="brand-block">
+        <div class="brand-icon">
+          <nb-icon icon="checkmark-square-2-outline"></nb-icon>
+        </div>
+        <div class="brand-text">
+          <span class="eyebrow">{{ headlineDate | titlecase }}</span>
+          <h2>Dnevni zadaci</h2>
+        </div>
       </div>
-      <div class="store-select" *ngIf="canManageStores">
-        <nb-select placeholder="Odaberite prodavnicu" [(selected)]="selectedStoreId" (selectedChange)="onStoreChange()">
-          <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
-        </nb-select>
-      </div>
-      <div class="store-badge" *ngIf="!canManageStores && rola.name">
-        <nb-icon icon="pin-outline"></nb-icon>
-        <span>Prodavnica {{ rola.name }}</span>
+
+      <div class="header-controls">
+        <div class="store-select-wrap" *ngIf="canManageStores">
+          <nb-icon icon="pin-outline" class="select-icon"></nb-icon>
+          <p-dropdown
+            [options]="stores"
+            [(ngModel)]="selectedStoreId"
+            optionLabel="name"
+            optionValue="id"
+            [filter]="true"
+            filterBy="name"
+            placeholder="Odaberite prodavnicu"
+            (onChange)="onStoreChange()"
+            appendTo="body"
+          >
+            <ng-template pTemplate="item" let-store>
+              <span>{{ store.name }}</span>
+            </ng-template>
+          </p-dropdown>
+        </div>
+
+        <div class="store-badge" *ngIf="!canManageStores && rola.name">
+          <nb-icon icon="pin-outline"></nb-icon>
+          <span>{{ rola.name }}</span>
+        </div>
+
+        <button nbButton status="primary" size="medium" class="create-btn"
+                *ngIf="canCreateCustomTasks"
+                [disabled]="canManageStores && !selectedStoreId"
+                (click)="createCustomTask()">
+          <nb-icon icon="plus-outline"></nb-icon>
+          Novi zadatak
+        </button>
       </div>
     </div>
-    <button nbButton status="primary" size="small" hero class="create-btn"
-            *ngIf="canCreateCustomTasks"
-            [disabled]="canManageStores && !selectedStoreId"
-            (click)="createCustomTask()">
-      <nb-icon icon="plus-outline"></nb-icon>
-      Novi zadatak
-    </button>
   </nb-card-header>
-  <nb-card-body>
-    <div class="loading" *ngIf="loading">
+
+  <nb-card-body class="card-body-pad">
+
+    <div class="loading-overlay" *ngIf="loading">
       <nb-spinner size="giant"></nb-spinner>
     </div>
 
     <ng-container *ngIf="!loading">
+
+      <!-- KPI METRICS -->
       <div class="kpi-grid" *ngIf="summaryCards.length">
-        <nb-card *ngFor="let card of summaryCards" class="kpi-card" [ngClass]="card.accent">
-          <nb-card-body>
-            <div class="kpi-icon">
-              <nb-icon [icon]="card.icon"></nb-icon>
-            </div>
-            <div class="kpi-content">
-              <span class="kpi-title">{{ card.title }}</span>
-              <h3>{{ card.value }}</h3>
-              <small>{{ card.subtitle }}</small>
-            </div>
-          </nb-card-body>
-        </nb-card>
+        <div *ngFor="let card of summaryCards" class="kpi-card" [ngClass]="card.accent">
+          <div class="kpi-glow"></div>
+          <div class="kpi-icon-wrap">
+            <nb-icon [icon]="card.icon"></nb-icon>
+          </div>
+          <div class="kpi-body">
+            <span class="kpi-label">{{ card.title }}</span>
+            <span class="kpi-value">{{ card.value }}</span>
+            <span class="kpi-sub">{{ card.subtitle }}</span>
+          </div>
+        </div>
       </div>
 
+      <!-- CHARTS + INSIGHT -->
       <div class="visual-grid" *ngIf="statusChartData.length">
         <nb-card class="chart-card">
           <nb-card-header>
-            <div>
-              <h5>Status zadataka</h5>
-              <small>Brzi pregled prema trenutnom statusu</small>
+            <div class="chart-header-inner">
+              <div>
+                <h5>Status zadataka</h5>
+                <small>Distribucija po trenutnom statusu</small>
+              </div>
+              <div class="chart-legend">
+                <span *ngFor="let item of statusChartData" class="legend-item">
+                  <span class="legend-dot" [style.background]="item.color || '#5e81f4'"></span>
+                  {{ item.name }}
+                </span>
+              </div>
             </div>
           </nb-card-header>
           <nb-card-body>
@@ -64,204 +100,339 @@
           </nb-card-body>
         </nb-card>
 
-        <nb-card class="insight-card" *ngIf="canCreateCustomTasks">
+        <nb-card class="chart-card">
+          <nb-card-header>
+            <div class="chart-header-inner">
+              <div>
+                <h5>Tip zadataka</h5>
+                <small>Ponavljajući vs jednokratni</small>
+              </div>
+            </div>
+          </nb-card-header>
           <nb-card-body>
-            <h5>Kreirajte vlastiti ritam</h5>
-            <p>Dodajte personalni zadatak i odaberite da li će se ponavljati svakodnevno ili samo jednom.</p>
-            <button nbButton size="small" status="info" (click)="createCustomTask()"
-                    [disabled]="canManageStores && !selectedStoreId">
-              <nb-icon icon="calendar-outline"></nb-icon>
-              Kreiraj zadatak
-            </button>
+            <ngx-charts-bar-vertical
+              [results]="typeChartData"
+              [scheme]="statusChartColorScheme"
+              [gradient]="false"
+              [xAxis]="true"
+              [yAxis]="true"
+              [showXAxisLabel]="false"
+              [showYAxisLabel]="false"
+              [roundEdges]="true">
+            </ngx-charts-bar-vertical>
           </nb-card-body>
         </nb-card>
       </div>
 
+      <!-- EMPTY STATE -->
       <div class="empty-state" *ngIf="!hasTasks && isStoreSelected">
-        <nb-icon icon="clipboard-outline"></nb-icon>
-        <p>Još uvijek nema zadataka za današnji dan. Dodajte prvi zadatak i postavite ton dana!</p>
+        <div class="empty-icon-wrap">
+          <nb-icon icon="clipboard-outline"></nb-icon>
+        </div>
+        <h5>Nema zadataka za danas</h5>
+        <p>Dodajte prvi zadatak i postavite ton dana!</p>
+        <button nbButton status="primary" size="medium" *ngIf="canCreateCustomTasks" (click)="createCustomTask()">
+          <nb-icon icon="plus-outline"></nb-icon> Dodaj zadatak
+        </button>
       </div>
 
+      <!-- TASK BOARD -->
       <div class="board" *ngIf="hasTasks">
+
+        <!-- Ponavljajući -->
         <section class="board-column">
-          <header class="column-header">
-            <div class="icon-wrapper primary"><nb-icon icon="sync-outline"></nb-icon></div>
-            <div>
-              <h5>Ponavljajući zadaci</h5>
-              <small>{{ repetitiveTasks.length }} zadataka</small>
+          <div class="column-header">
+            <div class="col-badge col-primary">
+              <nb-icon icon="sync-outline"></nb-icon>
             </div>
-          </header>
-          <div class="task-list" *ngIf="repetitiveTasks.length; else noRecurring">
-            <nb-card *ngFor="let task of repetitiveTasks; trackBy: trackByTaskId" class="task-tile clickable" (click)="openTask(task)">
-              <nb-card-body>
-                <div class="task-headline">
-                  <span class="task-name">{{ task.title }}</span>
-                  <nb-badge [text]="task.status | titlecase"
-                            [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'">
-                  </nb-badge>
-                </div>
-                <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
-                <div class="task-tags">
-                  <nb-tag appearance="filled" status="primary">Dnevna rutina</nb-tag>
-                  <nb-tag *ngIf="task.isRecurring" appearance="outline" status="info">Personalizovano</nb-tag>
-                  <nb-tag *ngIf="task.imageAllowed" appearance="outline" status="basic">
-                    <nb-icon icon="image-outline"></nb-icon> Slika dozvoljena
-                  </nb-tag>
-                </div>
-                <div class="task-meta">
-                  <span *ngIf="task.completedAt">Završeno: {{ task.completedAt | date:'short' }}</span>
-                </div>
-              </nb-card-body>
-            </nb-card>
+            <div class="col-header-text">
+              <h5>Ponavljajući zadaci</h5>
+              <span class="col-count">{{ repetitiveTasks.length }} stavki</span>
+            </div>
           </div>
+
+          <div class="task-list" *ngIf="repetitiveTasks.length; else noRecurring">
+            <div *ngFor="let task of repetitiveTasks; trackBy: trackByTaskId"
+                 class="task-tile clickable"
+                 (click)="openTask(task)">
+              <div class="task-stripe" [ngClass]="{
+                'stripe-success': task.status === 'DONE',
+                'stripe-info':    task.status === 'IN_PROGRESS',
+                'stripe-warning': task.status !== 'DONE' && task.status !== 'IN_PROGRESS'
+              }"></div>
+              <div class="task-content">
+                <div class="task-top">
+                  <span class="task-name">{{ task.title }}</span>
+                  <span class="status-pill" [ngClass]="{
+                    'pill-success': task.status === 'DONE',
+                    'pill-info':    task.status === 'IN_PROGRESS',
+                    'pill-warning': task.status !== 'DONE' && task.status !== 'IN_PROGRESS'
+                  }">{{ task.status | titlecase }}</span>
+                </div>
+                <p class="task-desc" *ngIf="task.description">{{ task.description }}</p>
+                <div class="task-footer">
+                  <div class="task-tags">
+                    <span class="tag tag-primary">Dnevna rutina</span>
+                    <span class="tag tag-outline" *ngIf="task.isRecurring">Personalizovano</span>
+                    <span class="tag tag-muted" *ngIf="task.imageAllowed">
+                      <nb-icon icon="image-outline"></nb-icon> Slika
+                    </span>
+                  </div>
+                  <span class="task-time" *ngIf="task.completedAt">
+                    <nb-icon icon="clock-outline"></nb-icon>
+                    {{ task.completedAt | date:'shortTime' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <ng-template #noRecurring>
             <div class="column-empty">
-              <p>Nema ponavljajućih zadataka. Dodajte zadatak i označite ga kao ponavljajući.</p>
+              <nb-icon icon="sync-outline"></nb-icon>
+              <p>Nema ponavljajućih zadataka.</p>
             </div>
           </ng-template>
         </section>
 
+        <!-- Jednokratni -->
         <section class="board-column">
-          <header class="column-header">
-            <div class="icon-wrapper success"><nb-icon icon="list-outline"></nb-icon></div>
-            <div>
-              <h5>Jednokratni zadaci</h5>
-              <small>{{ customTasks.length }} zadataka</small>
+          <div class="column-header">
+            <div class="col-badge col-success">
+              <nb-icon icon="list-outline"></nb-icon>
             </div>
-          </header>
+            <div class="col-header-text">
+              <h5>Jednokratni zadaci</h5>
+              <span class="col-count">{{ customTasks.length }} stavki</span>
+            </div>
+          </div>
+
           <div class="task-list" *ngIf="customTasks.length; else noCustom">
-            <nb-card *ngFor="let task of customTasks; trackBy: trackByTaskId" class="task-tile">
-              <nb-card-body>
-                <div class="task-headline">
+            <div *ngFor="let task of customTasks; trackBy: trackByTaskId" class="task-tile">
+              <div class="task-stripe" [ngClass]="{
+                'stripe-success': task.status === 'DONE',
+                'stripe-info':    task.status === 'IN_PROGRESS',
+                'stripe-warning': task.status !== 'DONE' && task.status !== 'IN_PROGRESS'
+              }"></div>
+              <div class="task-content">
+                <div class="task-top">
                   <span class="task-name">{{ task.title }}</span>
                   <div class="task-actions">
-                    <nb-badge [text]="task.status | titlecase"
-                              [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'">
-                    </nb-badge>
-                    <button nbButton ghost size="tiny" nbTooltip="Prikaži" (click)="openTask(task)">
+                    <span class="status-pill" [ngClass]="{
+                      'pill-success': task.status === 'DONE',
+                      'pill-info':    task.status === 'IN_PROGRESS',
+                      'pill-warning': task.status !== 'DONE' && task.status !== 'IN_PROGRESS'
+                    }">{{ task.status | titlecase }}</span>
+                    <button nbButton ghost size="small" nbTooltip="Prikaži" (click)="openTask(task)">
                       <nb-icon icon="eye-outline"></nb-icon>
                     </button>
-                    <button nbButton ghost size="tiny" nbTooltip="Uredi"
+                    <button nbButton ghost size="small" nbTooltip="Uredi"
                             *ngIf="task.isEditable && canCreateCustomTasks"
                             (click)="editCustomTask(task); $event.stopPropagation();">
                       <nb-icon icon="edit-2-outline"></nb-icon>
                     </button>
                   </div>
                 </div>
-                <p class="task-description" *ngIf="task.description">{{ task.description }}</p>
-                <div class="task-meta">
-                  <span *ngIf="task.createdBy">Kreirao: {{ task.createdBy }}</span>
-                  <span *ngIf="task.completedBy">Završio: {{ task.completedBy }}</span>
+                <p class="task-desc" *ngIf="task.description">{{ task.description }}</p>
+                <div class="task-footer">
+                  <div class="task-meta">
+                    <span *ngIf="task.createdBy">
+                      <nb-icon icon="person-outline"></nb-icon> {{ task.createdBy }}
+                    </span>
+                    <span *ngIf="task.completedBy">
+                      <nb-icon icon="checkmark-circle-outline"></nb-icon> {{ task.completedBy }}
+                    </span>
+                  </div>
+                  <span class="task-time" *ngIf="task.completedAt">
+                    <nb-icon icon="clock-outline"></nb-icon>
+                    {{ task.completedAt | date:'shortTime' }}
+                  </span>
                 </div>
-                <div class="task-meta">
-                  <span *ngIf="task.completedAt">Završeno: {{ task.completedAt | date:'short' }}</span>
-                </div>
-              </nb-card-body>
-            </nb-card>
+              </div>
+            </div>
           </div>
+
           <ng-template #noCustom>
             <div class="column-empty">
-              <p>Kreirajte prvi jednokratni zadatak i fokusirajte se na specifične aktivnosti dana.</p>
+              <nb-icon icon="list-outline"></nb-icon>
+              <p>Kreirajte prvi jednokratni zadatak.</p>
             </div>
           </ng-template>
         </section>
       </div>
 
+      <!-- ─── HISTORY SECTION ─────────────────────────────── -->
       <section class="history-section">
-        <div class="history-header">
-          <div>
-            <h4>Pregled prethodnih zadataka</h4>
-            <small *ngIf="canManageStores">Pregled na nivou mreže ili filtrirajte po prodavnici.</small>
-            <small *ngIf="!canManageStores">Pregled vaših ranije evidentiranih zadataka.</small>
+
+        <div class="section-header">
+          <div class="section-title">
+            <div class="section-accent"></div>
+            <div>
+              <h4>Historija zadataka</h4>
+              <small *ngIf="canManageStores">Pregled na nivou mreže ili filtrirajte po prodavnici.</small>
+              <small *ngIf="!canManageStores">Pregled vaših ranije evidentiranih zadataka.</small>
+            </div>
           </div>
-          <div class="history-actions">
-            <button nbButton size="small" status="primary" (click)="downloadReport()" [disabled]="historyLoading || reportLoading">
-              <nb-icon icon="download-outline"></nb-icon>
-              Preuzmi report
-            </button>
+          <button nbButton size="medium" status="info" outline class="report-btn"
+                  (click)="downloadReport()" [disabled]="historyLoading || reportLoading">
+            <nb-icon icon="download-outline"></nb-icon>
+            Preuzmi report
+          </button>
+        </div>
+
+        <!-- FILTERS PANEL -->
+        <div class="filters-panel">
+          <div class="filters-grid">
+            <div class="filter-group" *ngIf="canManageStores">
+              <label class="filter-label">
+                <nb-icon icon="home-outline"></nb-icon> Prodavnica
+              </label>
+              <nb-select fullWidth [(selected)]="historyStoreId" (selectedChange)="refreshHistory()">
+                <nb-option [value]="null">Sve prodavnice</nb-option>
+                <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
+              </nb-select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">
+                <nb-icon icon="calendar-outline"></nb-icon> Od datuma
+              </label>
+              <input nbInput fullWidth type="date" [(ngModel)]="historyFrom" (ngModelChange)="refreshHistory()">
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">
+                <nb-icon icon="calendar-outline"></nb-icon> Do datuma
+              </label>
+              <input nbInput fullWidth type="date" [(ngModel)]="historyTo" (ngModelChange)="refreshHistory()">
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">
+                <nb-icon icon="funnel-outline"></nb-icon> Status
+              </label>
+              <nb-select fullWidth [(selected)]="historyStatus" (selectedChange)="refreshHistory()">
+                <nb-option value="DONE">Završeni</nb-option>
+                <nb-option value="IN_PROGRESS">U toku</nb-option>
+                <nb-option value="OPEN">Otvoreni</nb-option>
+                <nb-option value="ALL">Svi</nb-option>
+              </nb-select>
+            </div>
+
+            <div class="filter-group">
+              <label class="filter-label">
+                <nb-icon icon="layers-outline"></nb-icon> Tip zadatka
+              </label>
+              <nb-select fullWidth [(selected)]="historyType" (selectedChange)="refreshHistory()">
+                <nb-option value="ALL">Svi tipovi</nb-option>
+                <nb-option value="REPETITIVE">Ponavljajući</nb-option>
+                <nb-option value="CUSTOM">Jednokratni</nb-option>
+              </nb-select>
+            </div>
           </div>
         </div>
 
-        <div class="history-filters">
-          <div class="filter" *ngIf="canManageStores">
-            <label>Prodavnica</label>
-            <nb-select fullWidth [(selected)]="historyStoreId" (selectedChange)="refreshHistory()">
-              <nb-option [value]="null">Sve prodavnice</nb-option>
-              <nb-option *ngFor="let store of stores" [value]="store.id">{{ store.name }}</nb-option>
-            </nb-select>
-          </div>
-          <div class="filter">
-            <label>Od</label>
-            <input nbInput type="date" [(ngModel)]="historyFrom" (ngModelChange)="refreshHistory()">
-          </div>
-          <div class="filter">
-            <label>Do</label>
-            <input nbInput type="date" [(ngModel)]="historyTo" (ngModelChange)="refreshHistory()">
-          </div>
-          <div class="filter">
-            <label>Status</label>
-            <nb-select fullWidth [(selected)]="historyStatus" (selectedChange)="refreshHistory()">
-              <nb-option value="DONE">Završeni</nb-option>
-              <nb-option value="IN_PROGRESS">U toku</nb-option>
-              <nb-option value="OPEN">Otvoreni</nb-option>
-              <nb-option value="ALL">Svi</nb-option>
-            </nb-select>
-          </div>
-          <div class="filter">
-            <label>Tip</label>
-            <nb-select fullWidth [(selected)]="historyType" (selectedChange)="refreshHistory()">
-              <nb-option value="ALL">Svi</nb-option>
-              <nb-option value="REPETITIVE">Ponavljajući</nb-option>
-              <nb-option value="CUSTOM">Jednokratni</nb-option>
-            </nb-select>
-          </div>
-        </div>
-
+        <!-- TABLE -->
         <div class="history-body">
-          <div class="loading" *ngIf="historyLoading">
+          <div class="loading-overlay" *ngIf="historyLoading">
             <nb-spinner size="giant"></nb-spinner>
           </div>
-          <div class="empty-state" *ngIf="!historyLoading && !hasHistoryTasks">
-            <nb-icon icon="archive-outline"></nb-icon>
+
+          <div class="empty-state compact" *ngIf="!historyLoading && !hasHistoryTasks">
+            <div class="empty-icon-wrap small">
+              <nb-icon icon="archive-outline"></nb-icon>
+            </div>
             <p>Nema zadataka za odabrani period. Promijenite filtere ili odaberite drugi period.</p>
           </div>
-          <div class="history-table" *ngIf="!historyLoading && hasHistoryTasks">
-            <table>
-              <thead>
-                <tr>
-                  <th>Datum</th>
-                  <th *ngIf="canManageStores">Prodavnica</th>
-                  <th>Zadatak</th>
-                  <th>Tip</th>
-                  <th>Status</th>
-                  <th>Kreirao</th>
-                  <th>Završio</th>
-                  <th>Vrijeme završetka</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let task of historyTasks; trackBy: trackByTaskId">
-                  <td>{{ task.date | date:'shortDate' }}</td>
-                  <td *ngIf="canManageStores">{{ task.prodavnicaNaziv || task.prodavnicaBroj || task.prodavnicaId }}</td>
-                  <td>
-                    <div class="history-title">{{ task.title }}</div>
-                    <div class="history-description" *ngIf="task.description">{{ task.description }}</div>
-                  </td>
-                  <td>{{ task.type === repetitiveType ? 'Ponavljajući' : 'Jednokratni' }}</td>
-                  <td>
-                    <nb-badge [text]="statusLabelMap[task.status] || (task.status | titlecase)"
-                              [status]="task.status === 'DONE' ? 'success' : task.status === 'IN_PROGRESS' ? 'info' : 'warning'">
-                    </nb-badge>
-                  </td>
-                  <td>{{ task.createdBy || '—' }}</td>
-                  <td>{{ task.completedBy || '—' }}</td>
-                  <td>{{ task.completedAt ? (task.completedAt | date:'short') : '—' }}</td>
-                </tr>
-              </tbody>
-            </table>
+
+          <div class="table-card" *ngIf="!historyLoading && hasHistoryTasks">
+            <div class="table-scroll">
+              <table class="history-table">
+                <thead>
+                  <tr>
+                    <th>Datum</th>
+                    <th *ngIf="canManageStores">Prodavnica</th>
+                    <th>Zadatak</th>
+                    <th>Tip</th>
+                    <th>Status</th>
+                    <th>Kreirao</th>
+                    <th>Završio</th>
+                    <th>Završeno u</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let task of pagedHistoryTasks; trackBy: trackByTaskId">
+                    <td class="cell-date">{{ task.date | date:'shortDate' }}</td>
+                    <td *ngIf="canManageStores" class="cell-store">
+                      {{ task.prodavnicaNaziv || task.prodavnicaBroj || task.prodavnicaId }}
+                    </td>
+                    <td>
+                      <div class="h-title">{{ task.title }}</div>
+                      <div class="h-desc" *ngIf="task.description">{{ task.description }}</div>
+                    </td>
+                    <td>
+                      <span class="type-badge">
+                        {{ task.type === repetitiveType ? 'Ponavljajući' : 'Jednokratni' }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="status-pill" [ngClass]="{
+                        'pill-success': task.status === 'DONE',
+                        'pill-info':    task.status === 'IN_PROGRESS',
+                        'pill-warning': task.status !== 'DONE' && task.status !== 'IN_PROGRESS'
+                      }">{{ statusLabelMap[task.status] || (task.status | titlecase) }}</span>
+                    </td>
+                    <td class="cell-person">{{ task.createdBy || '—' }}</td>
+                    <td class="cell-person">{{ task.completedBy || '—' }}</td>
+                    <td class="cell-date">{{ task.completedAt ? (task.completedAt | date:'short') : '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- PAGINATOR -->
+            <div class="table-paginator">
+              <span class="paginator-info">
+                Prikazano <strong>{{ paginatorStart }}–{{ paginatorEnd }}</strong> od <strong>{{ historyTasks.length }}</strong> rezultata
+              </span>
+              <div class="paginator-controls">
+                <button nbButton size="small" status="basic" outline
+                        [disabled]="historyPage === 1"
+                        (click)="historyPage = 1; updatePage()">
+                  <nb-icon icon="arrowhead-left-outline"></nb-icon>
+                </button>
+                <button nbButton size="small" status="basic" outline
+                        [disabled]="historyPage === 1"
+                        (click)="prevPage()">
+                  <nb-icon icon="chevron-left-outline"></nb-icon>
+                </button>
+                <span class="page-indicator">
+                  <strong>{{ historyPage }}</strong> / {{ totalPages }}
+                </span>
+                <button nbButton size="small" status="basic" outline
+                        [disabled]="historyPage === totalPages"
+                        (click)="nextPage()">
+                  <nb-icon icon="chevron-right-outline"></nb-icon>
+                </button>
+                <button nbButton size="small" status="basic" outline
+                        [disabled]="historyPage === totalPages"
+                        (click)="historyPage = totalPages; updatePage()">
+                  <nb-icon icon="arrowhead-right-outline"></nb-icon>
+                </button>
+              </div>
+              <div class="paginator-size">
+                <span class="size-label">Redova po stranici:</span>
+                <nb-select [(selected)]="pageSize" (selectedChange)="onPageSizeChange($event)" size="small">
+                  <nb-option [value]="10">10</nb-option>
+                  <nb-option [value]="25">25</nb-option>
+                  <nb-option [value]="50">50</nb-option>
+                </nb-select>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
     </ng-container>
   </nb-card-body>
 </nb-card>

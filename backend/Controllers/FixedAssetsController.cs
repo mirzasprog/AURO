@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
-    [Authorize(Roles = "uprava,interna,podrucni,regionalni,logistika")]
+    [Authorize(Roles = "uprava,informatika")]
     [Route("api/[controller]")]
     [ApiController]
     public class FixedAssetsController : ControllerBase

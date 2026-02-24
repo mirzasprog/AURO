@@ -69,10 +69,10 @@
     <div class="table-container" *ngIf="!loading; else loadingStavke">
       <table class="stavke-table">
         <colgroup>
-          <col *ngIf="rola == 'uprava'" class="col-prodavnica">
+          <col *ngIf="rola == 'uprava' || rola == 'asistent_MLP'" class="col-prodavnica">
           <col class="col-sifra">
           <col class="col-naziv">
-          <col *ngIf="rola == 'uprava'" class="col-bar-kod">
+          <col *ngIf="rola == 'uprava' || rola == 'asistent_MLP'" class="col-bar-kod">
           <col class="col-dobavljac">
           <col class="col-akcija">
           <col class="col-as">
@@ -85,10 +85,10 @@
         </colgroup>
         <thead>
           <tr>
-            <th *ngIf="rola == 'uprava'">Prodavnica</th>
+            <th *ngIf="rola == 'uprava' || rola == 'asistent_MLP'">Prodavnica</th>
             <th>Šifra</th>
             <th>Naziv</th>
-            <th *ngIf="rola == 'uprava'">Bar kod</th>
+            <th *ngIf="rola == 'uprava' || rola == 'asistent_MLP'">Bar kod</th>
             <th>Dobavljač</th>
             <th class="text-end">Akcijska MPC</th>
             <th class="text-end">AS SA</th>
@@ -104,14 +104,14 @@
               'ordered-row': (stavka.kolicina ?? 0) > 0,
               'not-ordered-row': (stavka.kolicina ?? 0) === 0
             }">
-            <td class="text-nowrap" *ngIf="rola == 'uprava'">
+            <td class="text-nowrap" *ngIf="rola == 'uprava' || rola == 'asistent_MLP'">
               <span class="cell-pill">{{ stavka.prodavnica || 'N/A' }}</span>
             </td>
             <td class="mono">{{ stavka.sifra }}</td>
             <td class="naziv-cell">
               <div class="primary-text">{{ stavka.naziv }}</div>
             </td>
-            <td *ngIf="rola == 'uprava'" class="mono">{{ stavka.barKod }}</td>
+            <td *ngIf="rola == 'uprava' || rola == 'asistent_MLP'" class="mono">{{ stavka.barKod }}</td>
             <td>{{ stavka.dobavljac }}</td>
             <td class="text-end numeric">{{ stavka.akcijskaMpc | number: '1.2-2' }}</td>
             <td class="text-end numeric">{{ stavka.asSa | number: '1.0-2' }}</td>

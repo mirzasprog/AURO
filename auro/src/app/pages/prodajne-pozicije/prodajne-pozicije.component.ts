@@ -50,8 +50,8 @@ export class ProdajnePozicijeComponent implements OnInit {
   showEditor = false;
   
   // Search / Autocomplete varijable
-  prodavnicaInputString = ''; // Ono što korisnik vidi u inputu
-  autocompleteOpened = false; // Flag za kontrolu otvaranja
+  prodavnicaInputString = ''; 
+  autocompleteOpened = false; 
   
   // KPI metrics
   ukupnoPozicija = 0;
@@ -126,11 +126,7 @@ export class ProdajnePozicijeComponent implements OnInit {
 
   // --- AUTOCOMPLETE LOGIKA ---
   get filtrovaneProdavnice(): ProdavnicaOption[] {
-    const search = this.prodavnicaInputString.toLowerCase().trim();
-    if (!search) return [];
-    return this.prodavnice.filter(p => 
-      p.name.toLowerCase().includes(search) || p.code.toLowerCase().includes(search)
-    );
+    return this.prodavnice;
   }
 
   onInputFocus(): void {
@@ -138,16 +134,14 @@ export class ProdajnePozicijeComponent implements OnInit {
   }
 
   onProdavnicaSelect(selectedName: string): void {
-    // Nađimo objekat na osnovu imena (ili koda)
     const store = this.prodavnice.find(p => p.name === selectedName);
     
     if (store) {
       this.odabranaProdavnicaId = store.id;
-      this.prodavnicaInputString = store.name; // Osiguraj da input prikazuje pun naziv
+      this.prodavnicaInputString = store.name;
       this.autocompleteOpened = false;
       this.ucitajLayout();
     } else {
-      // Ako korisnik unese nešto što ne postoji i pritisne enter
       this.odabranaProdavnicaId = undefined;
       this.resetState();
     }
@@ -159,8 +153,6 @@ export class ProdajnePozicijeComponent implements OnInit {
     this.osvjeziEditor();
     this.izracunajStatistiku();
   }
-
-  // --- KRAJ AUTOCOMPLETE LOGIKE ---
 
   ucitajLayout(): void {
     if (!this.odabranaProdavnicaId) return;
@@ -205,8 +197,6 @@ export class ProdajnePozicijeComponent implements OnInit {
       } as ProdajniLayout;
 
     this.editorPozicije = this.pozicije.map(pozicija => ({ ...pozicija }));
-    
-    // Hack da se refreshuje komponenta ako je ista
     this.showEditor = false;
     setTimeout(() => {
       this.showEditor = true;
@@ -296,8 +286,6 @@ export class ProdajnePozicijeComponent implements OnInit {
   }
 
   primijeniReportFiltere(): void {
-    // Ova metoda se poziva kad se promijene checkbox filteri
-    // Ne treba ništa posebno jer se filtriranePozicije računa automatski
   }
 
   get filtriranePozicije(): ProdajnaPozicija[] {
@@ -336,7 +324,6 @@ export class ProdajnePozicijeComponent implements OnInit {
     });
   }
 
-  // Za editor uvijek šaljemo sve pozicije
   get filtriraneEditorPozicije(): ProdajnaPozicija[] {
     return this.editorPozicije;
   }
@@ -381,8 +368,6 @@ export class ProdajnePozicijeComponent implements OnInit {
     this.slobodnoPozicija = Math.max(this.ukupnoPozicija - this.zauzetoPozicija, 0);
     this.isticeUskoroPozicija = this.pozicije.filter(p => this.jeUgovorUskoro(p.zakupDo, 30)).length;
     this.vrijednostZakupaUkupno = this.pozicije.reduce((sum, p) => sum + (p.vrijednostZakupa ?? 0), 0);
-
-    // Grouping logic... (skraćeno radi preglednosti, isto je kao tvoje)
     const grupisano: Record<string, TipStatistika> = {};
     this.pozicije.forEach(p => {
       if (!grupisano[p.tip]) grupisano[p.tip] = { tip: p.tip, broj: 0, zauzetaPovrsina: 0, vrijednost: 0, ucesce: 0 };
@@ -446,5 +431,9 @@ export class ProdajnePozicijeComponent implements OnInit {
     this.osvjeziEditor();
     this.izracunajStatistiku();
     this.loading = false;
+  }
+
+  showAllStores(){
+
   }
 }

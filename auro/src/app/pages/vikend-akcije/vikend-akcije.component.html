@@ -118,6 +118,36 @@
                     (click)="otvoriAzuriranjeStavki(akcija)" [disabled]="!jeAkcijaDostupnaZaProdavnicu(akcija)">
                     <nb-icon icon="edit-2"></nb-icon> Otvori
                   </button>
+                  <div *ngSwitchCase="'asistent_MLP'" class="btn-group">
+                    <button nbButton size="small" status="primary"
+                      (click)="otvoriNarudzbe(akcija)"
+                      [disabled]="!jeAkcijaAktivna(akcija)"
+                      nbTooltip="Pregled narudžbi je dostupan samo za aktivne akcije.">
+                      <nb-icon icon="edit-2"></nb-icon> Narudžbe
+                    </button>
+                    <button nbButton size="small" status="info"
+                      (click)="preuzmiIzvjestaj(akcija)" [disabled]="preuzimanjeAkcijaId === akcija.uniqueId">
+                      <nb-spinner *ngIf="preuzimanjeAkcijaId === akcija.uniqueId" size="tiny"></nb-spinner>
+                      <span *ngIf="preuzimanjeAkcijaId !== akcija.uniqueId">
+                        <nb-icon icon="download-outline"></nb-icon> Preuzmi izvještaj
+                      </span>
+                    </button>
+                    <div class="extend-group">
+                      <input nbInput type="number" min="1" step="1" class="extend-input"
+                        [ngModel]="getProduzenjeSati(akcija)"
+                        (ngModelChange)="postaviProduzenjeSati(akcija, $event)"
+                        [disabled]="!mozeProduzitiAkciju(akcija)">
+                      <button nbButton size="small" status="warning"
+                        (click)="produziAkciju(akcija)"
+                        [disabled]="!mozeProduzitiAkciju(akcija) || produzenjeLoadingId === akcija.uniqueId"
+                        nbTooltip="Produženje je moguće samo jednom, i to na posljednji dan akcije.">
+                        <nb-spinner *ngIf="produzenjeLoadingId === akcija.uniqueId" size="tiny"></nb-spinner>
+                        <span *ngIf="produzenjeLoadingId !== akcija.uniqueId">
+                          <nb-icon icon="clock-outline"></nb-icon> Produži
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                   <div *ngSwitchCase="'uprava'" class="btn-group">
                     <button nbButton size="small" status="primary"
                       (click)="otvoriNarudzbe(akcija)"

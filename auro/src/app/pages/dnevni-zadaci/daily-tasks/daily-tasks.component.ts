@@ -17,7 +17,7 @@ import { CustomTaskDialogComponent } from '../custom-task-dialog/custom-task-dia
 export class DailyTasksComponent implements OnInit, OnDestroy {
   readonly repetitiveType = 'REPETITIVE';
   readonly customType = 'CUSTOM';
-
+  typeChartData: { name: string; value: number }[] = [];
   tasks: DailyTask[] = [];
   repetitiveTasks: DailyTask[] = [];
   customTasks: DailyTask[] = [];
@@ -48,6 +48,9 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
   historyStatus = 'DONE';
   historyType = 'ALL';
   private destroy$ = new Subject<void>();
+  historyPage = 1;
+  pageSize = 10;
+  pagedHistoryTasks: DailyTask[] = [];
 
   constructor(
     private readonly authService: NbAuthService,
@@ -77,7 +80,45 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+get totalPages(): number {
+  return Math.max(1, Math.ceil(this.historyTasks.length / this.pageSize));
+}
 
+get paginatorStart(): number {
+  return this.historyTasks.length === 0 ? 0 : (this.historyPage - 1) * this.pageSize + 1;
+}
+
+get paginatorEnd(): number {
+  return Math.min(this.historyPage * this.pageSize, this.historyTasks.length);
+}
+
+// ─── DODAJ OVE METODE u klasu ─────────────────────────────────────────────────
+
+updatePage(): void {
+  this.historyPage = Math.min(Math.max(1, this.historyPage), this.totalPages);
+  const start = (this.historyPage - 1) * this.pageSize;
+  this.pagedHistoryTasks = this.historyTasks.slice(start, start + this.pageSize);
+}
+
+nextPage(): void {
+  if (this.historyPage < this.totalPages) {
+    this.historyPage++;
+    this.updatePage();
+  }
+}
+
+prevPage(): void {
+  if (this.historyPage > 1) {
+    this.historyPage--;
+    this.updatePage();
+  }
+}
+
+onPageSizeChange(size: number): void {
+  this.pageSize = size;
+  this.historyPage = 1;
+  this.updatePage();
+}
   get canManageStores(): boolean {
     return this.role !== 'prodavnica';
   }
@@ -166,7 +207,9 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (tasks) => {
-          this.historyTasks = tasks;
+      this.historyTasks = tasks;
+      this.historyPage = 1;
+      this.updatePage();
           this.historyLoading = false;
         },
         error: (err) => {
@@ -361,6 +404,10 @@ export class DailyTasksComponent implements OnInit, OnDestroy {
       { name: this.statusLabelMap.IN_PROGRESS, value: inProgress },
       { name: this.statusLabelMap.DONE, value: completed }
     ].filter(item => item.value > 0);
+  this.typeChartData = [
+  { name: 'Ponavljajući', value: this.repetitiveTasks.length },
+  { name: 'Jednokratni',  value: this.customTasks.length }
+].filter(item => item.value > 0);
   }
 
   downloadReport(): void {

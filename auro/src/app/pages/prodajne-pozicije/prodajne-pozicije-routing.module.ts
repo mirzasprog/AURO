@@ -9,7 +9,7 @@ const routes: Routes = [
     path: '',
     component: ProdajnePozicijeComponent,
     canActivate: [AuthGuard],
-    data: { roles: [Role.podrucni, Role.regionalni, Role.interna, Role.uprava] }
+    data: { roles: [Role.podrucni, Role.regionalni, Role.informatika, Role.uprava, Role.prodajne_pozicije, Role.trading] }
   }
 ];
 

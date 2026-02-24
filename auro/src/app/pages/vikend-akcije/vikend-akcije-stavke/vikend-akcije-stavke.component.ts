@@ -52,7 +52,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   ucitajStavke(ocistiPoruke: boolean = true): void {
     this.loading = true;
     this.greska = '';
-    this.prikaziFiltre = this.rola === 'uprava' ? this.prikaziFiltre : false;
+    this.prikaziFiltre = this.rola === 'uprava' || this.rola === 'asistent_MLP' ? this.prikaziFiltre : false;
     if (!this.prikaziFiltre) {
       this.searchTerm = '';
       this.filterStatus = 'sve';
@@ -125,7 +125,7 @@ export class VikendAkcijeStavkeComponent implements OnInit {
   }
 
   mozeUrediti(): boolean {
-    return this.rola === 'uprava' || (this.rola === 'prodavnica' && this.prodavnicaMozeNarucivati);
+    return this.rola === 'uprava' || this.rola === 'asistent_MLP' || (this.rola === 'prodavnica' && this.prodavnicaMozeNarucivati);
   }
 
   mozeSpasiti(): boolean {

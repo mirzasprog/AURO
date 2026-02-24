@@ -1,5 +1,5 @@
-<nb-card *ngIf="rola !== 'prodavnica' && rola !== 'uprava' && rola !== 'podrucni' && rola !== 'regionalni'"
-  class="dashboard-card">
+<nb-card *ngIf="rola !== 'prodavnica' && rola !== 'uprava' && rola !== 'podrucni' && rola !== 'regionalni' && rola !== 'asistent_MLP' && rola !== 'informatika'" class="access-denied-card">
+
   <nb-card-header class="dashboard-header">
     <div class="header-content">
       <div class="header-icon">
@@ -370,7 +370,7 @@
   </nb-card>
 </ng-template>
 
-<div *ngIf="this.rola =='uprava'" class="data-section">
+<div *ngIf="this.rola =='uprava' || this.rola === 'informatika'" class="data-section">
   <div class="section-heading data-heading">
     <div>
       <p class="eyebrow">Detaljni pregled</p>

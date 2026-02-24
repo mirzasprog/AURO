@@ -9,7 +9,7 @@ const routes: Routes = [
     path: '',
     component: VikendAkcijeComponent,
     canActivate: [AuthGuard],
-    data: { roles: [Role.prodavnica, Role.uprava] }
+    data: { roles: [Role.prodavnica, Role.uprava, Role.asistent_MLP, Role.informatika] }
   }
 ];
 

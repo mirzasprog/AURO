@@ -104,12 +104,13 @@ const routes: Routes = [{
     },
     {
       path: 'vikend-akcije',
+       data: { roles: [Role.uprava, Role.asistent_MLP,Role.kontrolaKvaliteta] },
       loadChildren: () => import('./vikend-akcije/vikend-akcije.module')
       .then(m => m.VikendAkcijeModule)
     },
     {
       path: 'osnovna-sredstva',
-      data: { roles: [Role.uprava, Role.interna, Role.podrucni, Role.regionalni, Role.logistika] },
+      data: { roles: [Role.uprava, Role.informatika,] },
       canActivate: [AuthGuard],
       loadChildren: () => import('./osnovna-sredstva/osnovna-sredstva.module')
       .then(m => m.OsnovnaSredstvaModule)

@@ -9,4 +9,8 @@ export enum Role {
   skladiste = "skladiste",
   kontrolaKvaliteta = "kontrolaKvaliteta",
   uprava = "uprava",
+  informatika = "informatika",
+  asistent_MLP = "asistent_MLP",
+  trading = "trading",
+  prodajne_pozicije = "prodajne_pozicije",
 }

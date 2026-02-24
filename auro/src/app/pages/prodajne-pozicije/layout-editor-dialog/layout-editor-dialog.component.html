@@ -1,6 +1,6 @@
 <nb-card class="editor-card">
   <nb-card-header>
-    <div class="header-toolbar">
+    <div class="header-toolbar" *ngIf="this.rola === 'prodajne_pozicije'">
       <div class="toolbar-left">
         <button nbButton size="small" status="success" (click)="otvoriModalZaDodavanje()">
           <nb-icon icon="plus-outline"></nb-icon>

@@ -111,7 +111,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
         rola: this.rola,
         brojProdavnice: this.brojProdavnice,
         prodavnicaMozeNarucivati: this.jeAkcijaDostupnaZaProdavnicu(akcija),
-        prikaziFiltre: this.rola === 'uprava',
+        prikaziFiltre: this.rola === 'uprava' || this.rola === 'asistent_MLP',
         prikaziSamoNarucene,
       },
       closeOnBackdropClick: false,
@@ -134,11 +134,11 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   }
 
   prikaziAdminZonu(): boolean {
-    return this.rola === 'uprava';
+    return this.rola === 'uprava' || this.rola === 'asistent_MLP';
   }
 
   prikaziAkcijeKolonu(): boolean {
-    return this.rola === 'uprava' || this.rola === 'prodavnica';
+    return this.rola === 'uprava' || this.rola === 'prodavnica' || this.rola === 'asistent_MLP';
   }
 
   redKlasa(akcija: VikendAkcija): string {
@@ -439,7 +439,7 @@ export class VikendAkcijeComponent implements OnInit, OnDestroy {
   }
 
   mozeProduzitiAkciju(akcija: VikendAkcija): boolean {
-    if (this.rola !== 'uprava') {
+    if (this.rola !== 'uprava' && this.rola !== 'asistent_MLP') {
       return false;
     }
 

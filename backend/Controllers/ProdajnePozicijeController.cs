@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace backend.Controllers
 {
-    [Authorize(Roles = "podrucni,regionalni,interna,uprava")]
+    [Authorize(Roles = "prodajne_pozicije,informatika,uprava, trading")]
     [Route("api/[controller]")]
     [ApiController]
     public class ProdajnePozicijeController : ControllerBase

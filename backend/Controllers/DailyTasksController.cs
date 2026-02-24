@@ -36,7 +36,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("stores")]
-        [Authorize(Roles = "podrucni,regionalni,interna,uprava")]
+        [Authorize(Roles = "podrucni,regionalni,interna,uprava,asistent_MLP, prodajne_pozicije, trading, informatika")]
         public async Task<IActionResult> GetStores()
         {
             var stores = await _repository.GetStoresAsync();
@@ -101,7 +101,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("store/{storeId:int}/custom")]
-        [Authorize(Roles = "podrucni,regionalni,prodavnica,uprava")]
+        [Authorize(Roles = "podrucni,regionalni,prodavnica,uprava,asistent_MLP, prodajne_pozicije, trading, informatika")]
         public async Task<IActionResult> CreateCustomTask(int storeId, [FromBody] DailyTaskCreateRequest request)
         {
             request.ProdavnicaId = storeId;
@@ -115,7 +115,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("bulk")]
-        [Authorize(Roles = "uprava")]
+        [Authorize(Roles = "uprava, asistent_MLP, informatika")]
         public async Task<IActionResult> CreateBulkCustomTask([FromBody] DailyTaskBulkCreateRequest request)
         {
             var result = await _repository.CreateBulkCustomTasksAsync(request);
@@ -128,7 +128,7 @@ namespace backend.Controllers
         }
 
         [HttpPut("custom/{taskId:int}")]
-        [Authorize(Roles = "podrucni,regionalni,prodavnica,uprava")]
+        [Authorize(Roles = "podrucni,regionalni,prodavnica,uprava,asistent_MLP, prodajne_pozicije, trading, informatika")]
         public async Task<IActionResult> UpdateCustomTask(int taskId, [FromBody] DailyTaskUpdateRequest request)
         {
             var result = await _repository.UpdateCustomTaskAsync(taskId, request);

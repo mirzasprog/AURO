@@ -8,6 +8,7 @@ import { DnevniZadaciRoutingModule } from './dnevni-zadaci-routing.module';
 import { DailyTasksComponent } from './daily-tasks/daily-tasks.component';
 import { TaskDetailDialogComponent } from './task-detail-dialog/task-detail-dialog.component';
 import { CustomTaskDialogComponent } from './custom-task-dialog/custom-task-dialog.component';
+import { DropdownModule } from 'primeng-lts/dropdown';
 
 @NgModule({
   declarations: [
@@ -20,6 +21,7 @@ import { CustomTaskDialogComponent } from './custom-task-dialog/custom-task-dial
     FormsModule,
     ReactiveFormsModule,
     ThemeModule,
+    DropdownModule,
     DnevniZadaciRoutingModule,
     NbCardModule,
     NbIconModule,

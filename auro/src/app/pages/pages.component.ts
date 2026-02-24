@@ -124,6 +124,9 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Prodajne pozicije"], true); //TMP: kreirati read-only pristup
+          this.setMenuHidden(["Osnovna sredstva"], true);
+          this.setMenuHidden(["Smjene"], false);
           this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
@@ -131,7 +134,7 @@ export class PagesComponent implements OnInit {
           this.postaviDnevneZadatkeNotifikaciju();
         }
         else if (rola == "interna") {
-          this.setMenuHidden(["Dnevni zadaci"], false);
+          this.setMenuHidden(["Dnevni zadaci"], true);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure", "Unos"], true);
           this.setMenuHidden(["Inventure"], false);
@@ -143,24 +146,30 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Prodajne pozicije"], false);
+          this.setMenuHidden(["Osnovna sredstva"], true);
+          this.setMenuHidden(["Smjene"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Prodajne pozicije"], true);
          // this.setMenuHidden(["Fakturisanje"], true);
           this.setDailyTasksBadge(false);
         }
         else if (rola == "podrucni") {
-          this.setMenuHidden(["Dnevni zadaci"], false);
+          this.setMenuHidden(["Dnevni zadaci"], false); //TMP: kreirati pristup po prodavnicama
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure", "Unos"], true);
           this.setMenuHidden(["Inventure"], true);
-          this.setMenuHidden(["Zahtjevi"], false);
+          this.setMenuHidden(["Zahtjevi"], true);
           this.setMenuHidden(["Pregled"], true);
           this.setMenuHidden(["Datumi"], true);
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
-          this.setMenuHidden(["Završeni zahtjevi"], false);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
           this.setMenuHidden(["Vikend akcije"], true);
-          this.setMenuHidden(["Prodajne pozicije"], false);
+          this.setMenuHidden(["Prodajne pozicije"], true); //TMP: kreirati read-only pristup
+          this.setMenuHidden(["Osnovna sredstva"], true); //TMP: kreirati read-only pristup
+          this.setMenuHidden(["Smjene"], true);           //TMP: kreirati read-only pristup
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Prodajne pozicije"], true);
         //  this.setMenuHidden(["Fakturisanje"], true);
           this.setDailyTasksBadge(false);
         }
@@ -181,7 +190,9 @@ export class PagesComponent implements OnInit {
           this.setDailyTasksBadge(false);
         }
         else if (rola == "kontrola_kvaliteta") {
-          this.setMenuHidden(["Dnevni zadaci"], false);
+          this.setMenuHidden(["Dnevni zadaci"], true);
+          this.setMenuHidden(["Smjene"], true);
+          this.setMenuHidden(["Osnovna sredstva"], true);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure"], true);
           this.setMenuHidden(["Zahtjevi"], true);
@@ -193,6 +204,7 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Prodajne pozicije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
+          
          // this.setMenuHidden(["Fakturisanje"], true);
           this.setDailyTasksBadge(false);
         }
@@ -206,13 +218,15 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Smjene"], true);
           this.setMenuHidden(["Vikend akcije"], false);
           this.setMenuHidden(["Prodajne pozicije"], false);
+          this.setMenuHidden(["Osnovna sredstva"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], false);
          // this.setMenuHidden(["Fakturisanje"], true);
           this.setDailyTasksBadge(false);
         }
-        else if(rola == "finansije") {
+        else if(rola == "informatika") {
           this.setMenuHidden(["Dnevni zadaci"], false);
           this.setMenuHidden(["Otpis"], true);
           this.setMenuHidden(["Inventure"], true);
@@ -222,15 +236,70 @@ export class PagesComponent implements OnInit {
           this.setMenuHidden(["Pregled dinamike otpisa"], true);
           this.setMenuHidden(["Završeni zahtjevi"], true);
           this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], false);
+          this.setMenuHidden(["Kvaliteta VIP-a"], false);
+          this.setMenuHidden(["Prodajne pozicije"], false);
+          this.setMenuHidden(["Osnovna sredstva"], false);
+          this.setMenuHidden(["Fakturisanje"], false);
+          this.setDailyTasksBadge(false);
+        }         
+        else if(rola == "trading") {
+          this.setMenuHidden(["Dnevni zadaci"], true);
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Smjene"], true);
           this.setMenuHidden(["Vikend akcije"], true);
           this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Prodajne pozicije"], false);
+          this.setMenuHidden(["Osnovna sredstva"], true);
+          this.setMenuHidden(["Fakturisanje"], true);
+          this.setDailyTasksBadge(false);
+        }         
+        else if(rola == "asistent_MLP") {
+          this.setMenuHidden(["Dnevni zadaci"], false);
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], false);
+          this.setMenuHidden(["Smjene"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], false);
           this.setMenuHidden(["Prodajne pozicije"], true);
-          this.setMenuHidden(["Fakturisanje"], false);
+          this.setMenuHidden(["Fakturisanje"], true);
+          this.setMenuHidden(["Osnovna sredstva"], true);
+          this.setDailyTasksBadge(false);
+        }         
+        else if(rola == "prodajne_pozicije") {
+          this.setMenuHidden(["Dnevni zadaci"], true);
+          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Inventure"], true);
+          this.setMenuHidden(["Zahtjevi"], true);
+          this.setMenuHidden(["Pregled"], true);
+          this.setMenuHidden(["Datumi"], true);
+          this.setMenuHidden(["Pregled dinamike otpisa"], true);
+          this.setMenuHidden(["Završeni zahtjevi"], true);
+          this.setMenuHidden(["Akcije"], true);
+          this.setMenuHidden(["Vikend akcije"], true);
+          this.setMenuHidden(["Smjene"], true);
+          this.setMenuHidden(["Kvaliteta VIP-a"], true);
+          this.setMenuHidden(["Prodajne pozicije"], false);
+          this.setMenuHidden(["Fakturisanje"], true);
+          this.setMenuHidden(["Osnovna sredstva"], true);
           this.setDailyTasksBadge(false);
         }       
         else {
           this.setMenuHidden(["Dnevni zadaci"], false);
-          this.setMenuHidden(["Otpis"], true);
+          this.setMenuHidden(["Otpis"], true);+
           this.setMenuHidden(["Inventure"], true);
           this.setMenuHidden(["Zahtjevi"], true);
           this.setMenuHidden(["Pregled"], true);

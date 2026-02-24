@@ -3,30 +3,32 @@
     <div class="title-block">
       <h4>Prodajne Pozicije</h4>
       
-      <div class="store-select">
-        <input 
-          nbInput
-          type="text"
-          fullWidth
-          placeholder="🔍 Pretraži prodavnicu..."
-          [nbAutocomplete]="auto"
-          [ngModelOptions]="{standalone: true}"
-          [(ngModel)]="prodavnicaInputString"
-          (focus)="onInputFocus()"
-          class="store-search-input"
-        />
-        <nb-autocomplete #auto (selectedChange)="onProdavnicaSelect($event)" [activeFirst]="false">
-          <nb-option *ngFor="let prodavnica of filtrovaneProdavnice" [value]="prodavnica.name">
-            <div class="store-option">
-              <span class="store-code">{{ prodavnica.code }}</span>
-              <span class="store-name">{{ prodavnica.name }}</span>
-            </div>
-          </nb-option>
-          <nb-option *ngIf="filtrovaneProdavnice.length === 0 && prodavnicaInputString.trim()" disabled>
-             Nema rezultata
-          </nb-option>
-        </nb-autocomplete>
+<div class="store-select">
+  <p-dropdown
+    #storeDropdown
+    class="store-dropdown"
+    [options]="filtrovaneProdavnice"
+    [(ngModel)]="prodavnicaInputString"
+    optionLabel="name"
+    optionValue="name"
+    [filter]="true"
+    filterBy="name,code"
+    placeholder="🔍 Pretraži prodavnicu..."
+    (onChange)="onProdavnicaSelect($event.value)"
+    appendTo="body"
+  >
+    <ng-template pTemplate="item" let-prodavnica>
+      <div class="store-option">
+        <span class="store-code">{{ prodavnica.code }}</span>
+        <span class="store-name">{{ prodavnica.name }}</span>
       </div>
+    </ng-template>
+
+    <ng-template pTemplate="emptyfilter">
+      <span>Nema rezultata</span>
+    </ng-template>
+  </p-dropdown>
+</div>
     </div>
 
     <div class="header-actions">
