@@ -198,6 +198,23 @@ export const MENU_ITEMS: NbMenuItem[] = [
     icon: "swap-outline",
     link: "/pages/kvalitetaVIP"
   },
+  /** 
+  {
+    title: "Pazar",
+    icon: "file-text",
+    children: [
+      {
+        title: "Unos",
+        icon: "plus-square",
+        link: "/pages/pazar/unos"
+      },
+      {
+        title: "Pregled",
+        icon: "file",
+        link: "/pages/pazar/pregled"
+      },
+    ]
+  },   */
   /**  TEMP
     {
     title: "Fakturisanje usluga",

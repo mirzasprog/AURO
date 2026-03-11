@@ -19,7 +19,7 @@ namespace backend.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "uprava")]
+        [Authorize(Roles = "uprava, asistent_MLP")]
         public async Task<ActionResult<VikendAkcijaDto>> Kreiraj([FromBody] VikendAkcijaCreateRequest zahtjev)
         {
             if (zahtjev == null || zahtjev.Pocetak == default || zahtjev.Kraj == default)
@@ -63,7 +63,7 @@ namespace backend.Controllers
         }
 
         [HttpPut("{vikendAkcijaId}/stavke")]
-        [Authorize(Roles = "prodavnica,podrucni,regionalni,uprava")]
+        [Authorize(Roles = "prodavnica,podrucni,regionalni,uprava, asistent_MLP")]
         public async Task<IActionResult> AzurirajStavke(string vikendAkcijaId, [FromBody] IEnumerable<VikendAkcijaStavkaUpdate> izmjene)
         {
             if (izmjene == null)
@@ -87,7 +87,7 @@ namespace backend.Controllers
         }
 
         [HttpPut("{vikendAkcijaId}/produzi")]
-        [Authorize(Roles = "uprava")]
+        [Authorize(Roles = "uprava, asistent_MLP")]
         public async Task<IActionResult> ProduziAkciju(string vikendAkcijaId, [FromBody] VikendAkcijaProduzenjeRequest zahtjev)
         {
             if (zahtjev == null || zahtjev.BrojSati <= 0)
@@ -111,7 +111,7 @@ namespace backend.Controllers
         }
 
         [HttpPost("artikli-import")]
-        [Authorize(Roles = "uprava")]
+        [Authorize(Roles = "uprava, asistent_MLP")]
         public async Task<IActionResult> ImportArtikala([FromForm] VikendAkcijaArtikliUploadRequest zahtjev)
         {
             if (zahtjev.File == null || string.IsNullOrWhiteSpace(zahtjev.AkcijaId))

@@ -1,0 +1,235 @@
+<div class="page-wrapper">
+  <div class="form-card">
+
+    <div class="form-card-header">
+      <i class="fas fa-archive"></i>&nbsp; Novi unos pazara
+      <span class="today-date">{{ danasnjiDatum | date: 'dd-MM-yyyy' }}</span>
+    </div>
+
+    <form #unosForm="ngForm" (ngSubmit)="unosForm.valid && spremi()" (keydown.enter)="$event.preventDefault()"
+      (keydown.shift.enter)="$event.preventDefault()">
+      <div class="form-group row">
+        <div class="col">
+
+          <!-- Poslovođa -->
+          <div class="row form-group">
+            <div class="col">
+              <label for="poslovodja">Poslovođa/Zamjenik poslovođe:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text rounded"><i class="fas fa-user-tie"></i></span>
+                </div>
+                <select class="form-control form-control-sm col-8 rounded" name="poslovodja"
+                  [(ngModel)]="unos.ovlastenaOsobaID"
+                  (change)="postaviPoslovodju(poslovodja.value)"
+                  #poslovodja="ngModel"
+                  [ngClass]="{ 'is-invalid': unosForm.submitted && poslovodja.invalid }"
+                  required>
+                  <option [value]="null" disabled selected>Odaberite opciju...</option>
+                  <option *ngFor="let p of listaPoslovodja" [value]="p.id">{{ p.imePrezime }}</option>
+                </select>
+              </div>
+              <div *ngIf="unosForm.submitted && poslovodja.invalid" class="invalid-feedback d-block">
+                Odaberite poslovođu ili zamjenika poslovođe
+              </div>
+            </div>
+          </div>
+          <br>
+
+          <!-- Predmet uplate -->
+          <div class="row form-group">
+            <div class="col">
+              <label for="predmetUplate">Predmet uplate:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text rounded"><i class="fas fa-money-bill-wave"></i></span>
+                </div>
+                <select class="form-control form-control-sm col-8 rounded" name="predmetUplate"
+                  [(ngModel)]="unos.predmetUplate"
+                  (change)="postaviPredmetUplate(predmetUplate.value)"
+                  #predmetUplate="ngModel"
+                  [ngClass]="{ 'is-invalid': unosForm.submitted && predmetUplate.invalid }"
+                  required>
+                  <option value="" disabled selected>Odaberite predmet uplate...</option>
+                  <option *ngFor="let predmet of listaPredmetaUplate" [value]="predmet.naziv">{{ predmet.naziv }}</option>
+                </select>
+              </div>
+              <div *ngIf="unosForm.submitted && predmetUplate.invalid" class="invalid-feedback d-block">
+                Odaberite predmet uplate
+              </div>
+            </div>
+          </div>
+          <br>
+
+          <!-- Za datum -->
+          <div *ngIf="!odabraneElektronskeUplate" class="row form-group">
+            <div class="col">
+              <label for="datum">Za datum:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text rounded"><i class="fas fa-calendar-day"></i></span>
+                </div>
+                <input class="form-control form-control-sm col-8 rounded" type="text" mwlFlatpickr
+                  name="datum"
+                  [maxDate]="danasnjiDatum"
+                  [minDate]="minimalniDatum"
+                  [(ngModel)]="unos.datum"
+                  placeholder="Unesite datum"
+                  required
+                  #datum="ngModel"
+                  [ngClass]="{ 'is-invalid': unosForm.submitted && datum.invalid }"
+                  [dateFormat]="'d.m.Y'"
+                  autocomplete="off">
+              </div>
+              <div *ngIf="unosForm.submitted && datum.invalid" class="invalid-feedback d-block">
+                Unesite datum
+              </div>
+            </div>
+          </div>
+          <br>
+
+          <!-- Datum od-do -->
+          <div *ngIf="odabraneElektronskeUplate" class="row form-group">
+            <div class="col">
+              <label for="datumi">Datum od - do:</label>
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <span class="input-group-text rounded"><i class="fas fa-calendar-alt"></i></span>
+                </div>
+                <input class="form-control form-control-sm col-8 rounded" type="text" mwlFlatpickr
+                  name="datumi"
+                  [(ngModel)]="odabraniDatumi"
+                  required
+                  #datumi="ngModel"
+                  [convertModelValue]="true"
+                  placeholder="Odaberite raspon datuma"
+                  [ngClass]="{ 'is-invalid': unosForm.submitted && datumi.invalid }"
+                  [dateFormat]="'d.m.Y'"
+                  mode="range"
+                  autocomplete="off">
+              </div>
+              <div *ngIf="unosForm.submitted && datumi.invalid" class="invalid-feedback d-block">
+                Odaberite raspon datuma!
+              </div>
+            </div>
+          </div>
+          <br>
+
+          <!-- Barkod -->
+          <div class="row form-group">
+            <div class="col">
+              <label for="barkod">Barkod vrećice/amanetne pošiljke:</label>
+              <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                  <span class="input-group-text rounded"><i class="fas fa-barcode"></i></span>
+                </div>
+                <input class="form-control form-control-sm col-8 rounded" name="barkod" type="text"
+                  placeholder="Unesite barkod"
+                  [(ngModel)]="unos.barkod"
+                  autocomplete="off"
+                  pattern="[0-9]+"
+                  required
+                  #barkod="ngModel"
+                  [ngClass]="{ 'is-invalid': unosForm.submitted && barkod.invalid }" />
+              </div>
+              <div *ngIf="unosForm.submitted && barkod.invalid" class="invalid-feedback d-block">
+                <div *ngIf="barkod.errors?.pattern">Unesite broj</div>
+                <div *ngIf="barkod.errors?.required">Unesite barkod</div>
+              </div>
+            </div>
+          </div>
+          <br>
+        </div>
+
+        <!-- Tabela sa apoenima -->
+        <div class="col">
+          <table class="table table-sm" id="tabelaPazara">
+            <thead>
+              <tr class="table-active">
+                <th class="text-center" scope="col">Vrsta apoena</th>
+                <th class="text-center" scope="col">Broj komada</th>
+                <th class="text-center" scope="col">Iznos (u BAM)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-center">200</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada200" (change)="izracunajIznos(200)" [(ngModel)]="unos.brojKomada200" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos200 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">100</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada100" (change)="izracunajIznos(100)" [(ngModel)]="unos.brojKomada100" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos100 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">50</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada50" (change)="izracunajIznos(50)" [(ngModel)]="unos.brojKomada50" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos50 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">20</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada20" (change)="izracunajIznos(20)" [(ngModel)]="unos.brojKomada20" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos20 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">10</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada10" (change)="izracunajIznos(10)" [(ngModel)]="unos.brojKomada10" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos10 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">5</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada5" (change)="izracunajIznos(5)" [(ngModel)]="unos.brojKomada5" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos5 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">2</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada2" (change)="izracunajIznos(2)" [(ngModel)]="unos.brojKomada2" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos2 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">1</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada1" (change)="izracunajIznos(1)" [(ngModel)]="unos.brojKomada1" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos1 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">0,50</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada050" (change)="izracunajIznos(0.50)" [(ngModel)]="unos.brojKomada050" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos050 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">0,20</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada020" (change)="izracunajIznos(0.20)" [(ngModel)]="unos.brojKomada020" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos020 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">0,10</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada010" (change)="izracunajIznos(0.10)" [(ngModel)]="unos.brojKomada010" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos010 | number:'1.2-2':'bs' }}</td>
+              </tr>
+              <tr>
+                <td class="text-center">0,05</td>
+                <td><input class="form-control form-control-sm col-4 mx-auto" type="number" min="0" name="brojKomada005" (change)="izracunajIznos(0.05)" [(ngModel)]="unos.brojKomada005" autocomplete="off"></td>
+                <td class="text-center">{{ unos.iznos005 | number:'1.2-2':'bs' }}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">Ukupno (u BAM):</th>
+                <td class="font-weight-bold">{{ iznos | number:'1.2-2':'bs' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- Button za spremanje -->
+      <div class="col">
+        <button class="btn btn-primary mb-2" [disabled]="unosForm.invalid" type="submit" id="button" style="float:inline-end">
+          <i class="fas fa-check-square"></i>&nbsp;&nbsp;Spremi
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>

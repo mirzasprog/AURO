@@ -557,10 +557,10 @@ namespace backend.Entities
                     .IsUnicode(false);
 
                 entity.Property(e => e.Kolicina)
-                    .HasColumnType("int");
+                    .HasColumnType("decimal(18,2)");
 
                 entity.Property(e => e.ReklamiranaKolicina)
-                    .HasColumnType("int");              
+                    .HasColumnType("decimal(18,2)");              
                     
                 entity.Property(e => e.BrojZaduzenjaMLP)
                     .HasMaxLength(50)

@@ -21,7 +21,10 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
   unesenaKolicina: string = null;
   //Varijabla za spremanje reklamirane kolicnie artikla
   unesenaReklamiranaKolicina: string = null;
+  //Varijabla za spremanje nabavne cijene artikla
   nabavnaCijena : number;
+  //Varijabla zza spremanje razloga reklamacije
+  razlogReklamacije:string;
   //Varijabla koja sprema generisani unikatni broj dokumenta (ID) za inventuru
   jedinstveniID: string;
   //Lista podataka za unos
@@ -40,6 +43,22 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
     brojZaduzenjaMLP: null,
 
   };
+  // Lista razloga
+  razloziReklamacije: string[] = [
+    'Trulež',
+    'Pljesnivost',
+    'Nagnječenje',
+    'Prezrelost plodova',
+    'Nedozrelost plodova',
+    'Promrzli plodovi',
+    'Dehidrirani plodovi (isušeni plodovi)',
+    'Kalibar: presitno',
+    'Kalibar: prekrupno',
+    'Crvljivost',
+    'Klijavost',
+    'Diskoloracija (posmeđenja, neadekvatna boja)',
+    'Premekani plodovi/vodenost'
+  ];
   datumPrijema: Date;
   //Varijabla za spremanje zadanog pocetnog datum za prikaz podataka
   datumOd: Date;
@@ -178,16 +197,16 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
     const reklamiranaKolicina = parseFloat(this.unesenaReklamiranaKolicina.replace(',', '.'));
 
     if (isNaN(kolicina) || isNaN(reklamiranaKolicina)) {
-      Swal.fire("Greška", "Unesite ispravne numeričke vrijednosti za količine!", "error");
+      alert("Unesite ispravne numeričke vrijednosti za količine!");
       return;
     }
 
-    if (reklamiranaKolicina >= kolicina) {
-      Swal.fire("Upozorenje", "Reklamirana količina mora biti manja od zaprimljene!", "warning");
+    if (reklamiranaKolicina > kolicina) {
+      alert("Reklamirana količina mora biti manja od zaprimljene!");
       return;
     }
 
-    this.unos.razlog = "Narušen kvalitet voća i povrća";
+    this.unos.razlog = this.razlogReklamacije;;
     this.unos.kolicina = kolicina;
     this.unos.reklamiranaKolicina = reklamiranaKolicina;
     this.unos.nabavnaCijena = this.nabavnaCijena;
@@ -279,6 +298,7 @@ export class ReklamacijeKvalitetaVIPComponent implements OnInit {
     this.unos = { razlog: '', komentar: '', sifra: '', naziv: '', jedinicaMjere: '', kolicina: 1, brojProdavnice: '',
      brojDokumenta: '', reklamiranaKolicina: 1, lot:'', nabavnaCijena:0, brojZaduzenjaMLP: 0,};
     this.unesenaKolicina = '';
+    this.razlogReklamacije = '';
     this.unesenaReklamiranaKolicina = '';
     this.datumPrijema = null;
     this.nabavnaCijena = 0;

@@ -114,6 +114,13 @@ const routes: Routes = [{
       canActivate: [AuthGuard],
       loadChildren: () => import('./osnovna-sredstva/osnovna-sredstva.module')
       .then(m => m.OsnovnaSredstvaModule)
+    },    
+    {
+      path: 'pazar',
+      data: { roles: [Role.prodavnica, Role.informatika,] },
+      canActivate: [AuthGuard],
+      loadChildren: () => import('./Pazar/pazar.module')
+      .then(m => m.PazarModule)
     },
     {
       path: 'fakturisanje-usluga',

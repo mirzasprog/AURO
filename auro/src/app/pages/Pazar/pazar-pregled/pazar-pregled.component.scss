@@ -1,0 +1,141 @@
+@import '~bootstrap/scss/bootstrap';
+
+/* Dugmad */
+#button {
+  border-radius: 5px;
+  border: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.5s ease;
+}
+
+#button:hover {
+  border-radius: 0px;
+  transform: scale(1.05);
+  transition: all 0.5s ease;
+}
+
+/* Search input */
+#pretraga {
+  box-shadow: 0 0 30px #d7d8d5;
+  border: 2px solid #b6b6b5;
+  border-radius: 0;
+  transition: 0.5s;
+  width: 300px;
+}
+
+/* ngx-datatable bootstrap stilovi */
+::ng-deep .ngx-datatable.bootstrap {
+  border: 1px solid #dee2e6 !important;
+  border-radius: 4px;
+  overflow: hidden;
+
+  .datatable-header {
+    background-color: #e9ecef;
+    border-bottom: 2px solid #dee2e6;
+
+    .datatable-header-cell {
+      border-right: 1px solid #dee2e6;
+      padding: 10px 12px;
+      font-weight: 700;
+      font-size: 0.875rem;
+      color: #495057;
+
+      &:last-child {
+        border-right: none;
+      }
+    }
+  }
+
+  .datatable-body {
+    .datatable-body-row {
+      border-bottom: 1px solid #dee2e6;
+
+      &:hover {
+        background-color: #f8f9fa !important;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .datatable-body-cell {
+        border-right: 1px solid #dee2e6;
+        padding: 8px 12px;
+        font-size: 0.875rem;
+        display: flex;
+        align-items: center;
+
+        &:last-child {
+          border-right: none;
+        }
+      }
+    }
+
+    /* Prazna tabela */
+    .empty-row {
+      padding: 20px;
+      text-align: center;
+      color: #6c757d;
+    }
+  }
+
+  .datatable-footer {
+    background-color: #e9ecef;
+    border-top: 2px solid #dee2e6;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    color: #495057;
+
+    .datatable-footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .page-count {
+      color: #6c757d;
+    }
+
+    .datatable-pager {
+      .pager {
+        display: flex;
+        gap: 4px;
+        list-style: none;
+        margin: 0;
+        padding: 0;
+
+        li {
+          a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            color: #495057;
+            text-decoration: none;
+            font-size: 0.85rem;
+            background: #fff;
+
+            &:hover {
+              background-color: #e9ecef;
+            }
+          }
+
+          &.active a {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: #fff;
+          }
+
+          &.disabled a {
+            color: #adb5bd;
+            pointer-events: none;
+            background-color: #f8f9fa;
+          }
+        }
+      }
+    }
+  }
+}
