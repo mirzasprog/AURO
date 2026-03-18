@@ -1,0 +1,147 @@
+@import '~bootstrap/scss/bootstrap';
+
+#datum {
+  font-size: medium;
+  font-weight: 600;
+}
+
+/* Flatpickr fix - spriječi razvlačenje kalendara */
+.flatpickr-calendar {
+  width: auto !important;
+}
+
+.flatpickr-input {
+  background-color: #fff !important;
+}
+
+/* Tabela apoena */
+#tabelaPazara {
+  border: 1.5px solid #c4bfbf;
+  border-collapse: collapse;
+
+  thead tr {
+    background-color: #e9ecef;
+  }
+
+  th, td {
+    border: 1px solid #c4bfbf !important;
+    padding: 6px 10px;
+  }
+
+  tfoot tr {
+    background-color: #e9ecef;
+    font-weight: 600;
+  }
+}
+
+/* Input za broj komada - centriran i ograničene širine */
+#tabelaPazara input.form-control {
+  width: 80px;
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+}
+
+/* Submit button */
+#button {
+  border-radius: 5px;
+  border: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.5s ease;
+}
+
+#button:hover {
+  border-radius: 0px;
+  transform: scale(1.05);
+  transition: all 0.5s ease;
+}
+
+/* Lijeva kolona - max širina */
+.col:first-child {
+  max-width: 520px;
+}
+
+/* Dodati u globalni styles.scss */
+.flatpickr-calendar {
+  width: 307.875px !important;
+}
+
+.page-wrapper {
+  padding: 1.5rem;
+}
+
+.form-card {
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  padding: 1.5rem 2rem 1rem 2rem;
+}
+
+.form-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #343a40;
+  border-bottom: 2px solid #e9ecef;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+
+  i {
+    color: #007bff;
+    margin-right: 0.3rem;
+  }
+
+  .today-date {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #6c757d;
+    background: #f1f3f5;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid #dee2e6;
+  }
+}
+
+/* Tabela apoena */
+#tabelaPazara {
+  border: 1.5px solid #c4bfbf;
+  border-collapse: collapse;
+
+  thead tr {
+    background-color: #e9ecef;
+  }
+
+  th, td {
+    border: 1px solid #c4bfbf !important;
+    padding: 6px 10px;
+  }
+
+  tfoot tr {
+    background-color: #e9ecef;
+    font-weight: 600;
+  }
+}
+
+#tabelaPazara input.form-control {
+  width: 80px;
+  text-align: center;
+  margin: 0 auto;
+  display: block;
+}
+
+/* Submit button */
+#button {
+  border-radius: 5px;
+  border: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  transition: all 0.5s ease;
+}
+
+#button:hover {
+  border-radius: 0px;
+  transform: scale(1.05);
+  transition: all 0.5s ease;
+}

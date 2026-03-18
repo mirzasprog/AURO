@@ -124,7 +124,7 @@ onPageSizeChange(size: number): void {
   }
 
   get canBulkCreate(): boolean {
-    return this.role === 'uprava';
+    return this.role === 'uprava' || this.role === 'asistent_MLP';
   }
 
   get canCreateCustomTasks(): boolean {

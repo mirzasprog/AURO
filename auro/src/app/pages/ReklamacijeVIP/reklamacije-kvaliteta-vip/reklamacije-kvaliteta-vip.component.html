@@ -31,9 +31,16 @@
           <nb-form-field fieldSize="small">
             <nb-icon icon="layers" nbPrefix></nb-icon>
             <input nbInput type="text" name="kolicina" [(ngModel)]="unesenaKolicina" required
-              placeholder="Unesite količinu" autocomplete="off" pattern="^[0-9]+([.,][0-9]{1,2})?$" fullWidth
-              fieldSize="small">
+              placeholder="Unesite količinu" autocomplete="off" pattern="^[0-9]+([.][0-9]{1,2})?$" fullWidth
+              fieldSize="small"
+              #kolicinaInput="ngModel"
+                        (keydown)="onNabavnaCijenaKeydown($event)"
+          (paste)="onNabavnaCijenaPaste($event)">
           </nb-form-field>
+      <small class="text-danger" 
+        *ngIf="kolicinaInput.invalid && kolicinaInput.touched">
+        Unesite ispravan broj (npr. 16.50)
+      </small>
         </div>
 
         <!-- Reklamirana količina -->
@@ -42,9 +49,16 @@
           <nb-form-field fieldSize="small">
             <nb-icon icon="layers" nbPrefix></nb-icon>
             <input nbInput type="text" name="reklamiranaKolicina" [(ngModel)]="unesenaReklamiranaKolicina" required
-              placeholder="Unesite reklamiranu količinu" autocomplete="off" pattern="^[0-9]+([.,][0-9]{1,2})?$"
-              fullWidth fieldSize="small">
+              placeholder="Unesite reklamiranu količinu" autocomplete="off" pattern="^[0-9]+([.][0-9]{1,2})?$"
+              fullWidth fieldSize="small"
+              #reklamiranaKolicinaInput="ngModel"
+                        (keydown)="onNabavnaCijenaKeydown($event)"
+          (paste)="onNabavnaCijenaPaste($event)">
           </nb-form-field>
+        <small class="text-danger" 
+        *ngIf="reklamiranaKolicinaInput.invalid && reklamiranaKolicinaInput.touched">
+        Unesite ispravan broj (npr. 16.50)
+      </small>
         </div>
 
     <!-- Nabavna cijena -->
@@ -67,6 +81,28 @@
     </div>
       </div>
       <div class="row form-group">
+        <!-- Razlog reklamacije -->
+      <div class="col">
+        <label>Razlog reklamacije</label><em>*</em>
+        <nb-form-field fieldSize="small">
+          <nb-icon icon="arrowhead-down-outline" nbPrefix></nb-icon>
+
+          <nb-select
+            fullWidth
+            size="small"
+            name="razlogReklamacije"
+            [(ngModel)]="razlogReklamacije"
+            #razlogModel="ngModel"
+            required
+            placeholder="Odaberite razlog reklamacije">
+
+            <nb-option *ngFor="let razlog of razloziReklamacije" [value]="razlog">
+              {{ razlog }}
+            </nb-option>
+
+          </nb-select>
+        </nb-form-field>
+      </div>
         <!-- Broj zaduženja maloprodaje -->
         <div class="col">
           <label>Br. zaduženja MLP</label><em>*</em>

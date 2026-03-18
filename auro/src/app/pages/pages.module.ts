@@ -34,6 +34,7 @@ import { HttpClientModule } from '@angular/common/http';
   declarations: [
     PagesComponent,
     NgxLoginComponent,
+
     
   ],
   providers: [],

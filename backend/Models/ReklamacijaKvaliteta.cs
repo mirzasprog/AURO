@@ -12,12 +12,14 @@ namespace backend.Models
         public string? SifraArtikla { get; set; }
         public string? Naziv { get; set; }
         public string? BrojProdavnice { get; set; }
-        public int Kolicina { get; set; }
+        [Precision(18,2)]
+        public decimal Kolicina { get; set; }
         [Precision(18,2)]
         public decimal NabavnaCijena { get; set; }
         public string? BrojDokumenta { get; set; }
         public string? Lot { get; set; }
-        public int ReklamiranaKolicina { get; set; }
+        [Precision(18,2)]
+        public decimal ReklamiranaKolicina { get; set; }
         public string? BrojZaduzenjaMLP { get; set; }
     }
 }

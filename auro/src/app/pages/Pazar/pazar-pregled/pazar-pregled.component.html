@@ -1,0 +1,74 @@
+<div class="container-fluid px-3" style="padding: 0 15px 15px 15px;">
+  <div class="d-flex justify-content-between flex-wrap align-items-center my-3">
+
+    <button id="button" type="button" class="btn btn-success" (click)="dodajPazar()" style="background-color: #2ECC71;">
+      <i class="fas fa-plus-square"></i>&nbsp;&nbsp;Dodaj
+    </button>
+
+    <div class="input-group w-auto">
+      <input class="form-control" id="pretraga" type="search" placeholder="Pretraga..."
+        (keyup)="filtriraj($event)" (focusout)="filtriraj($event)" autocomplete="off">
+      <div class="input-group-append">
+        <button class="btn btn-primary" type="button" disabled>
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+
+    <button id="button" type="button" class="btn btn-primary" (click)="osvjeziStranicu()" style="background-color: #3ebff7;">
+      <i class="fas fa-sync-alt"></i>&nbsp;&nbsp;Osvježi stranicu
+    </button>
+  </div>
+
+  <ngx-datatable
+    class="bootstrap"
+    [headerHeight]="50"
+    [footerHeight]="50"
+    rowHeight="auto"
+    [limit]="10"
+    [messages]="{ emptyMessage: 'Nema podataka', totalMessage: 'unosa' }"
+    [rows]="rows"
+    [columnMode]="'force'"
+    style="width: 100%;">
+
+    <ngx-datatable-column name="ID naloga" prop="idNaloga">
+      <ng-template let-value="value" ngx-datatable-cell-template>
+        {{ value }}
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column name="Prodavnica" prop="brojProdavnice">
+      <ng-template let-value="value" ngx-datatable-cell-template>
+        {{ value }}
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column name="Datum" prop="datum">
+      <ng-template let-value="value" ngx-datatable-cell-template>
+        {{ value | date:'dd-MM-yyyy' }}
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column name="Ukupno transakcija" prop="ukupnoTransakcija">
+      <ng-template let-value="value" ngx-datatable-cell-template>
+        {{ value }}
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column name="Iznos" prop="iznos">
+      <ng-template let-value="value" ngx-datatable-cell-template>
+        {{ value | number:'1.2-2':'bs' }} BAM
+      </ng-template>
+    </ngx-datatable-column>
+
+    <ngx-datatable-column name="Akcije" [sortable]="false">
+      <ng-template ngx-datatable-cell-template let-row="row">
+        <button type="button" class="btn btn-info btn-sm"
+          (click)="ispis({ uplatnicaID: row.uplatnicaID, idNaloga: row.idNaloga })">
+          <i class="fas fa-print"></i>&nbsp;&nbsp;Ispiši
+        </button>
+      </ng-template>
+    </ngx-datatable-column>
+
+  </ngx-datatable>
+</div>
